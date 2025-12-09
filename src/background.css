@@ -1,0 +1,7 @@
+.dark body {
+  background-image: url('/background.png') !important; /* O caminho para a imagem na pasta public */
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+}
