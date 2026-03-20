@@ -23,7 +23,7 @@ export const useProspeccao = () => {
       setError(err.message);
       toast({
         title: "Erro ao carregar dados",
-        description: "Não foi possível carregar a lista de prospecção.",
+        description: "Não foi possível carregar a lista comercial.",
         variant: "destructive"
       });
     } finally {

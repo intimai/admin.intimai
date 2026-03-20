@@ -8,8 +8,8 @@ export const useDelegacias = () => {
   const [error, setError] = useState(null);
   const { toast } = useToast();
 
-  const fetchDelegacias = useCallback(async (searchTerm = '') => {
-    console.log('[useDelegacias] Iniciando busca...', { searchTerm });
+  const fetchDelegacias = useCallback(async (searchTerm = '', status = '') => {
+    console.log('[useDelegacias] Iniciando busca...', { searchTerm, status });
     try {
       setLoading(true);
       let query = supabase
@@ -19,6 +19,10 @@ export const useDelegacias = () => {
 
       if (searchTerm) {
         query = query.ilike('nome', `%${searchTerm}%`);
+      }
+
+      if (status) {
+        query = query.eq('status_conta', status);
       }
 
       const { data, error } = await query;
@@ -80,10 +84,10 @@ export const useDelegacias = () => {
 
       if (error) throw error;
 
-      setDelegacias(prev => prev.map(item => 
+      setDelegacias(prev => prev.map(item =>
         item.delegaciaId === id ? data : item
       ));
-      
+
       toast({
         title: "Sucesso",
         description: "Delegacia atualizada com sucesso.",

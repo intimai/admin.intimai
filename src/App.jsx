@@ -12,6 +12,7 @@ import IntimacoesPage from './pages/IntimacoesPage';
 import ColaboradoresPage from './pages/ColaboradoresPage';
 import SemPermissaoPage from './pages/SemPermissaoPage';
 import SetPasswordPage from './pages/SetPasswordPage';
+import EmDesenvolvimentoPage from './pages/EmDesenvolvimentoPage';
 import AdminLayout from './components/layout/AdminLayout';
 import AdminProtectedRoute from './components/layout/AdminProtectedRoute';
 import { AdminAuthProvider } from './contexts/AdminAuthContext';
@@ -36,9 +37,24 @@ function App() {
               <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
 
-              <Route path="prospeccao" element={
+              <Route path="comercial" element={
                 <AdminProtectedRoute menuSlug="prospeccao">
                   <ProspeccaoPage />
+                </AdminProtectedRoute>
+              } />
+              <Route path="propostas" element={
+                <AdminProtectedRoute menuSlug="propostas">
+                  <EmDesenvolvimentoPage title="Propostas" />
+                </AdminProtectedRoute>
+              } />
+              <Route path="contratos" element={
+                <AdminProtectedRoute menuSlug="contratos">
+                  <EmDesenvolvimentoPage title="Contratos" />
+                </AdminProtectedRoute>
+              } />
+              <Route path="nfe" element={
+                <AdminProtectedRoute menuSlug="nfe">
+                  <EmDesenvolvimentoPage title="NF-e" />
                 </AdminProtectedRoute>
               } />
               <Route path="delegacias" element={

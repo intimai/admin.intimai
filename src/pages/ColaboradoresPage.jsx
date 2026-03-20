@@ -16,11 +16,13 @@ import { cn } from '@/lib/utils';
 // Menus disponíveis para configurar as permissões de cada colaborador
 const MENU_OPTIONS = [
     { slug: 'dashboard', label: 'Dashboard' },
-    { slug: 'prospeccao', label: 'Prospecção' },
+    { slug: 'prospeccao', label: 'Comercial' },
+    { slug: 'propostas', label: 'Propostas' },
+    { slug: 'contratos', label: 'Contratos' },
+    { slug: 'nfe', label: 'NF-e' },
     { slug: 'delegacias', label: 'Delegacias' },
     { slug: 'users', label: 'Usuários' },
     { slug: 'suporte', label: 'Suporte' },
-    { slug: 'intimacoes', label: 'Intimações' },
     { slug: 'finance', label: 'Financeiro' },
     { slug: 'settings', label: 'Configurações' },
 ];

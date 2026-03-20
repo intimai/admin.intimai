@@ -8,14 +8,14 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import ConfirmationModal from '@/components/ui/ConfirmationModal';
-import { 
-  Search, 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Building2, 
-  MapPin, 
-  Phone, 
+import {
+  Search,
+  Plus,
+  Edit,
+  Trash2,
+  Building2,
+  MapPin,
+  Phone,
   Loader2,
   AlertCircle
 } from 'lucide-react';
@@ -54,66 +54,66 @@ const DelegaciaForm = ({ initialData, onSubmit, onCancel, isLoading }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="nome">Nome *</Label>
-          <Input 
-            id="nome" 
-            name="nome" 
-            value={formData.nome} 
-            onChange={handleChange} 
-            required 
+          <Input
+            id="nome"
+            name="nome"
+            value={formData.nome}
+            onChange={handleChange}
+            required
             placeholder="Nome da Delegacia"
           />
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="telefone">Telefone</Label>
-          <Input 
-            id="telefone" 
-            name="telefone" 
-            value={formData.telefone || ''} 
-            onChange={handleChange} 
+          <Input
+            id="telefone"
+            name="telefone"
+            value={formData.telefone || ''}
+            onChange={handleChange}
             placeholder="(00) 00000-0000"
           />
         </div>
 
         <div className="space-y-2 md:col-span-2">
           <Label htmlFor="endereco">Endereço</Label>
-          <Input 
-            id="endereco" 
-            name="endereco" 
-            value={formData.endereco || ''} 
-            onChange={handleChange} 
+          <Input
+            id="endereco"
+            name="endereco"
+            value={formData.endereco || ''}
+            onChange={handleChange}
             placeholder="Rua, Número, Bairro"
           />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="cidadeEstado">Cidade/Estado</Label>
-          <Input 
-            id="cidadeEstado" 
-            name="cidadeEstado" 
-            value={formData.cidadeEstado || ''} 
-            onChange={handleChange} 
+          <Input
+            id="cidadeEstado"
+            name="cidadeEstado"
+            value={formData.cidadeEstado || ''}
+            onChange={handleChange}
             placeholder="Cidade - UF"
           />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="limiteUsuarios">Limite de Usuários</Label>
-          <Input 
-            id="limiteUsuarios" 
-            name="limiteUsuarios" 
-            type="number" 
-            value={formData.limiteUsuarios} 
-            onChange={handleChange} 
+          <Input
+            id="limiteUsuarios"
+            name="limiteUsuarios"
+            type="number"
+            value={formData.limiteUsuarios}
+            onChange={handleChange}
           />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="plano">Plano</Label>
-          <select 
-            id="plano" 
-            name="plano" 
-            value={formData.plano} 
+          <select
+            id="plano"
+            name="plano"
+            value={formData.plano}
             onChange={handleChange}
             className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -125,10 +125,10 @@ const DelegaciaForm = ({ initialData, onSubmit, onCancel, isLoading }) => {
 
         <div className="space-y-2">
           <Label htmlFor="status_conta">Status da Conta</Label>
-          <select 
-            id="status_conta" 
-            name="status_conta" 
-            value={formData.status_conta} 
+          <select
+            id="status_conta"
+            name="status_conta"
+            value={formData.status_conta}
             onChange={handleChange}
             className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -140,21 +140,21 @@ const DelegaciaForm = ({ initialData, onSubmit, onCancel, isLoading }) => {
 
         <div className="space-y-2">
           <Label htmlFor="evoInstancia">Evo Instância</Label>
-          <Input 
-            id="evoInstancia" 
-            name="evoInstancia" 
-            value={formData.evoInstancia || ''} 
-            onChange={handleChange} 
+          <Input
+            id="evoInstancia"
+            name="evoInstancia"
+            value={formData.evoInstancia || ''}
+            onChange={handleChange}
           />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="evoAPI">Evo API Key</Label>
-          <Input 
-            id="evoAPI" 
-            name="evoAPI" 
-            value={formData.evoAPI || ''} 
-            onChange={handleChange} 
+          <Input
+            id="evoAPI"
+            name="evoAPI"
+            value={formData.evoAPI || ''}
+            onChange={handleChange}
             type="password"
           />
         </div>
@@ -216,11 +216,22 @@ const DelegaciaCard = ({ delegacia, onEdit, onDelete }) => {
             <Phone size={14} />
             <span>{delegacia.telefone || 'Sem telefone'}</span>
           </div>
-          <Badge variant={delegacia.bloqueado ? "destructive" : "secondary"} className="text-[10px] uppercase">
-            {delegacia.bloqueado ? 'Bloqueado' : delegacia.status_conta}
-          </Badge>
+          {delegacia.bloqueado ? (
+            <Badge variant="destructive" className="text-[10px] uppercase">Bloqueado</Badge>
+          ) : (
+            <Badge
+              className={cn(
+                "text-[10px] uppercase border-none",
+                delegacia.status_conta === 'ativa'
+                  ? "bg-green-500/10 text-green-500 hover:bg-green-500/20"
+                  : "bg-secondary text-secondary-foreground"
+              )}
+            >
+              {delegacia.status_conta}
+            </Badge>
+          )}
         </div>
-        
+
         <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t">
           <div>
             <span className="text-muted-foreground block">Plano</span>
@@ -232,13 +243,14 @@ const DelegaciaCard = ({ delegacia, onEdit, onDelete }) => {
           </div>
         </div>
       </CardContent>
-    </Card>
+    </Card >
   );
 };
 
 const DelegaciasPage = () => {
   const { delegacias, loading, searchDelegacias, createDelegacia, updateDelegacia, deleteDelegacia } = useDelegacias();
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ativa');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingDelegacia, setEditingDelegacia] = useState(null);
   const [deletingDelegacia, setDeletingDelegacia] = useState(null);
@@ -246,16 +258,16 @@ const DelegaciasPage = () => {
 
   // Debounce search
   useEffect(() => {
-    console.log('[DelegaciasPage] useEffect triggered', { searchTerm });
+    console.log('[DelegaciasPage] useEffect triggered', { searchTerm, statusFilter });
     const timer = setTimeout(() => {
-      console.log('[DelegaciasPage] Executing searchDelegacias', { searchTerm });
-      searchDelegacias(searchTerm);
+      console.log('[DelegaciasPage] Executing searchDelegacias', { searchTerm, statusFilter });
+      searchDelegacias(searchTerm, statusFilter);
     }, 500);
     return () => {
-      console.log('[DelegaciasPage] Cleaning up timer', { searchTerm });
+      console.log('[DelegaciasPage] Cleaning up timer', { searchTerm, statusFilter });
       clearTimeout(timer);
     }
-  }, [searchTerm, searchDelegacias]);
+  }, [searchTerm, statusFilter, searchDelegacias]);
 
   const handleCreate = async (data) => {
     setActionLoading(true);
@@ -289,8 +301,8 @@ const DelegaciasPage = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <PageHeader 
-          title="Delegacias" 
+        <PageHeader
+          title="Delegacias"
           description="Gestão de delegacias parceiras e configurações"
         />
         <Button onClick={() => setIsCreateModalOpen(true)} className="w-full md:w-auto">
@@ -299,14 +311,52 @@ const DelegaciasPage = () => {
         </Button>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-        <Input 
-          placeholder="Buscar delegacias por nome..." 
-          className="pl-10"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="Buscar delegacias por nome..."
+            className="pl-10"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        <div className="flex items-center p-1 bg-muted rounded-lg border w-fit">
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn(
+              "text-xs px-4 h-8",
+              statusFilter === 'ativa' ? "bg-background shadow-sm text-primary font-bold" : "text-muted-foreground"
+            )}
+            onClick={() => setStatusFilter('ativa')}
+          >
+            Ativas
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn(
+              "text-xs px-4 h-8",
+              statusFilter === 'inativa' ? "bg-background shadow-sm text-primary font-bold" : "text-muted-foreground"
+            )}
+            onClick={() => setStatusFilter('inativa')}
+          >
+            Inativas
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn(
+              "text-xs px-4 h-8",
+              statusFilter === '' ? "bg-background shadow-sm text-primary font-bold" : "text-muted-foreground"
+            )}
+            onClick={() => setStatusFilter('')}
+          >
+            Todas
+          </Button>
+        </div>
       </div>
 
       {loading && delegacias.length === 0 ? (
@@ -321,9 +371,9 @@ const DelegaciasPage = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {delegacias.map((delegacia) => (
-            <DelegaciaCard 
-              key={delegacia.delegaciaId} 
-              delegacia={delegacia} 
+            <DelegaciaCard
+              key={delegacia.delegaciaId}
+              delegacia={delegacia}
               onEdit={setEditingDelegacia}
               onDelete={setDeletingDelegacia}
             />
@@ -337,9 +387,9 @@ const DelegaciasPage = () => {
           <DialogHeader>
             <DialogTitle>Nova Delegacia</DialogTitle>
           </DialogHeader>
-          <DelegaciaForm 
-            onSubmit={handleCreate} 
-            onCancel={() => setIsCreateModalOpen(false)} 
+          <DelegaciaForm
+            onSubmit={handleCreate}
+            onCancel={() => setIsCreateModalOpen(false)}
             isLoading={actionLoading}
           />
         </DialogContent>
@@ -352,10 +402,10 @@ const DelegaciasPage = () => {
             <DialogTitle>Editar Delegacia</DialogTitle>
           </DialogHeader>
           {editingDelegacia && (
-            <DelegaciaForm 
+            <DelegaciaForm
               initialData={editingDelegacia}
-              onSubmit={handleUpdate} 
-              onCancel={() => setEditingDelegacia(null)} 
+              onSubmit={handleUpdate}
+              onCancel={() => setEditingDelegacia(null)}
               isLoading={actionLoading}
             />
           )}
@@ -371,7 +421,7 @@ const DelegaciasPage = () => {
         isLoading={actionLoading}
       >
         <p className="text-sm text-gray-300">
-          Tem certeza que deseja excluir a delegacia <strong>{deletingDelegacia?.nome}</strong>? 
+          Tem certeza que deseja excluir a delegacia <strong>{deletingDelegacia?.nome}</strong>?
           Esta ação não pode ser desfeita.
         </p>
       </ConfirmationModal>

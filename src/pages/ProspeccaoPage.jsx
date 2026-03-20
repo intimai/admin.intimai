@@ -129,8 +129,8 @@ const ProspeccaoPage = () => {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Prospecção"
-        description="Gerencie a fila de espera e oportunidades de novas delegacias"
+        title="Funil de Vendas"
+        description="Gestão de leads e progresso de vendas"
       />
 
       <div className="overflow-x-auto pb-4">

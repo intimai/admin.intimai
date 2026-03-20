@@ -1,6 +1,18 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, CreditCard, LogOut, Target, Building2, Headphones, UserCog } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Users,
+  CreditCard,
+  LogOut,
+  Target,
+  Building2,
+  Headphones,
+  UserCog,
+  FileText,
+  Gavel,
+  Receipt
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
@@ -11,20 +23,20 @@ const AdminLayout = () => {
   const { user, logout, isSuperAdmin, hasMenuAccess } = useAdminAuth();
 
   const isActive = (path) => {
-    return location.pathname.startsWith(path);
+    return location.pathname === path || location.pathname.startsWith(path + '/');
   };
 
   const NavItem = ({ to, icon: Icon, label }) => (
     <Link
       to={to}
       className={cn(
-        "flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200",
+        "flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium rounded-lg transition-all duration-200",
         isActive(to)
           ? "bg-primary text-white shadow-md"
           : "text-muted-foreground hover:bg-muted hover:text-foreground"
       )}
     >
-      <Icon size={20} />
+      <Icon size={18} />
       {label}
     </Link>
   );
@@ -39,20 +51,22 @@ const AdminLayout = () => {
 
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto py-6">
           <NavItem to="/dashboard" icon={LayoutDashboard} label="Dashboard" />
-          {hasMenuAccess('prospeccao') && <NavItem to="/prospeccao" icon={Target} label="Prospecção" />}
-          {hasMenuAccess('delegacias') && <NavItem to="/delegacias" icon={Building2} label="Delegacias" />}
-          {hasMenuAccess('users') && <NavItem to="/users" icon={Users} label="Usuários" />}
+          {hasMenuAccess('prospeccao') && <NavItem to="/comercial" icon={Target} label="Comercial" />}
+          {hasMenuAccess('propostas') && <NavItem to="/propostas" icon={FileText} label="Propostas" />}
+          {hasMenuAccess('contratos') && <NavItem to="/contratos" icon={Gavel} label="Contratos" />}
+          {hasMenuAccess('nfe') && <NavItem to="/nfe" icon={Receipt} label="NF-e" />}
           {hasMenuAccess('suporte') && <NavItem to="/suporte" icon={Headphones} label="Suporte" />}
           {hasMenuAccess('finance') && <NavItem to="/finance" icon={CreditCard} label="Financeiro" />}
 
+          <div className="my-6 border-t border-border mx-2 opacity-60" />
+
+          {/* Menus de Gestão */}
+          {hasMenuAccess('delegacias') && <NavItem to="/delegacias" icon={Building2} label="Delegacias" />}
+          {hasMenuAccess('users') && <NavItem to="/users" icon={Users} label="Usuários" />}
+
           {/* Apenas super admins veem o menu de Colaboradores */}
           {isSuperAdmin && (
-            <>
-              <div className="pt-3 pb-1 px-4">
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-semibold">Administração</p>
-              </div>
-              <NavItem to="/colaboradores" icon={UserCog} label="Colaboradores" />
-            </>
+            <NavItem to="/colaboradores" icon={UserCog} label="Colaboradores" />
           )}
         </nav>
       </aside>
