@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Loader2, ShieldCheck, Eye, EyeOff } from 'lucide-react';
+import { useTheme } from '@/contexts/ThemeContext';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 
 const SetPasswordPage = () => {
     const [password, setPassword] = useState('');
@@ -15,6 +16,7 @@ const SetPasswordPage = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [checkingSession, setCheckingSession] = useState(true);
     const { toast } = useToast();
+    const { logoSrc } = useTheme();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -68,7 +70,7 @@ const SetPasswordPage = () => {
             });
 
             // Redirecionar para o dashboard após um breve momento
-            setTimeout(() => navigate('/'), 1500);
+            setTimeout(() => navigate('/dashboard'), 1500);
         } catch (err) {
             console.error('Erro ao definir senha:', err);
             toast({
@@ -83,30 +85,29 @@ const SetPasswordPage = () => {
 
     if (checkingSession) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-[#0a0a10]">
+            <div className="min-h-screen flex items-center justify-center bg-background">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#0a0a10] p-4 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-900 via-black to-black">
-            <Card className="w-full max-w-md border-zinc-800 bg-zinc-950/50 backdrop-blur-xl shadow-2xl">
-                <CardHeader className="space-y-2 text-center pb-8">
-                    <div className="flex justify-center mb-4">
-                        <div className="p-3 rounded-2xl bg-primary/10 border border-primary/20">
-                            <ShieldCheck className="h-8 w-8 text-primary" />
-                        </div>
-                    </div>
-                    <CardTitle className="text-2xl font-bold tracking-tight text-white">
-                        Bem-vindo ao IntimAI Admin
-                    </CardTitle>
-                    <CardDescription className="text-zinc-400">
-                        Para concluir seu acesso, defina uma senha de segurança para sua conta.
+        <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
+            <div className="text-center mb-8 space-y-2">
+                <img src={logoSrc} alt="IntimAI" className="h-12 mx-auto" />
+                <h2 className="text-xl font-semibold text-primary tracking-wide uppercase">Novo Colaborador</h2>
+                <p className="text-muted-foreground">Defina sua senha de acesso ao painel.</p>
+            </div>
+
+            <Card className="w-full max-w-md border-border shadow-lg">
+                <CardHeader className="space-y-1 text-center">
+                    <CardTitle className="text-2xl font-bold text-primary">Criar Senha</CardTitle>
+                    <CardDescription>
+                        Escolha uma senha segura para proteger sua conta.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form onSubmit={handleSubmit} className="space-y-5">
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="password">Nova Senha</Label>
                             <div className="relative">
@@ -115,14 +116,14 @@ const SetPasswordPage = () => {
                                     type={showPassword ? 'text' : 'password'}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="bg-zinc-900/50 border-zinc-800 pr-10 focus-visible:ring-primary"
+                                    className="input-elegant pr-10"
                                     placeholder="••••••••"
                                     required
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary focus:outline-none"
                                 >
                                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                 </button>
@@ -136,7 +137,7 @@ const SetPasswordPage = () => {
                                 type={showPassword ? 'text' : 'password'}
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
-                                className="bg-zinc-900/50 border-zinc-800 focus-visible:ring-primary"
+                                className="input-elegant"
                                 placeholder="••••••••"
                                 required
                             />
@@ -144,7 +145,7 @@ const SetPasswordPage = () => {
 
                         <Button
                             type="submit"
-                            className="w-full h-11 text-base font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                            className="w-full bg-primary hover:bg-primary/90"
                             disabled={loading}
                         >
                             {loading ? (
@@ -153,7 +154,7 @@ const SetPasswordPage = () => {
                                     Salvando...
                                 </>
                             ) : (
-                                'Configurar Acesso'
+                                'Ativar Meu Acesso'
                             )}
                         </Button>
                     </form>
