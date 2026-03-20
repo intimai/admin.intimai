@@ -173,8 +173,14 @@ export const AdminAuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
-    // clearState será chamado pelo onAuthStateChange (SIGNED_OUT)
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error('[Auth] Erro ao deslogar:', error);
+    } finally {
+      // Garantir que o estado seja limpo mesmo se o evento SIGNED_OUT demorar
+      clearState();
+    }
   };
 
   /**
