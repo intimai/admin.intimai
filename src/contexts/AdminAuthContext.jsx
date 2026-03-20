@@ -21,7 +21,7 @@ const fetchAdminProfile = async (authUser) => {
   const { data: usuarioData } = await supabase
     .from('usuarios')
     .select('is_admin, nome')
-    .eq('email', authUser.email)
+    .ilike('email', authUser.email)
     .maybeSingle();
 
   if (usuarioData?.is_admin === true) {
@@ -37,7 +37,7 @@ const fetchAdminProfile = async (authUser) => {
   const { data: colaboradorData } = await supabase
     .from('admin_colaboradores')
     .select('role, admin_menus, nome, ativo')
-    .eq('email', authUser.email)
+    .ilike('email', authUser.email)
     .maybeSingle();
 
   if (colaboradorData?.ativo === true) {
@@ -131,6 +131,10 @@ export const AdminAuthProvider = ({ children }) => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
+
+      // Breve delay para garantir que o cabeçalho de sessão (JWT)
+      // seja propagado para as chamadas subsequentes e o RLS funcione.
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       if (data.user) {
         const profile = await fetchAdminProfile(data.user);
