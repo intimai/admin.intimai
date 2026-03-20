@@ -15,41 +15,59 @@ export const useAdminAuth = () => useContext(AdminAuthContext);
  * Retorna: { authorized, role, adminMenus, nome } ou null se sem acesso
  */
 const fetchAdminProfile = async (authUser) => {
-  if (!authUser?.email) return null;
+  if (!authUser?.email) {
+    console.log('[AuthCheck] Sem email no authUser');
+    return null;
+  }
+
+  console.log('[AuthCheck] Iniciando verificação para:', authUser.email);
 
   // 1. Checar super admin na tabela usuarios
-  const { data: usuarioData } = await supabase
+  const { data: usuarioData, error: usuarioError } = await supabase
     .from('usuarios')
     .select('is_admin, nome')
     .ilike('email', authUser.email)
     .maybeSingle();
 
+  if (usuarioError) console.error('[AuthCheck] Erro na tabela usuarios:', usuarioError);
+
   if (usuarioData?.is_admin === true) {
+    console.log('[AuthCheck] Super Admin identificado');
     return {
       authorized: true,
       role: 'super_admin',
-      adminMenus: null, // null = acesso total
+      adminMenus: null,
       nome: usuarioData.nome || authUser.email,
     };
   }
 
   // 2. Checar colaborador na tabela admin_colaboradores
-  const { data: colaboradorData } = await supabase
+  const { data: colaboradorData, error: colaboradorError } = await supabase
     .from('admin_colaboradores')
     .select('role, admin_menus, nome, ativo')
     .ilike('email', authUser.email)
     .maybeSingle();
 
-  if (colaboradorData?.ativo === true) {
-    return {
-      authorized: true,
-      role: colaboradorData.role || 'colaborador',
-      adminMenus: colaboradorData.admin_menus || null,
-      nome: colaboradorData.nome || authUser.email,
-    };
+  if (colaboradorError) console.error('[AuthCheck] Erro na tabela admin_colaboradores:', colaboradorError);
+
+  if (colaboradorData) {
+    console.log('[AuthCheck] Dados de colaborador encontrados:', { ativo: colaboradorData.ativo });
+    if (colaboradorData.ativo === true) {
+      return {
+        authorized: true,
+        role: colaboradorData.role || 'colaborador',
+        adminMenus: colaboradorData.admin_menus || null,
+        nome: colaboradorData.nome || authUser.email,
+      };
+    } else {
+      console.log('[AuthCheck] Colaborador está inativo');
+    }
+  } else {
+    console.log('[AuthCheck] Nenhum registro encontrado em admin_colaboradores');
   }
 
   // Sem acesso ao admin
+  console.log('[AuthCheck] Acesso NEGADO para:', authUser.email);
   return null;
 };
 
