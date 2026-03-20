@@ -29,7 +29,7 @@ const KanbanColumn = ({ title, items, status, onMove, colorClass }) => {
   };
 
   return (
-    <div 
+    <div
       className={cn(
         "flex flex-col gap-4 min-w-[280px] w-80 p-4 rounded-lg h-fit border flex-shrink-0 transition-colors duration-200",
         isOver ? "bg-muted/60 border-primary/50" : "bg-muted/30 border-border/50"
@@ -44,7 +44,7 @@ const KanbanColumn = ({ title, items, status, onMove, colorClass }) => {
           {items.length}
         </Badge>
       </div>
-      
+
       <div className="flex flex-col gap-3 pr-2 min-h-[100px]">
         {items.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground text-sm italic border-2 border-dashed border-muted rounded-md bg-background/50">
@@ -86,7 +86,7 @@ const ProspeccaoCard = ({ item }) => {
               {new Date(item.created_at).toLocaleDateString('pt-BR')}
             </Badge>
             <CardDescription className="text-xs flex items-center gap-1">
-               <User size={12} /> {item.delegadoResponsavel}
+              <User size={12} /> {item.delegadoResponsavel}
             </CardDescription>
           </div>
         </CardHeader>
@@ -128,31 +128,31 @@ const ProspeccaoPage = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader 
-        title="Prospecção" 
+      <PageHeader
+        title="Prospecção"
         description="Gerencie a fila de espera e oportunidades de novas delegacias"
       />
-      
+
       <div className="overflow-x-auto pb-4">
         <div className="flex gap-4 min-w-fit">
-          <KanbanColumn 
-            title="Aberto" 
-            status="pendente" 
-            items={columns.pendente} 
+          <KanbanColumn
+            title="Aberto"
+            status="pendente"
+            items={columns.pendente}
             onMove={updateStatus}
             colorClass="text-yellow-600 border-yellow-200"
           />
-          <KanbanColumn 
-            title="Em Andamento" 
-            status="processando" 
-            items={columns.processando} 
+          <KanbanColumn
+            title="Em Andamento"
+            status="processando"
+            items={columns.processando}
             onMove={updateStatus}
             colorClass="text-blue-600 border-blue-200"
           />
-          <KanbanColumn 
-            title="Resolvido" 
-            status="concluido" 
-            items={columns.concluido} 
+          <KanbanColumn
+            title="Resolvido"
+            status="concluido"
+            items={columns.concluido}
             onMove={updateStatus}
             colorClass="text-green-600 border-green-200"
           />

@@ -35,7 +35,7 @@ const KanbanColumn = ({ title, items, status, onMove, onUpdatePriority, colorCla
   };
 
   return (
-    <div 
+    <div
       className={cn(
         "flex flex-col gap-4 min-w-[280px] w-80 p-4 rounded-lg h-fit border flex-shrink-0 transition-colors duration-200",
         isOver ? "bg-muted/60 border-primary/50" : "bg-muted/30 border-border/50"
@@ -50,7 +50,7 @@ const KanbanColumn = ({ title, items, status, onMove, onUpdatePriority, colorCla
           {items.length}
         </Badge>
       </div>
-      
+
       <div className="flex flex-col gap-3 pr-2 min-h-[100px]">
         {items.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground text-sm italic border-2 border-dashed border-muted rounded-md bg-background/50">
@@ -96,11 +96,11 @@ const SuporteCard = ({ item, onUpdatePriority }) => {
             <GripVertical size={14} className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
           <div className="flex justify-between items-center mt-1">
-             <div className="flex items-center gap-1 text-xs text-muted-foreground" title={item.email}>
+            <div className="flex items-center gap-1 text-xs text-muted-foreground" title={item.email}>
               <Mail size={12} />
               <span className="truncate max-w-[120px]">{item.email}</span>
             </div>
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger className="focus:outline-none">
                 <Badge variant="outline" className={cn("text-[10px] uppercase shrink-0 border cursor-pointer transition-colors", getPriorityColor(item.prioridade))}>
@@ -153,33 +153,33 @@ const SuportePage = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader 
-        title="Suporte" 
+      <PageHeader
+        title="Suporte"
         description="Central de atendimento e gestão de tickets"
       />
-      
+
       <div className="overflow-x-auto pb-4">
         <div className="flex gap-4 min-w-fit">
-          <KanbanColumn 
-            title="Aberto" 
-            status="aberto" 
-            items={columns.aberto} 
+          <KanbanColumn
+            title="Aberto"
+            status="aberto"
+            items={columns.aberto}
             onMove={updateStatus}
             onUpdatePriority={updatePriority}
             colorClass="text-yellow-600 border-yellow-200"
           />
-          <KanbanColumn 
-            title="Em Andamento" 
-            status="em_andamento" 
-            items={columns.em_andamento} 
+          <KanbanColumn
+            title="Em Andamento"
+            status="em_andamento"
+            items={columns.em_andamento}
             onMove={updateStatus}
             onUpdatePriority={updatePriority}
             colorClass="text-blue-600 border-blue-200"
           />
-          <KanbanColumn 
-            title="Resolvido" 
-            status="resolvido" 
-            items={columns.resolvido} 
+          <KanbanColumn
+            title="Resolvido"
+            status="resolvido"
+            items={columns.resolvido}
             onMove={updateStatus}
             onUpdatePriority={updatePriority}
             colorClass="text-green-600 border-green-200"

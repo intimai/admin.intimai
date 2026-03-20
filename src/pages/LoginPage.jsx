@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,7 +23,7 @@ const LoginPage = () => {
   const from = location.state?.from?.pathname || '/dashboard';
 
   // Redirecionamento automático se já logado
-  React.useEffect(() => {
+  useEffect(() => {
     console.log('LoginPage useEffect - Status:', { authLoading, isAdmin, from });
     if (!authLoading && isAdmin) {
       console.log('Usuário já logado e é admin, redirecionando para:', from);
@@ -50,11 +50,11 @@ const LoginPage = () => {
           title: "Login realizado",
           description: "Bem-vindo ao painel administrativo",
         });
-        
+
         // Forçar navegação direta após um breve delay se o useEffect não pegar
         setTimeout(() => {
-            console.log('Tentando navegação forçada após login...');
-            navigate('/dashboard');
+          console.log('Tentando navegação forçada após login...');
+          navigate('/dashboard');
         }, 500);
       }
     } catch (error) {
@@ -76,7 +76,7 @@ const LoginPage = () => {
         <h2 className="text-xl font-semibold text-primary tracking-wide uppercase">Administrador</h2>
         <p className="text-muted-foreground">Gestão inteligente de intimações policiais.</p>
       </div>
-      
+
       <Card className="w-full max-w-md border-border shadow-lg">
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl font-bold text-primary">Entrar</CardTitle>
@@ -86,10 +86,10 @@ const LoginPage = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input 
-                id="email" 
-                type="email" 
-                placeholder="admin@intimai.com" 
+              <Input
+                id="email"
+                type="email"
+                placeholder="admin@intimai.com"
                 className="input-elegant"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -99,8 +99,8 @@ const LoginPage = () => {
             <div className="space-y-2">
               <Label htmlFor="password">Senha</Label>
               <div className="relative">
-                <Input 
-                  id="password" 
+                <Input
+                  id="password"
                   type={showPassword ? "text" : "password"}
                   className="input-elegant pr-10"
                   value={password}

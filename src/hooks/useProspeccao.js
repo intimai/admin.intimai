@@ -4,7 +4,7 @@ import { useToast } from '@/components/ui/use-toast';
 
 export const useProspeccao = () => {
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const { toast } = useToast();
 
@@ -34,7 +34,7 @@ export const useProspeccao = () => {
   const updateStatus = async (id, newStatus) => {
     try {
       // Otimistic update
-      setItems(prev => prev.map(item => 
+      setItems(prev => prev.map(item =>
         item.id === id ? { ...item, status: newStatus } : item
       ));
 
@@ -52,7 +52,7 @@ export const useProspeccao = () => {
     } catch (err) {
       console.error('Erro ao atualizar status:', err);
       // Revert optimistic update
-      fetchItems(); 
+      fetchItems();
       toast({
         title: "Erro ao atualizar",
         description: "Não foi possível atualizar o status.",
@@ -61,6 +61,7 @@ export const useProspeccao = () => {
     }
   };
 
+  // Auto-fetch ao montar o componente
   useEffect(() => {
     fetchItems();
   }, [fetchItems]);

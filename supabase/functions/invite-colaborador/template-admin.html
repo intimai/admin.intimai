@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convite Administrativo - IntimAI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #1a1a1a;
+            background-color: #f8fafc;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background: #1a1a1a;
+            padding: 30px;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #667eea, #764ba2, transparent);
+            opacity: 0.6;
+        }
+
+        .logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 10px;
+            display: block;
+            object-fit: contain;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.8;
+            font-weight: 300;
+        }
+
+        .content {
+            padding: 40px 30px;
+            background: #1a1a1a;
+            color: white;
+        }
+
+        .greeting {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            font-size: 15px;
+            color: #e5e7eb;
+            margin-bottom: 30px;
+            line-height: 1.7;
+        }
+
+        .cta-container {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #FFFFFF !important;
+            padding: 16px 32px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 4px 14px 0 rgba(102, 126, 234, 0.4);
+        }
+
+        .footer {
+            background: #1a1a1a;
+            color: #666;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #222;
+        }
+
+        .footer p {
+            font-size: 12px;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-container">
+        <div class="header">
+            <img class="logo" src="https://i.postimg.cc/ncksr6Lm/logo.png" alt="IntimAI Logo">
+            <h1>Convite de Acesso</h1>
+            <p>Painel Administrativo</p>
+        </div>
+
+        <div class="content">
+            <div class="greeting">Olá, {{ .Data.nome }}! 👋</div>
+            <div class="message">
+                <p>Você foi convidado(a) para atuar como colaborador(a) no <strong>Painel Administrativo do
+                        IntimAI</strong>.</p>
+                <p>Através deste painel, você poderá gerenciar operações, visualizar métricas e/ou outras
+                    funcionalidades relativas ao sistema principal.</p>
+                <p>Bem-vindo(a) à equipe do IntimAI!</p>
+            </div>
+
+            <div class="cta-container">
+                <a href="https://tvdkmuivivvummvqznjh.supabase.co/auth/v1/verify?token={{ .TokenHash }}&type=invite&redirect_to=https://admin.intimai.app/set-password"
+                    class="cta-button">
+                    🚀 Aceitar Convite & Definir Senha
+                </a>
+            </div>
+
+            <div class="message" style="font-size: 13px; opacity: 0.8; border-top: 1px solid #333; padding-top: 20px;">
+                <p><strong>Configuração de Segurança:</strong> Ao clicar no botão acima, você será direcionado para
+                    criar sua senha pessoal de acesso. Este link expira em 24 horas.</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 IntimAI Admin - Powered by Aurios AI</p>
+            <p>Este é um email automático. Por favor, não responda.</p>
+        </div>
+    </div>
+</body>
+
+</html>

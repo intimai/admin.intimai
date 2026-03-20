@@ -1,134 +1,146 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/customSupabaseClient';
 
 const AdminAuthContext = createContext({});
 
 export const useAdminAuth = () => useContext(AdminAuthContext);
 
+/**
+ * Busca o perfil de acesso ao admin para um usuário autenticado.
+ * 
+ * Prioridade:
+ * 1. Verifica se é super admin via public.usuarios (is_admin = true)
+ * 2. Verifica se é colaborador ativo via public.admin_colaboradores
+ * 
+ * Retorna: { authorized, role, adminMenus, nome } ou null se sem acesso
+ */
+const fetchAdminProfile = async (authUser) => {
+  if (!authUser?.email) return null;
+
+  // 1. Checar super admin na tabela usuarios
+  const { data: usuarioData } = await supabase
+    .from('usuarios')
+    .select('is_admin, nome')
+    .eq('email', authUser.email)
+    .maybeSingle();
+
+  if (usuarioData?.is_admin === true) {
+    return {
+      authorized: true,
+      role: 'super_admin',
+      adminMenus: null, // null = acesso total
+      nome: usuarioData.nome || authUser.email,
+    };
+  }
+
+  // 2. Checar colaborador na tabela admin_colaboradores
+  const { data: colaboradorData } = await supabase
+    .from('admin_colaboradores')
+    .select('role, admin_menus, nome, ativo')
+    .eq('email', authUser.email)
+    .maybeSingle();
+
+  if (colaboradorData?.ativo === true) {
+    return {
+      authorized: true,
+      role: colaboradorData.role || 'colaborador',
+      adminMenus: colaboradorData.admin_menus || null,
+      nome: colaboradorData.nome || authUser.email,
+    };
+  }
+
+  // Sem acesso ao admin
+  return null;
+};
+
 export const AdminAuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const checkingRef = React.useRef(false);
-  const lastCheckedUserRef = React.useRef(null);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [adminMenus, setAdminMenus] = useState(null); // null = todos os menus
+  const [role, setRole] = useState(null);
+  const initializedRef = useRef(false);
+
+  const applyProfile = (authUser, profile) => {
+    if (profile) {
+      setUser({ ...authUser, nome: profile.nome });
+      setIsAdmin(true);
+      setIsSuperAdmin(profile.role === 'super_admin');
+      setRole(profile.role);
+      setAdminMenus(profile.adminMenus);
+    } else {
+      setUser(null);
+      setIsAdmin(false);
+      setIsSuperAdmin(false);
+      setRole(null);
+      setAdminMenus(null);
+    }
+  };
+
+  const clearState = () => {
+    setUser(null);
+    setIsAdmin(false);
+    setIsSuperAdmin(false);
+    setRole(null);
+    setAdminMenus(null);
+    setLoading(false);
+  };
 
   useEffect(() => {
-    // Check active session
-    const checkSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session?.user) {
-          await checkAdminStatus(session.user);
-        } else {
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error('Error checking session:', error);
-        setLoading(false);
+    const initSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (session?.user) {
+        const profile = await fetchAdminProfile(session.user);
+        applyProfile(session.user, profile);
       }
+
+      setLoading(false);
+      initializedRef.current = true;
     };
 
-    checkSession();
+    initSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      // Ignorar eventos que não requerem revalidação completa se o usuário não mudou
-      if (session?.user) {
-        // Se já estamos logados com esse usuário e ele é admin, não precisamos verificar de novo
-        // a menos que seja um login explícito (SIGNED_IN)
-        if (event === 'SIGNED_IN' || session.user.id !== lastCheckedUserRef.current) {
-             await checkAdminStatus(session.user);
-        }
-      } else {
-        setUser(null);
-        setIsAdmin(false);
+      console.log('[Auth] Evento:', event);
+
+      if (event === 'SIGNED_OUT') {
+        clearState();
+        return;
+      }
+
+      if (event === 'TOKEN_REFRESHED' && session?.user) {
+        // Refresh silencioso — não re-busca no banco
+        setUser(prev => prev ? { ...prev, ...session.user } : null);
+        return;
+      }
+
+      if (event === 'SIGNED_IN' && session?.user && initializedRef.current) {
+        const profile = await fetchAdminProfile(session.user);
+        applyProfile(session.user, profile);
         setLoading(false);
-        lastCheckedUserRef.current = null;
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const checkAdminStatus = async (currentUser) => {
-    if (!currentUser?.email) {
-      setLoading(false);
-      return;
-    }
-
-    // Evita verificações repetidas para o mesmo usuário, mas permite se isAdmin ainda não foi confirmado
-    if (checkingRef.current) {
-        return;
-    }
-    
-    // Se já verificamos este email e o resultado foi sucesso, não precisamos verificar de novo
-    // Mas se lastCheckedUserRef for igual ao atual e isAdmin for false, talvez queiramos tentar de novo em um novo login
-    if (lastCheckedUserRef.current === currentUser.email && isAdmin) {
-        setLoading(false);
-        return;
-    }
-
-    checkingRef.current = true;
-    // Não setamos setLoading(true) aqui para não piscar a tela se já estiver carregada, 
-    // mas garantimos que setLoading(false) seja chamado no final
-
-    try {
-      console.log('AdminAuthContext: Verificando status de admin para:', currentUser.email);
-      
-      // Consulta direta e simples, focada no email que é garantido pelo Auth
-      // Adicionado .maybeSingle() em vez de .single() para evitar erros 406 se retornar 0 linhas
-      // Adicionado timeout manual se necessário, mas o supabase-js já tem timeout padrão
-      const { data, error } = await supabase
-        .from('usuarios')
-        .select('is_admin, nome')
-        .eq('email', currentUser.email)
-        .maybeSingle();
-
-      if (error) {
-        console.warn('AdminAuthContext: Erro ao buscar dados do usuário:', error);
-        // Não marcamos como false imediatamente se for um erro de rede temporário, mas para segurança:
-        setIsAdmin(false);
-      } else if (data) {
-        console.log('AdminAuthContext: Dados do usuário encontrados:', data);
-        // AQUI ESTÁ A CORREÇÃO PRINCIPAL: Mapeamos is_admin (banco) para isAdmin (app)
-        const adminStatus = data.is_admin === true;
-        setIsAdmin(adminStatus);
-        
-        // Atualiza o objeto user com o nome vindo do banco
-        setUser(prev => ({ 
-            ...currentUser, // Mantém dados do auth
-            nome: data.nome || prev?.nome || currentUser.email // Prioriza nome do banco
-        }));
-        
-        lastCheckedUserRef.current = currentUser.email;
-      } else {
-        console.warn('AdminAuthContext: Usuário não encontrado na tabela usuarios.');
-        setIsAdmin(false);
-      }
-
-    } catch (err) {
-      console.error('AdminAuthContext: Erro inesperado:', err);
-      setIsAdmin(false);
-    } finally {
-      // GARANTIA: Sempre remover o loading, não importa o que aconteça
-      console.log('AdminAuthContext: Finalizando verificação. SetLoading(false)');
-      setLoading(false);
-      checkingRef.current = false;
-    }
-  };
-
   const login = async (email, password) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
 
       if (data.user) {
-        await checkAdminStatus(data.user);
+        const profile = await fetchAdminProfile(data.user);
+        applyProfile(data.user, profile);
+
+        if (!profile) {
+          // Usuário autenticado mas sem acesso ao admin
+          await supabase.auth.signOut();
+          return { data: null, error: { message: 'Você não tem permissão para acessar o painel administrativo.' } };
+        }
       }
       return { data, error: null };
     } catch (error) {
@@ -140,12 +152,31 @@ export const AdminAuthProvider = ({ children }) => {
 
   const logout = async () => {
     await supabase.auth.signOut();
-    setUser(null);
-    setIsAdmin(false);
+    // clearState será chamado pelo onAuthStateChange (SIGNED_OUT)
+  };
+
+  /**
+   * Verifica se o usuário tem acesso a um menu específico pelo slug.
+   * Super admins e colaboradores com adminMenus = null têm acesso a tudo.
+   */
+  const hasMenuAccess = (menuSlug) => {
+    if (!isAdmin) return false;
+    if (adminMenus === null) return true; // acesso total
+    return adminMenus.includes(menuSlug);
   };
 
   return (
-    <AdminAuthContext.Provider value={{ user, isAdmin, loading, login, logout }}>
+    <AdminAuthContext.Provider value={{
+      user,
+      isAdmin,
+      isSuperAdmin,
+      role,
+      adminMenus,
+      loading,
+      login,
+      logout,
+      hasMenuAccess,
+    }}>
       {children}
     </AdminAuthContext.Provider>
   );

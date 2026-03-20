@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, CreditCard, LogOut, Target, Building2, Headphones } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, LogOut, Target, Building2, Headphones, UserCog } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
@@ -8,7 +8,7 @@ import { useAdminAuth } from '@/contexts/AdminAuthContext';
 const AdminLayout = () => {
   const location = useLocation();
   const { logoSrc } = useTheme();
-  const { user, logout } = useAdminAuth();
+  const { user, logout, isSuperAdmin, hasMenuAccess } = useAdminAuth();
 
   const isActive = (path) => {
     return location.pathname.startsWith(path);
@@ -36,14 +36,24 @@ const AdminLayout = () => {
         <div className="p-6 border-b border-border flex items-center justify-center">
           <img src={logoSrc} alt="IntimAI Admin" className="h-10 w-auto object-contain" />
         </div>
-        
+
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto py-6">
           <NavItem to="/dashboard" icon={LayoutDashboard} label="Dashboard" />
-          <NavItem to="/prospeccao" icon={Target} label="Prospecção" />
-          <NavItem to="/delegacias" icon={Building2} label="Delegacias" />
-          <NavItem to="/users" icon={Users} label="Usuários" />
-          <NavItem to="/suporte" icon={Headphones} label="Suporte" />
-          <NavItem to="/finance" icon={CreditCard} label="Financeiro" />
+          {hasMenuAccess('prospeccao') && <NavItem to="/prospeccao" icon={Target} label="Prospecção" />}
+          {hasMenuAccess('delegacias') && <NavItem to="/delegacias" icon={Building2} label="Delegacias" />}
+          {hasMenuAccess('users') && <NavItem to="/users" icon={Users} label="Usuários" />}
+          {hasMenuAccess('suporte') && <NavItem to="/suporte" icon={Headphones} label="Suporte" />}
+          {hasMenuAccess('finance') && <NavItem to="/finance" icon={CreditCard} label="Financeiro" />}
+
+          {/* Apenas super admins veem o menu de Colaboradores */}
+          {isSuperAdmin && (
+            <>
+              <div className="pt-3 pb-1 px-4">
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-semibold">Administração</p>
+              </div>
+              <NavItem to="/colaboradores" icon={UserCog} label="Colaboradores" />
+            </>
+          )}
         </nav>
       </aside>
 
@@ -55,7 +65,7 @@ const AdminLayout = () => {
             <span className="text-sm font-semibold text-foreground truncate">
               {user?.nome || 'Administrador'}
             </span>
-            <button 
+            <button
               onClick={logout}
               className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               title="Sair"
