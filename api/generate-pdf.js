@@ -39,26 +39,26 @@ export default async function handler(req, res) {
         const templateHtml = fs.readFileSync(templatePath, 'utf8');
 
         // Função para converter arquivo local em Base64
-        // Usa PROJECT_ROOT para funcionar tanto localmente quanto na Vercel
-        const toBase64 = (relativePath) => {
+        // Usa PROJECT_ROOT/api/assets para funcionar na Vercel (public/ é CDN-only)
+        const toBase64 = (filename) => {
             try {
-                const fullPath = path.join(PROJECT_ROOT, relativePath);
+                const fullPath = path.join(__dirname, 'assets', filename);
                 const bitmap = fs.readFileSync(fullPath);
                 const ext = path.extname(fullPath).replace('.', '').replace('jpg', 'jpeg');
                 return `data:image/${ext};base64,${bitmap.toString('base64')}`;
             } catch (e) {
-                console.warn(`Aviso: Não foi possível carregar a imagem em ${relativePath}`);
+                console.warn(`Aviso: Não foi possível carregar a imagem: ${filename}`);
                 return '';
             }
         };
 
         // Adicionar as imagens ao objeto de dados
-        data.img1 = toBase64('public/1.jpeg');
-        data.img2 = toBase64('public/2.png');
-        data.img3 = toBase64('public/3.jpeg');
-        data.img4 = toBase64('public/4.jpeg');
-        data.img5 = toBase64('public/5.png');
-        data.logoBase64 = toBase64('public/logo.png');
+        data.img1 = toBase64('1.jpeg');
+        data.img2 = toBase64('2.png');
+        data.img3 = toBase64('3.jpeg');
+        data.img4 = toBase64('4.jpeg');
+        data.img5 = toBase64('5.png');
+        data.logoBase64 = toBase64('logo.png');
 
         // 2. Compilar e substituir variáveis
         const template = handlebars.compile(templateHtml);
