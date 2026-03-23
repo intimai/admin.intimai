@@ -1,0 +1,75 @@
+Criação do Menu Propostas:
+
+
+Quero implementar no meu backend uma funcionalidade para geração de propostas em PDF a partir de um template HTML.
+
+Requisitos:
+
+O sistema deve:
+
+Receber dados dinâmicos de uma proposta (ex: delegacia, valores, usuários, etc)
+
+Inserir esses dados em um template HTML
+
+Gerar um PDF a partir desse HTML
+
+Retornar o PDF para download
+
+Usar:
+
+Node.js
+
+Puppeteer para gerar o PDF
+
+Fluxo esperado:
+
+Criar uma função ou endpoint (ex: /gerar-proposta)
+
+Receber um objeto JSON com os dados da proposta
+
+Carregar um arquivo HTML local (template)
+
+Substituir variáveis no HTML no formato {{variavel}}
+
+Renderizar o HTML no Puppeteer
+
+Gerar o PDF no formato A4
+
+Retornar o PDF como resposta (download ou buffer)
+
+Variáveis que devem ser suportadas no template:
+
+{
+  "logo_url": "",
+  "delegacia": "",
+  "parceiro": "",
+  "proponente": "",
+  "responsavel": "",
+  "usuarios": "",
+  "valor_usuario": "",
+  "total_mensal": "",
+  "total_anual": "",
+  "total_anual_antecipado": "",
+  "contexto": ""
+}
+
+Requisitos importantes:
+
+O PDF deve manter cores e estilos (usar printBackground: true)
+
+Aguardar carregamento completo (imagens externas incluídas)
+
+Margens adequadas para documento formal
+
+Código simples e organizado
+
+Opcional (se possível):
+
+Criar função separada para substituir variáveis no HTML
+
+Permitir reutilização do sistema para outros documentos no futuro
+
+Objetivo final:
+Quero apenas chamar essa função passando os dados e receber o PDF pronto para download.
+
+💡 Isso aqui já é suficiente pra IA montar TUDO pra você.

@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
+        :root {
+            --primary: #8b5cf6;
+            --primary-light: #a78bfa;
+            --secondary: #ec4899;
+            --bg-dark: #111827;
+            --card-dark: #1f2937;
+            --text-white: #ffffff;
+            --text-gray: #9ca3af;
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-white);
+            font-size: 20px;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .page {
+            width: 297mm;
+            /* Paisagem like Gamma */
+            height: 210mm;
+            padding: 60px;
+            page-break-after: always;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- COVER PAGE --- */
+        .cover {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            height: 100%;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .cover-content h1 {
+            font-size: 64px;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #fff 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .cover-content p {
+            font-size: 28px;
+            color: var(--text-gray);
+            margin-bottom: 48px;
+        }
+
+        .customer-badge {
+            display: inline-block;
+            background: rgba(139, 92, 246, 0.2);
+            padding: 10px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            font-weight: 700;
+            color: var(--primary-light);
+        }
+
+        .cover-image {
+            width: 100%;
+            height: 80%;
+            object-fit: cover;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        /* --- LAYOUTS --- */
+        .section-tag {
+            color: var(--primary-light);
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 2px;
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .page-title {
+            font-size: 52px;
+            font-weight: 800;
+            margin-bottom: 30px;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card-dark);
+            padding: 24px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .card h3 {
+            color: var(--primary-light);
+            font-size: 16px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .card p {
+            font-size: 18px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .finance-summary {
+            margin-top: 40px;
+            display: grid;
+            grid-template-columns: 1fr 0.5fr 1.25fr 1.25fr;
+            gap: 20px;
+        }
+
+        .finance-item span {
+            display: block;
+            color: var(--text-gray);
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+
+        .finance-item .value {
+            font-size: 34px;
+            font-weight: 800;
+            color: var(--primary-light);
+        }
+
+        /* --- CONTENT PAGES --- */
+        .split-view {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            flex: 1;
+            align-items: center;
+        }
+
+        .text-content {
+            font-size: 24px;
+            line-height: 1.6;
+            color: #d1d5db;
+        }
+
+        .large-img {
+            width: 100%;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* --- TABLES --- */
+        .premium-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .premium-table th {
+            text-align: left;
+            padding: 30px;
+            color: var(--text-gray);
+            font-size: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .premium-table td {
+            padding: 30px;
+            font-size: 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .total-row {
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .total-row td {
+            font-weight: 800;
+            color: var(--primary-light);
+        }
+
+        /* --- FOOTER --- */
+        .page-footer {
+            margin-top: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 12px;
+            color: var(--text-gray);
+        }
+
+        .logo-small {
+            height: 24px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- PAGINA 1: CAPA -->
+    <div class="page">
+        <div class="cover">
+            <div class="cover-content">
+                <img src="{{logoBase64}}" alt="Logo" style="height: 60px; margin-bottom: 40px;">
+                <h1>PROJETO DE CONVÊNIO<br>INSTITUCIONAL</h1>
+                <p>Implantação do Sistema de Intimações Digitais – INTIMAI.APP</p>
+                <div class="customer-badge">{{delegacia}}</div>
+            </div>
+            <img src="{{img1}}" class="cover-image">
+        </div>
+        <div class="page-footer">
+            <span>IntimAI Soluções &bull; 2026</span>
+            <span>Slide 01</span>
+        </div>
+    </div>
+
+    <!-- PAGINA 2: IDENTIFICAÇÃO -->
+    <div class="page">
+        <span class="section-tag">IDENTIFICAÇÃO</span>
+        <h2 class="page-title">1. IDENTIFICAÇÃO DO PROJETO</h2>
+
+        <div class="grid-4">
+            <div class="card">
+                <h3>Projeto</h3>
+                <p>Implantação e custeio do sistema INTIMAI.APP</p>
+            </div>
+            <div class="card">
+                <h3>Proponente</h3>
+                <p>{{delegacia}}</p>
+            </div>
+            <div class="card">
+                <h3>Parceiro Institucional</h3>
+                <p>{{parceiro}}</p>
+            </div>
+            <div class="card">
+                <h3>Responsável Técnico</h3>
+                <p>Equipe IntimAI - Dores Dey Dias Netto<br><span
+                        style="font-size: 0.8em; color: var(--text-gray)">CNPJ: 63.058.837/0001-01</span></p>
+            </div>
+        </div>
+
+        <div class="finance-summary">
+            <div class="finance-item">
+                <span>Valor Unitário</span>
+                <div class="value">R$ {{valor_usuario}}</div>
+            </div>
+            <div class="finance-item">
+                <span>Usuários</span>
+                <div class="value">{{usuarios}}</div>
+            </div>
+            <div class="finance-item">
+                <span>Mensal Total</span>
+                <div class="value">R$ {{total_mensal}}</div>
+            </div>
+            <div class="finance-item">
+                <span>Anual Total</span>
+                <div class="value">R$ {{total_anual}}</div>
+            </div>
+        </div>
+
+        <div class="page-footer">
+            <img src="{{logoBase64}}" class="logo-small">
+            <span>Slide 02</span>
+        </div>
+    </div>
+
+    <!-- PAGINA 3: CONTEXTO -->
+    <div class="page">
+        <span class="section-tag">CONTEXTO</span>
+        <h2 class="page-title">2. CONTEXTUALIZAÇÃO E JUSTIFICATIVA</h2>
+        <div class="split-view">
+            <div class="text-content">
+                {{contexto}}
+            </div>
+            <img src="{{img2}}" class="large-img">
+        </div>
+        <div class="page-footer">
+            <img src="{{logoBase64}}" class="logo-small">
+            <span>Slide 03</span>
+        </div>
+    </div>
+
+    <!-- PAGINA 4: OBJETIVOS -->
+    <div class="page">
+        <span class="section-tag">OBJETIVO</span>
+        <h2 class="page-title">3. OBJETIVO GERAL</h2>
+        <div style="font-size: 52px; font-weight: 800; margin-bottom: 60px;">
+            Implantar e manter o uso do sistema
+            <span style="color: var(--primary-light)">INTIMAI.APP</span> por {{usuarios}} servidores.
+        </div>
+        <div class="grid-4" style="grid-template-columns: 1fr 1fr 1fr;">
+            <div class="card" style="padding: 40px; text-align: center;">
+                <h3 style="font-size: 24px;">Otimizar</h3>
+                <p style="color: var(--text-gray); font-weight: 400; margin-top: 10px;">o cumprimento de intimações</p>
+            </div>
+            <div class="card" style="padding: 40px; text-align: center;">
+                <h3 style="font-size: 24px;">Reduzir</h3>
+                <p style="color: var(--text-gray); font-weight: 400; margin-top: 10px;">custos operacionais</p>
+            </div>
+            <div class="card" style="padding: 40px; text-align: center;">
+                <h3 style="font-size: 24px;">Aumentar</h3>
+                <p style="color: var(--text-gray); font-weight: 400; margin-top: 10px;">a eficiência administrativa</p>
+            </div>
+        </div>
+        <div class="page-footer">
+            <img src="{{logoBase64}}" class="logo-small">
+            <span>Slide 04</span>
+        </div>
+    </div>
+
+    <!-- PAGINA 6: SISTEMA -->
+    <div class="page">
+        <span class="section-tag">SISTEMA</span>
+        <h2 class="page-title">4. DESCRIÇÃO DO SISTEMA INTIMAI.APP</h2>
+        <div style="display: grid; grid-template-columns: 55% 45%; gap: 40px; flex: 1; align-items: center;">
+            <img src="{{img3}}"
+                style="width: 100%; height: 280px; object-fit: cover; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+            <div style="display: grid; grid-template-columns: 1fr; gap: 18px;">
+                <div class="card" style="min-height: 0; padding: 22px;">
+                    <p style="font-size: 20px">Cadastro e gerenciamento de intimações</p>
+                </div>
+                <div class="card" style="min-height: 0; padding: 22px;">
+                    <p style="font-size: 20px">Intimações criadas e entregues por Inteligência Artificial (Whatsapp
+                        Oficial)</p>
+                </div>
+                <div class="card" style="min-height: 0; padding: 22px;">
+                    <p style="font-size: 20px">Acompanhamento de status e agendamentos feitos pela IA em tempo real
+                        (Agenda Interativa)</p>
+                </div>
+                <div class="card" style="min-height: 0; padding: 22px; border-color: var(--primary);">
+                    <p style="font-size: 20px; color: var(--primary-light);">Conformidade total com a LGPD</p>
+                </div>
+            </div>
+        </div>
+        <div class="page-footer">
+            <img src="{{logoBase64}}" class="logo-small">
+            <span>Slide 05</span>
+        </div>
+    </div>
+
+    <!-- PAGINA 7: BENEFICIÁRIOS -->
+    <div class="page">
+        <span class="section-tag">BENEFICIÁRIOS</span>
+        <h2 class="page-title">5. PÚBLICO BENEFICIADO</h2>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 20px;">
+            <div>
+                <h3 style="color: var(--primary-light); margin-bottom: 15px; font-size: 22px;">Diretamente:</h3>
+                <div class="card" style="min-height: 160px; border-color: var(--primary);">
+                    <p style="font-size: 28px; color: #fff;">{{usuarios}} servidores</p>
+                    <p style="color: var(--text-gray); font-weight: 400; margin-top: 10px; font-size: 18px;">
+                        Polícia Civil/{{estado}} – {{delegacia}}
+                    </p>
+                </div>
+            </div>
+            <div>
+                <h3 style="color: var(--primary-light); margin-bottom: 15px; font-size: 22px;">Indiretamente:</h3>
+                <div style="display: grid; gap: 12px;">
+                    <div class="card" style="min-height: 0; padding: 18px;">
+                        <p style="font-size: 18px;">População do Município</p>
+                    </div>
+                    <div class="card" style="min-height: 0; padding: 18px;">
+                        <p style="font-size: 18px;">Sistema de Justiça</p>
+                        <p style="color: var(--text-gray); font-weight: 400; font-size: 14px;">(Ministério Público e
+                            Judiciário)</p>
+                    </div>
+                    <div class="card" style="min-height: 0; padding: 18px;">
+                        <p style="font-size: 18px;">Administração Pública Municipal</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <img src="{{img4}}"
+            style="width: 100%; height: 220px; object-fit: cover; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin-top: auto;">
+
+        <div class="page-footer">
+            <img src="{{logoBase64}}" class="logo-small">
+            <span>Slide 06</span>
+        </div>
+    </div>
+
+    <!-- PAGINA 8: INVESTIMENTO -->
+    <div class="page">
+        <span class="section-tag">INVESTIMENTO</span>
+        <h2 class="page-title">6. CUSTO E VIABILIDADE FINANCEIRA</h2>
+
+        <table class="premium-table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Quantidade</th>
+                    <th>Valor Unitário</th>
+                    <th>Valor Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Licença mensal do INTIMAI.APP</td>
+                    <td>{{usuarios}} usuários</td>
+                    <td>R$ {{valor_usuario}}</td>
+                    <td>R$ {{total_mensal}}</td>
+                </tr>
+                <tr class="total-row">
+                    <td colspan="3">TOTAL MENSAL</td>
+                    <td>R$ {{total_mensal}}</td>
+                </tr>
+                <tr class="total-row">
+                    <td colspan="3">TOTAL ANUAL ANTECIPADO (Oferta Especial)</td>
+                    <td style="font-size: 24px;">R$ {{total_anual_antecipado}}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div style="margin-top: 40px; color: var(--text-gray); font-size: 14px;">
+            O valor contempla: Licenciamento do sistema, Manutenção técnica, Suporte operacional e Atualizações
+            contínuas.
+        </div>
+
+        <div class="page-footer">
+            <img src="{{logoBase64}}" class="logo-small">
+            <span>Slide 07</span>
+        </div>
+    </div>
+
+    <!-- PAGINA 10: RESULTADOS -->
+    <div class="page">
+        <span class="section-tag">IMPACTO</span>
+        <h2 class="page-title">7. RESULTADOS ESPERADOS</h2>
+        <div class="split-view">
+            <div class="text-content">
+                <ul style="list-style: none;">
+                    <li style="margin-bottom: 20px; border-left: 2px solid var(--primary); padding-left: 20px;">
+                        <strong style="color: #fff">Alta Produtividade</strong><br>
+                        Redução significativa do tempo gasto em intimações manuais.
+                    </li>
+                    <li style="margin-bottom: 20px; border-left: 2px solid var(--primary); padding-left: 20px;">
+                        <strong style="color: #fff">Economia Direta</strong><br>
+                        Diminuição de custos com papel, combustível e deslocamentos físicos.
+                    </li>
+                    <li style="margin-bottom: 20px; border-left: 2px solid var(--primary); padding-left: 20px;">
+                        <strong style="color: #fff">Rastreabilidade</strong><br>
+                        Seguração jurídica com histórico completo de cada ato praticado.
+                    </li>
+                </ul>
+            </div>
+            <img src="{{img5}}" class="large-img">
+        </div>
+        <div class="page-footer">
+            <img src="{{logoBase64}}" class="logo-small">
+            <span>Slide 08</span>
+        </div>
+    </div>
+
+</body>
+
+</html>

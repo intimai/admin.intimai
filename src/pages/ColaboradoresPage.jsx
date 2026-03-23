@@ -10,22 +10,41 @@ import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog';
 import ConfirmationModal from '@/components/ui/ConfirmationModal';
-import { Loader2, Plus, Edit, Trash2, UserCheck, UserX, Mail, ShieldCheck, Shield } from 'lucide-react';
+import { Loader2, Plus, Edit, Trash2, UserCheck, UserX, Mail, ShieldCheck, Shield, Check, Minus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Menus disponíveis para configurar as permissões de cada colaborador
-const MENU_OPTIONS = [
-    { slug: 'dashboard', label: 'Dashboard' },
-    { slug: 'prospeccao', label: 'Comercial' },
-    { slug: 'propostas', label: 'Propostas' },
-    { slug: 'contratos', label: 'Contratos' },
-    { slug: 'nfe', label: 'NF-e' },
-    { slug: 'delegacias', label: 'Delegacias' },
-    { slug: 'users', label: 'Usuários' },
-    { slug: 'suporte', label: 'Suporte' },
-    { slug: 'finance', label: 'Financeiro' },
-    { slug: 'settings', label: 'Configurações' },
+// Menus disponíveis agrupados por categorias
+const MENU_CATEGORIES = [
+    {
+        id: 'comercial',
+        label: 'Comercial',
+        items: [
+            { slug: 'pipeline', label: 'Pipeline' },
+            { slug: 'propostas', label: 'Propostas' },
+            { slug: 'suporte', label: 'Suporte' }
+        ]
+    },
+    {
+        id: 'cadastros',
+        label: 'Cadastros',
+        items: [
+            { slug: 'delegacias', label: 'Delegacias' },
+            { slug: 'users', label: 'Usuários' }
+        ]
+    },
+    {
+        id: 'administrativo',
+        label: 'Administrativo',
+        items: [
+            { slug: 'contratos', label: 'Contratos' },
+            { slug: 'nfe', label: 'NF-e' },
+            { slug: 'finance', label: 'Financeiro' },
+            { slug: 'settings', label: 'Configurações' }
+        ]
+    }
 ];
+
+const MENU_OPTIONS = MENU_CATEGORIES.flatMap(cat => cat.items);
 
 const INITIAL_FORM = {
     nome: '',
@@ -47,6 +66,27 @@ const ColaboradorForm = ({ initialData, onSubmit, onCancel, isLoading }) => {
             const updated = currentMenus.includes(slug)
                 ? currentMenus.filter(m => m !== slug)
                 : [...currentMenus, slug];
+            return { ...prev, admin_menus: updated };
+        });
+    };
+
+    const handleCategoryToggle = (categoryId) => {
+        const category = MENU_CATEGORIES.find(c => c.id === categoryId);
+        const categorySlugs = category.items.map(item => item.slug);
+
+        setForm(prev => {
+            const currentMenus = prev.admin_menus || [];
+            const allSelected = categorySlugs.every(slug => currentMenus.includes(slug));
+
+            let updated;
+            if (allSelected) {
+                updated = currentMenus.filter(slug => !categorySlugs.includes(slug));
+            } else {
+                updated = [...currentMenus];
+                categorySlugs.forEach(slug => {
+                    if (!updated.includes(slug)) updated.push(slug);
+                });
+            }
             return { ...prev, admin_menus: updated };
         });
     };
@@ -115,26 +155,63 @@ const ColaboradorForm = ({ initialData, onSubmit, onCancel, isLoading }) => {
             </div>
 
             {form.role === 'colaborador' && (
-                <div className="space-y-2">
-                    <Label>Menus com Acesso</Label>
-                    <p className="text-xs text-muted-foreground">Deixe todos desmarcados para liberar acesso total.</p>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        {MENU_OPTIONS.map(({ slug, label }) => {
-                            const selected = form.admin_menus?.includes(slug);
+                <div className="space-y-4 pt-2">
+                    <div>
+                        <Label>Permissões de Acesso</Label>
+                        <p className="text-xs text-muted-foreground mt-1 mb-3">
+                            Selecione as categorias ou os menus que este colaborador poderá acessar. (O menu Dashboard é sempre livre).
+                        </p>
+                    </div>
+
+                    <div className="space-y-3 max-h-[200px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
+                        {MENU_CATEGORIES.map(category => {
+                            const categorySlugs = category.items.map(i => i.slug);
+                            const currentMenus = form.admin_menus || [];
+                            const allSelected = categorySlugs.length > 0 && categorySlugs.every(slug => currentMenus.includes(slug));
+                            const someSelected = categorySlugs.some(slug => currentMenus.includes(slug));
+
                             return (
-                                <button
-                                    key={slug}
-                                    type="button"
-                                    onClick={() => handleMenuToggle(slug)}
-                                    className={cn(
-                                        'px-3 py-2 text-xs rounded-md border font-medium transition-all',
-                                        selected
-                                            ? 'bg-primary text-white border-primary'
-                                            : 'border-border text-muted-foreground hover:border-primary/50'
-                                    )}
-                                >
-                                    {label}
-                                </button>
+                                <div key={category.id} className="border border-border/60 rounded-lg p-3 space-y-3 bg-muted/5">
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleCategoryToggle(category.id)}
+                                            className={cn(
+                                                "w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0",
+                                                allSelected ? "bg-primary border-primary text-primary-foreground" :
+                                                    someSelected ? "bg-primary/30 border-primary/50 text-foreground" : "border-input bg-background"
+                                            )}
+                                        >
+                                            {allSelected && <Check size={12} strokeWidth={3} />}
+                                            {someSelected && !allSelected && <Minus size={12} strokeWidth={3} />}
+                                        </button>
+                                        <Label className="font-semibold cursor-pointer select-none text-sm" onClick={() => handleCategoryToggle(category.id)}>
+                                            {category.label}
+                                        </Label>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pl-6">
+                                        {category.items.map(({ slug, label }) => {
+                                            const selected = currentMenus.includes(slug);
+                                            return (
+                                                <button
+                                                    key={slug}
+                                                    type="button"
+                                                    onClick={() => handleMenuToggle(slug)}
+                                                    className={cn(
+                                                        'px-2.5 py-1.5 text-xs rounded-md border text-left font-medium transition-all truncate',
+                                                        selected
+                                                            ? 'bg-primary/10 text-primary border-primary/30'
+                                                            : 'border-border text-muted-foreground hover:border-primary/40 focus:outline-none'
+                                                    )}
+                                                    title={label}
+                                                >
+                                                    {label}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
                             );
                         })}
                     </div>
@@ -252,44 +329,50 @@ const ColaboradoresPage = () => {
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <PageHeader
-                    title="Colaboradores"
-                    description="Gerencie os colaboradores com acesso ao painel administrativo"
-                />
-                <Button onClick={() => setIsCreateOpen(true)} className="w-full sm:w-auto">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Novo Colaborador
-                </Button>
-            </div>
+        <div className="space-y-6 max-w-7xl mx-auto">
+            <PageHeader
+                title="Colaboradores"
+                description="Gerencie os colaboradores da equipe e configure suas permissões de acesso ao painel administrativo."
+            />
 
-            {loading ? (
-                <div className="flex justify-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-            ) : colaboradores.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-muted-foreground bg-muted/20 rounded-lg border border-dashed gap-3">
-                    <ShieldCheck size={40} className="opacity-20" />
-                    <p>Nenhum colaborador cadastrado ainda.</p>
-                    <Button variant="outline" size="sm" onClick={() => setIsCreateOpen(true)}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Adicionar primeiro colaborador
-                    </Button>
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {colaboradores.map((c) => (
-                        <ColaboradorCard
-                            key={c.id}
-                            colaborador={c}
-                            onEdit={setEditingColaborador}
-                            onDelete={setDeletingColaborador}
-                            onToggleAtivo={toggleAtivo}
-                        />
-                    ))}
-                </div>
-            )}
+            <Card className="bg-card/90 border-border/40 overflow-hidden shadow-xl backdrop-blur-md">
+                <CardContent className="p-6 space-y-8">
+                    {/* Ação Superior */}
+                    <div className="flex justify-end">
+                        <Button onClick={() => setIsCreateOpen(true)} className="h-10 px-6 shadow-md hover:shadow-primary/20">
+                            <Plus className="mr-2 h-4 w-4" />
+                            Novo Colaborador
+                        </Button>
+                    </div>
+
+                    {loading ? (
+                        <div className="flex justify-center py-20">
+                            <Loader2 className="h-10 w-10 animate-spin text-primary opacity-50" />
+                        </div>
+                    ) : colaboradores.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground bg-muted/10 rounded-xl border border-dashed border-border/50 gap-3">
+                            <ShieldCheck size={48} className="opacity-10 mb-2" />
+                            <p className="text-lg font-medium">Nenhum colaborador cadastrado.</p>
+                            <Button variant="outline" size="sm" onClick={() => setIsCreateOpen(true)} className="mt-2">
+                                <Plus className="mr-2 h-4 w-4" />
+                                Adicionar primeiro colaborador
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {colaboradores.map((c) => (
+                                <ColaboradorCard
+                                    key={c.id}
+                                    colaborador={c}
+                                    onEdit={setEditingColaborador}
+                                    onDelete={setDeletingColaborador}
+                                    onToggleAtivo={toggleAtivo}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
 
             {/* Modal Criar */}
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>

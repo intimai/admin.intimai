@@ -112,6 +112,10 @@ export const AdminAuthProvider = ({ children }) => {
       if (session?.user) {
         const profile = await fetchAdminProfile(session.user);
         applyProfile(session.user, profile);
+
+        // Pequena pausa para garantir sincronia do JWT com o cliente Supabase
+        // antes que os hooks das páginas comecem a carregar dados.
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
 
       setLoading(false);
@@ -190,6 +194,12 @@ export const AdminAuthProvider = ({ children }) => {
   const hasMenuAccess = (menuSlug) => {
     if (!isAdmin) return false;
     if (adminMenus === null) return true; // acesso total
+
+    // Suporte legado para contas que possuam permissão anterior 'prospeccao' ou 'comercial'
+    if (menuSlug === 'pipeline') {
+      return adminMenus.includes('pipeline') || adminMenus.includes('prospeccao') || adminMenus.includes('comercial');
+    }
+
     return adminMenus.includes(menuSlug);
   };
 

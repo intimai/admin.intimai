@@ -1,35 +1,55 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/customSupabaseClient';
 import { useToast } from '@/components/ui/use-toast';
+import { useAdminAuth } from '@/contexts/AdminAuthContext';
 
 export const useSuporte = () => {
+  const { isAdmin, loading: authLoading } = useAdminAuth();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const { toast } = useToast();
 
-  const fetchItems = useCallback(async () => {
+  const fetchItems = useCallback(async (retryCount = 0) => {
+    // Só busca se o admin estiver autenticado e não estiver carregando o perfil
+    if (!isAdmin || authLoading) return;
+
     try {
       setLoading(true);
+      setError(null);
+
       const { data, error } = await supabase
         .from('suporte')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        // Se for erro de permissão (PGRST301/401) e for a primeira tentativa, tenta uma vez após breve delay
+        if (retryCount < 1 && (error.code === 'PGRST301' || error.status === 401)) {
+          console.warn('[useSuporte] Falha de autorização, tentando novamente...');
+          await new Promise(resolve => setTimeout(resolve, 800));
+          return fetchItems(retryCount + 1);
+        }
+        throw error;
+      }
+
       setItems(data || []);
     } catch (err) {
       console.error('Erro ao buscar tickets de suporte:', err);
       setError(err.message);
-      toast({
-        title: "Erro ao carregar dados",
-        description: "Não foi possível carregar a lista de suporte.",
-        variant: "destructive"
-      });
+
+      // Só mostra toast se não for erro de carregamento inicial
+      if (retryCount > 0 || !authLoading) {
+        toast({
+          title: "Erro de Conexão",
+          description: "Não foi possível sincronizar os tickets de suporte. Tente atualizar a página.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, isAdmin, authLoading]);
 
   const updateStatus = async (id, newStatus) => {
     try {

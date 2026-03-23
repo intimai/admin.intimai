@@ -1,17 +1,24 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/customSupabaseClient';
 import { useToast } from '@/components/ui/use-toast';
+import { useAdminAuth } from '@/contexts/AdminAuthContext';
 
 export const useDelegacias = () => {
+  const { isAdmin, loading: authLoading } = useAdminAuth();
   const [delegacias, setDelegacias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { toast } = useToast();
 
-  const fetchDelegacias = useCallback(async (searchTerm = '', status = '') => {
-    console.log('[useDelegacias] Iniciando busca...', { searchTerm, status });
+  const fetchDelegacias = useCallback(async (searchTerm = '', status = '', retryCount = 0) => {
+    // Só busca se o admin estiver autenticado e não estiver carregando o perfil
+    if (!isAdmin || authLoading) return;
+
+    console.log('[useDelegacias] Iniciando busca...', { searchTerm, status, retryCount });
     try {
       setLoading(true);
+      setError(null);
+
       let query = supabase
         .from('delegacias')
         .select('*')
@@ -27,23 +34,34 @@ export const useDelegacias = () => {
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        // Se for erro de permissão (PGRST301/401) e for a primeira tentativa, tenta uma vez após breve delay
+        if (retryCount < 1 && (error.code === 'PGRST301' || error.status === 401)) {
+          console.warn('[useDelegacias] Falha de autorização, tentando novamente...');
+          await new Promise(resolve => setTimeout(resolve, 800));
+          return fetchDelegacias(searchTerm, status, retryCount + 1);
+        }
+        throw error;
+      }
 
       console.log('[useDelegacias] Busca concluída com sucesso', { count: data?.length });
       setDelegacias(data || []);
     } catch (err) {
       console.error('Erro ao buscar delegacias:', err);
       setError(err);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar as delegacias.",
-        variant: "destructive"
-      });
+
+      // Só mostra toast se não for erro de carregamento inicial
+      if (retryCount > 0 || !authLoading) {
+        toast({
+          title: "Erro de Conexão",
+          description: "Não foi possível carregar as delegacias. Tente atualizar a página.",
+          variant: "destructive"
+        });
+      }
     } finally {
-      console.log('[useDelegacias] Finalizando busca (loading false)');
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, isAdmin, authLoading]);
 
   const createDelegacia = async (delegaciaData) => {
     try {

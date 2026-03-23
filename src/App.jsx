@@ -5,7 +5,7 @@ import Dashboard from './pages/Dashboard';
 import UsersPage from './pages/UsersPage';
 import FinancePage from './pages/FinancePage';
 import SettingsPage from './pages/SettingsPage';
-import ProspeccaoPage from './pages/ProspeccaoPage';
+import PipelinePage from './pages/PipelinePage';
 import DelegaciasPage from './pages/DelegaciasPage';
 import SuportePage from './pages/SuportePage';
 import IntimacoesPage from './pages/IntimacoesPage';
@@ -13,6 +13,7 @@ import ColaboradoresPage from './pages/ColaboradoresPage';
 import SemPermissaoPage from './pages/SemPermissaoPage';
 import SetPasswordPage from './pages/SetPasswordPage';
 import EmDesenvolvimentoPage from './pages/EmDesenvolvimentoPage';
+import PropostasPage from './pages/PropostasPage';
 import AdminLayout from './components/layout/AdminLayout';
 import AdminProtectedRoute from './components/layout/AdminProtectedRoute';
 import { AdminAuthProvider } from './contexts/AdminAuthContext';
@@ -37,14 +38,14 @@ function App() {
               <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
 
-              <Route path="comercial" element={
-                <AdminProtectedRoute menuSlug="prospeccao">
-                  <ProspeccaoPage />
+              <Route path="pipeline" element={
+                <AdminProtectedRoute menuSlug="pipeline">
+                  <PipelinePage />
                 </AdminProtectedRoute>
               } />
               <Route path="propostas" element={
                 <AdminProtectedRoute menuSlug="propostas">
-                  <EmDesenvolvimentoPage title="Propostas" />
+                  <PropostasPage />
                 </AdminProtectedRoute>
               } />
               <Route path="contratos" element={

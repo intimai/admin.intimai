@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const KanbanColumn = ({ title, items, status, onMove, onUpdatePriority, colorClass }) => {
+const KanbanColumn = ({ title, subtitle, items, status, onMove, onUpdatePriority, colorClass }) => {
   const [isOver, setIsOver] = useState(false);
 
   const handleDragOver = (e) => {
@@ -44,11 +44,14 @@ const KanbanColumn = ({ title, items, status, onMove, onUpdatePriority, colorCla
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <div className={`flex items-center justify-between pb-2 border-b border-border/50 mb-2 ${colorClass}`}>
-        <h3 className="font-semibold text-sm uppercase tracking-wide">{title}</h3>
-        <Badge variant="secondary" className="font-mono text-xs">
-          {items.length}
-        </Badge>
+      <div className={`flex flex-col pb-2 border-b border-border/50 mb-2 ${colorClass}`}>
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold text-sm uppercase tracking-wide">{title}</h3>
+          <Badge variant="secondary" className="font-mono text-xs">
+            {items.length}
+          </Badge>
+        </div>
+        {subtitle && <span className="text-[10px] opacity-70 italic mt-0.5">{subtitle}</span>}
       </div>
 
       <div className="flex flex-col gap-3 pr-2 min-h-[100px]">
@@ -90,40 +93,20 @@ const SuporteCard = ({ item, onUpdatePriority }) => {
       <Card className="shadow-sm hover:shadow-md transition-shadow bg-card border-l-4 border-l-primary/20 hover:border-l-primary group-active:opacity-50">
         <CardHeader className="p-4 pb-2">
           <div className="flex justify-between items-start gap-2">
-            <CardTitle className="text-sm font-bold line-clamp-1" title={item.nome}>
-              {item.nome}
+            <CardTitle className="text-sm font-bold line-clamp-1" title={item.email}>
+              {item.email || 'Ticket Sem E-mail'}
             </CardTitle>
             <GripVertical size={14} className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
-          <div className="flex justify-between items-center mt-1">
-            <div className="flex items-center gap-1 text-xs text-muted-foreground" title={item.email}>
-              <Mail size={12} />
-              <span className="truncate max-w-[120px]">{item.email}</span>
+          <div className="flex justify-between items-center mt-2">
+            <div className="flex items-center gap-1.5 text-xs font-medium text-foreground/80">
+              <span className="text-primary/70">Resp:</span>
+              {item.nome || 'Não atribuído'}
             </div>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger className="focus:outline-none">
-                <Badge variant="outline" className={cn("text-[10px] uppercase shrink-0 border cursor-pointer transition-colors", getPriorityColor(item.prioridade))}>
-                  {item.prioridade}
-                </Badge>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onUpdatePriority(item.id, 'alta')} className="text-red-600 focus:text-red-700 cursor-pointer">
-                  ALTA
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onUpdatePriority(item.id, 'media')} className="text-yellow-600 focus:text-yellow-700 cursor-pointer">
-                  MÉDIA
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onUpdatePriority(item.id, 'baixa')} className="text-green-600 focus:text-green-700 cursor-pointer">
-                  BAIXA
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
           </div>
         </CardHeader>
         <CardContent className="p-4 pt-2">
-          <p className="text-xs text-muted-foreground line-clamp-3 italic bg-muted/50 p-2 rounded-md">
+          <p className="text-sm text-foreground/90 italic bg-muted/30 p-3 rounded-lg border border-border/50 break-words">
             "{item.mensagem}"
           </p>
         </CardContent>
@@ -137,55 +120,82 @@ const SuportePage = () => {
 
   const columns = useMemo(() => {
     return {
-      aberto: items.filter(i => i.status === 'aberto' || !i.status),
-      em_andamento: items.filter(i => i.status === 'em_andamento'),
+      novo: items.filter(i => i.status === 'novo' || !i.status || i.status === 'aberto'),
+      conversando: items.filter(i => i.status === 'conversando'),
+      em_atendimento: items.filter(i => i.status === 'em_atendimento' || i.status === 'em_andamento'),
       resolvido: items.filter(i => i.status === 'resolvido'),
+      avaliado: items.filter(i => i.status === 'avaliado'),
     };
   }, [items]);
 
   if (loading) {
     return (
-      <div className="flex h-[50vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex flex-col gap-6 max-w-7xl mx-auto">
+        <PageHeader title="Suporte" description="Carregando tickets de suporte..." />
+        <Card className="bg-card/30 border-border/40 h-[60vh] flex items-center justify-center">
+          <Loader2 className="h-10 w-10 animate-spin text-primary opacity-50" />
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 max-w-7xl mx-auto">
       <PageHeader
         title="Suporte"
-        description="Central de atendimento e gestão de tickets"
+        description="Central estratégica de atendimento ao cliente e gestão inteligente de tickets de suporte."
       />
 
-      <div className="overflow-x-auto pb-4">
-        <div className="flex gap-4 min-w-fit">
-          <KanbanColumn
-            title="Aberto"
-            status="aberto"
-            items={columns.aberto}
-            onMove={updateStatus}
-            onUpdatePriority={updatePriority}
-            colorClass="text-yellow-600 border-yellow-200"
-          />
-          <KanbanColumn
-            title="Em Andamento"
-            status="em_andamento"
-            items={columns.em_andamento}
-            onMove={updateStatus}
-            onUpdatePriority={updatePriority}
-            colorClass="text-blue-600 border-blue-200"
-          />
-          <KanbanColumn
-            title="Resolvido"
-            status="resolvido"
-            items={columns.resolvido}
-            onMove={updateStatus}
-            onUpdatePriority={updatePriority}
-            colorClass="text-green-600 border-green-200"
-          />
-        </div>
-      </div>
+      <Card className="bg-card/90 border-border/40 overflow-hidden shadow-xl backdrop-blur-md">
+        <CardContent className="p-6">
+          <div className="overflow-x-auto pb-4 scale-y-[-1] custom-scrollbar">
+            <div className="flex gap-6 min-w-fit pr-4 scale-y-[-1]">
+              <KanbanColumn
+                title="Aberto"
+                status="novo"
+                items={columns.novo}
+                onMove={updateStatus}
+                onUpdatePriority={updatePriority}
+                colorClass="text-zinc-100 border-zinc-100/20"
+              />
+              <KanbanColumn
+                title="Conversando"
+                subtitle="com IA"
+                status="conversando"
+                items={columns.conversando}
+                onMove={updateStatus}
+                onUpdatePriority={updatePriority}
+                colorClass="text-purple-400 border-purple-400/20"
+              />
+              <KanbanColumn
+                title="Em Atendimento"
+                subtitle="humano"
+                status="em_atendimento"
+                items={columns.em_atendimento}
+                onMove={updateStatus}
+                onUpdatePriority={updatePriority}
+                colorClass="text-cyan-400 border-cyan-400/20"
+              />
+              <KanbanColumn
+                title="Resolvido"
+                status="resolvido"
+                items={columns.resolvido}
+                onMove={updateStatus}
+                onUpdatePriority={updatePriority}
+                colorClass="text-green-400 border-green-400/20"
+              />
+              <KanbanColumn
+                title="Avaliado"
+                status="avaliado"
+                items={columns.avaliado}
+                onMove={updateStatus}
+                onUpdatePriority={updatePriority}
+                colorClass="text-pink-400 border-pink-400/20"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

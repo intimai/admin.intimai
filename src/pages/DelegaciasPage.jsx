@@ -9,6 +9,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Label } from '@/components/ui/label';
 import ConfirmationModal from '@/components/ui/ConfirmationModal';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Search,
   Plus,
   Edit,
@@ -17,8 +30,10 @@ import {
   MapPin,
   Phone,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Copy
 } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 
 const DelegaciaForm = ({ initialData, onSubmit, onCancel, isLoading }) => {
@@ -33,6 +48,8 @@ const DelegaciaForm = ({ initialData, onSubmit, onCancel, isLoading }) => {
     bloqueado: false,
     evoInstancia: '',
     evoAPI: '',
+    data_renovacao: '',
+    whatsappPhoneNumberId: '',
     ...initialData
   });
 
@@ -52,20 +69,44 @@ const DelegaciaForm = ({ initialData, onSubmit, onCancel, isLoading }) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="nome">Nome *</Label>
+        {/* Identificação Principal */}
+        <div className="space-y-2 md:col-span-2">
+          <Label htmlFor="nome">Nome da Delegacia *</Label>
           <Input
             id="nome"
             name="nome"
             value={formData.nome}
             onChange={handleChange}
             required
-            placeholder="Nome da Delegacia"
+            placeholder="Ex: Delegacia de Polícia de São Paulo"
+          />
+        </div>
+
+        {/* Localização e Contato */}
+        <div className="space-y-2 md:col-span-2">
+          <Label htmlFor="endereco">Endereço Completo</Label>
+          <Input
+            id="endereco"
+            name="endereco"
+            value={formData.endereco || ''}
+            onChange={handleChange}
+            placeholder="Rua, Número, Bairro, CEP"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="telefone">Telefone</Label>
+          <Label htmlFor="cidadeEstado">Cidade - UF</Label>
+          <Input
+            id="cidadeEstado"
+            name="cidadeEstado"
+            value={formData.cidadeEstado || ''}
+            onChange={handleChange}
+            placeholder="Ex: São Paulo - SP"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="telefone">Telefone de Contato</Label>
           <Input
             id="telefone"
             name="telefone"
@@ -75,88 +116,116 @@ const DelegaciaForm = ({ initialData, onSubmit, onCancel, isLoading }) => {
           />
         </div>
 
-        <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="endereco">Endereço</Label>
-          <Input
-            id="endereco"
-            name="endereco"
-            value={formData.endereco || ''}
-            onChange={handleChange}
-            placeholder="Rua, Número, Bairro"
-          />
+        {/* Configurações de Plano e Status */}
+        <div className="p-4 bg-muted/30 rounded-lg border space-y-4 md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="plano">Plano</Label>
+            <Select
+              value={formData.plano || 'mensal'}
+              onValueChange={(val) => handleChange({ target: { name: 'plano', value: val } })}
+            >
+              <SelectTrigger className="w-full h-10 bg-background">
+                <SelectValue placeholder="Selecione um plano" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="mensal">Mensal</SelectItem>
+                <SelectItem value="anual">Anual</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="status_conta">Status da Conta</Label>
+            <Select
+              value={formData.status_conta || 'ativa'}
+              onValueChange={(val) => handleChange({ target: { name: 'status_conta', value: val } })}
+            >
+              <SelectTrigger className="w-full h-10 bg-background">
+                <SelectValue placeholder="Status da Conta" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ativa">Ativa</SelectItem>
+                <SelectItem value="inativa">Inativa</SelectItem>
+                <SelectItem value="suspensa">Suspensa</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="data_renovacao">Data de Renovação</Label>
+            <Input
+              id="data_renovacao"
+              name="data_renovacao"
+              type="date"
+              value={formData.data_renovacao || ''}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="limiteUsuarios">Limite de Usuários</Label>
+            <Input
+              id="limiteUsuarios"
+              name="limiteUsuarios"
+              type="number"
+              value={formData.limiteUsuarios}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="flex items-center space-x-2 pt-8 md:col-span-2">
+            <input
+              type="checkbox"
+              id="bloqueado"
+              name="bloqueado"
+              checked={formData.bloqueado}
+              onChange={handleChange}
+              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+            />
+            <Label htmlFor="bloqueado" className="font-normal cursor-pointer">
+              Bloquear acesso desta delegacia
+            </Label>
+          </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="cidadeEstado">Cidade/Estado</Label>
-          <Input
-            id="cidadeEstado"
-            name="cidadeEstado"
-            value={formData.cidadeEstado || ''}
-            onChange={handleChange}
-            placeholder="Cidade - UF"
-          />
-        </div>
+        {/* Configurações Técnicas (API/WhatsApp) */}
+        <div className="p-4 bg-primary/5 rounded-lg border border-primary/10 space-y-4 md:col-span-2">
+          <p className="text-[10px] uppercase font-bold text-primary/70 tracking-widest">Configuração Técnica (API)</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="evoInstancia">Evo Instância</Label>
+              <Input
+                id="evoInstancia"
+                name="evoInstancia"
+                value={formData.evoInstancia || ''}
+                onChange={handleChange}
+                placeholder="Nome da instância"
+              />
+            </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="limiteUsuarios">Limite de Usuários</Label>
-          <Input
-            id="limiteUsuarios"
-            name="limiteUsuarios"
-            type="number"
-            value={formData.limiteUsuarios}
-            onChange={handleChange}
-          />
-        </div>
+            <div className="space-y-2">
+              <Label htmlFor="whatsappPhoneNumberId">Phone Number Id (WA)</Label>
+              <Input
+                id="whatsappPhoneNumberId"
+                name="whatsappPhoneNumberId"
+                value={formData.whatsappPhoneNumberId || ''}
+                onChange={handleChange}
+                placeholder="ID do número no WhatsApp"
+              />
+            </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="plano">Plano</Label>
-          <select
-            id="plano"
-            name="plano"
-            value={formData.plano}
-            onChange={handleChange}
-            className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <option value="basico">Básico</option>
-            <option value="intermediario">Intermediário</option>
-            <option value="avancado">Avançado</option>
-          </select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="status_conta">Status da Conta</Label>
-          <select
-            id="status_conta"
-            name="status_conta"
-            value={formData.status_conta}
-            onChange={handleChange}
-            className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <option value="ativa">Ativa</option>
-            <option value="inativa">Inativa</option>
-            <option value="suspensa">Suspensa</option>
-          </select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="evoInstancia">Evo Instância</Label>
-          <Input
-            id="evoInstancia"
-            name="evoInstancia"
-            value={formData.evoInstancia || ''}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="evoAPI">Evo API Key</Label>
-          <Input
-            id="evoAPI"
-            name="evoAPI"
-            value={formData.evoAPI || ''}
-            onChange={handleChange}
-            type="password"
-          />
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="evoAPI">Evo API Key</Label>
+              <Input
+                id="evoAPI"
+                name="evoAPI"
+                value={formData.evoAPI || ''}
+                onChange={handleChange}
+                type="password"
+                placeholder="Chave secreta da API"
+              />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -188,62 +257,161 @@ const DelegaciaForm = ({ initialData, onSubmit, onCancel, isLoading }) => {
 };
 
 const DelegaciaCard = ({ delegacia, onEdit, onDelete }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const { toast } = useToast();
+
+  const handleCopy = (e, text) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copiado!",
+      description: "Phone ID copiado para a área de transferência.",
+      duration: 2000,
+    });
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Não definida';
+    try {
+      const date = new Date(dateString);
+      return new Intl.DateTimeFormat('pt-BR').format(date);
+    } catch (e) {
+      return dateString;
+    }
+  };
+
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardHeader className="p-4 pb-2 flex flex-row items-start justify-between space-y-0">
-        <div className="space-y-1">
-          <CardTitle className="text-base font-bold flex items-center gap-2">
-            <Building2 size={18} className="text-primary" />
-            {delegacia.nome}
-          </CardTitle>
-          <CardDescription className="text-xs flex items-center gap-1">
-            <MapPin size={12} />
-            {delegacia.cidadeEstado || 'Localização não informada'}
-          </CardDescription>
-        </div>
-        <div className="flex gap-1">
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => onEdit(delegacia)}>
-            <Edit size={16} />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => onDelete(delegacia)}>
-            <Trash2 size={16} />
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="p-4 pt-2 space-y-3">
-        <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Phone size={14} />
-            <span>{delegacia.telefone || 'Sem telefone'}</span>
+    <Card
+      className={cn(
+        "hover:shadow-md transition-all duration-300 border",
+        isExpanded ? "border-primary/30 shadow-sm bg-card/95" : "border-border/50 bg-card/40"
+      )}
+    >
+      <div
+        className="p-4 flex items-center justify-between cursor-pointer select-none group"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <div className="flex items-center gap-4 flex-1 overflow-hidden">
+          <div className={cn(
+            "h-10 w-10 flex items-center justify-center shrink-0 transition-transform",
+            isExpanded ? "text-primary scale-110" : "text-primary/80 group-hover:text-primary scale-100"
+          )}>
+            <Building2 size={24} />
           </div>
-          {delegacia.bloqueado ? (
-            <Badge variant="destructive" className="text-[10px] uppercase">Bloqueado</Badge>
-          ) : (
-            <Badge
-              className={cn(
-                "text-[10px] uppercase border-none",
-                delegacia.status_conta === 'ativa'
-                  ? "bg-green-500/10 text-green-500 hover:bg-green-500/20"
-                  : "bg-secondary text-secondary-foreground"
+
+          <div className="flex flex-col min-w-0">
+            <div className="flex items-center gap-3">
+              <h3 className="text-sm font-bold text-foreground truncate">{delegacia.nome}</h3>
+              {delegacia.bloqueado ? (
+                <Badge variant="destructive" className="text-[10px] uppercase shrink-0 py-0 h-5">Bloqueado</Badge>
+              ) : (
+                <Badge
+                  className={cn(
+                    "text-[10px] uppercase border-none shrink-0 py-0 h-5 shadow-sm font-semibold",
+                    delegacia.status_conta === 'ativa'
+                      ? "bg-green-500 text-white"
+                      : "bg-secondary text-secondary-foreground"
+                  )}
+                >
+                  {delegacia.status_conta}
+                </Badge>
               )}
-            >
-              {delegacia.status_conta}
-            </Badge>
-          )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground mt-1">
+              {delegacia.telefone && (
+                <div className="flex items-center gap-1 shrink-0">
+                  <Phone size={12} className="text-primary/60" />
+                  <span>{delegacia.telefone}</span>
+                </div>
+              )}
+              {delegacia.cidadeEstado && (
+                <div className="flex items-center gap-1 shrink-0">
+                  {delegacia.telefone && <span className="text-border mx-1">•</span>}
+                  <MapPin size={12} className="text-primary/60" />
+                  <span className="truncate max-w-[200px]">{delegacia.cidadeEstado}</span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t">
-          <div>
-            <span className="text-muted-foreground block">Plano</span>
-            <span className="font-medium capitalize">{delegacia.plano}</span>
-          </div>
-          <div className="text-right">
-            <span className="text-muted-foreground block">Usuários</span>
-            <span className="font-medium">{delegacia.limiteUsuarios} max</span>
-          </div>
+        <div
+          className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-muted/50 shrink-0 transition-all duration-300 ml-4"
+          style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
+        >
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-muted-foreground"><path d="M3.13523 6.15803C3.3241 5.95657 3.64052 5.94637 3.84197 6.13523L7.5 9.56464L11.158 6.13523C11.3595 5.94637 11.6759 5.95657 11.8648 6.15803C12.0536 6.35949 12.0434 6.67591 11.842 6.86477L7.84197 10.6148C7.64964 10.7951 7.35036 10.7951 7.15803 10.6148L3.15803 6.86477C2.95657 6.67591 2.94637 6.35949 3.13523 6.15803Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"></path></svg>
         </div>
-      </CardContent>
-    </Card >
+      </div>
+
+      <div className={cn("grid transition-all duration-300", isExpanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")}>
+        <div className="overflow-hidden">
+          <CardContent className="p-4 pt-0 border-t border-border/50 mt-1 flex flex-col md:flex-row gap-4 justify-between bg-muted/5">
+            {/* Informações Secundárias */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4 text-xs flex-1 pt-4">
+              <div className="flex flex-col gap-1 sm:col-span-2">
+                <span className="text-muted-foreground uppercase text-[10px] tracking-wider font-semibold">Endereço Completo</span>
+                <span className="font-medium text-foreground">{delegacia.endereco || 'Não informado'}</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-muted-foreground uppercase text-[10px] tracking-wider font-semibold">Término da Licença</span>
+                <span className="font-semibold flex items-center gap-1.5 text-foreground">
+                  <AlertCircle size={12} className="text-primary/60" />
+                  {formatDate(delegacia.data_renovacao)}
+                </span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-muted-foreground uppercase text-[10px] tracking-wider font-semibold">Acesso ao Sistema</span>
+                <span className="font-medium text-foreground capitalize">
+                  Plano {delegacia.plano} ({delegacia.limiteUsuarios} max)
+                </span>
+              </div>
+              <div className="flex flex-col gap-1 sm:col-span-2 md:col-span-4 mt-2">
+                <span className="text-muted-foreground uppercase text-[10px] tracking-wider font-semibold">Configuração WABA (Phone ID)</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono bg-muted/80 px-2 py-1 rounded text-[10px] w-fit text-foreground border border-border/50 shadow-sm">
+                    {delegacia.whatsappPhoneNumberId || 'Não configurado pelo cliente'}
+                  </span>
+                  {delegacia.whatsappPhoneNumberId && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 text-muted-foreground hover:text-primary"
+                      onClick={(e) => handleCopy(e, delegacia.whatsappPhoneNumberId)}
+                      title="Copiar Phone ID"
+                    >
+                      <Copy size={12} />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Ações */}
+            <div className="flex flex-row md:flex-col items-center justify-end gap-2 border-t md:border-t-0 md:border-l border-border/50 pt-4 md:pt-4 md:pl-4 mt-2 md:mt-0 shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full md:w-full gap-2 h-8 text-xs bg-background/50 hover:bg-background"
+                onClick={(e) => { e.stopPropagation(); onEdit(delegacia); }}
+              >
+                <Edit size={12} />
+                Editar Perfil
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full md:w-full gap-2 h-8 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                onClick={(e) => { e.stopPropagation(); onDelete(delegacia); }}
+              >
+                <Trash2 size={12} />
+                Excluir Conta
+              </Button>
+            </div>
+          </CardContent>
+        </div>
+      </div>
+    </Card>
   );
 };
 
@@ -299,87 +467,75 @@ const DelegaciasPage = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <PageHeader
-          title="Delegacias"
-          description="Gestão de delegacias parceiras e configurações"
-        />
-        <Button onClick={() => setIsCreateModalOpen(true)} className="w-full md:w-auto">
-          <Plus className="mr-2 h-4 w-4" />
-          Nova Delegacia
-        </Button>
-      </div>
+    <div className="space-y-6 max-w-7xl mx-auto">
+      <PageHeader
+        title="Delegacias"
+        description="Gestão de delegacias parceiras e configurações técnicas do sistema."
+      />
 
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            placeholder="Buscar delegacias por nome..."
-            className="pl-10"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+      <Card className="bg-card/90 border-border/40 overflow-hidden shadow-xl backdrop-blur-md">
+        <CardContent className="p-6 space-y-8">
+          {/* Controles Operacionais */}
+          <div className="flex flex-col md:flex-row gap-4 items-end md:items-center">
+            <div className="relative flex-1 w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                placeholder="Buscar delegacias por nome..."
+                className="pl-10 h-10 bg-background/50 border-border/50 focus:border-primary/50 transition-colors"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
 
-        <div className="flex items-center p-1 bg-muted rounded-lg border w-fit">
-          <Button
-            variant="ghost"
-            size="sm"
-            className={cn(
-              "text-xs px-4 h-8",
-              statusFilter === 'ativa' ? "bg-background shadow-sm text-primary font-bold" : "text-muted-foreground"
-            )}
-            onClick={() => setStatusFilter('ativa')}
-          >
-            Ativas
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className={cn(
-              "text-xs px-4 h-8",
-              statusFilter === 'inativa' ? "bg-background shadow-sm text-primary font-bold" : "text-muted-foreground"
-            )}
-            onClick={() => setStatusFilter('inativa')}
-          >
-            Inativas
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className={cn(
-              "text-xs px-4 h-8",
-              statusFilter === '' ? "bg-background shadow-sm text-primary font-bold" : "text-muted-foreground"
-            )}
-            onClick={() => setStatusFilter('')}
-          >
-            Todas
-          </Button>
-        </div>
-      </div>
+            <div className="flex items-center gap-4 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 z-50">
+              <div className="w-full sm:w-48 shrink-0">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="h-10 bg-background/50 border-border/50 focus:border-primary/50 text-xs font-medium">
+                    <SelectValue placeholder="Filtrar por Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ativa">Ativas</SelectItem>
+                    <SelectItem value="suspensa">Suspensas</SelectItem>
+                    <SelectItem value="inativa">Inativas</SelectItem>
+                    <SelectItem value="todas">Todas</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-      {loading && delegacias.length === 0 ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      ) : delegacias.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground bg-muted/20 rounded-lg border border-dashed">
-          <AlertCircle className="h-12 w-12 mb-4 opacity-20" />
-          <p>Nenhuma delegacia encontrada.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {delegacias.map((delegacia) => (
-            <DelegaciaCard
-              key={delegacia.delegaciaId}
-              delegacia={delegacia}
-              onEdit={setEditingDelegacia}
-              onDelete={setDeletingDelegacia}
-            />
-          ))}
-        </div>
-      )}
+              <Button onClick={() => setIsCreateModalOpen(true)} className="h-10 px-6 shrink-0 shadow-md hover:shadow-primary/20">
+                <Plus className="mr-2 h-4 w-4" />
+                Nova Delegacia
+              </Button>
+            </div>
+          </div>
+
+          {/* Lista de Delegacias */}
+          {loading && delegacias.length === 0 ? (
+            <div className="flex justify-center py-20">
+              <Loader2 className="h-10 w-10 animate-spin text-primary opacity-50" />
+            </div>
+          ) : delegacias.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground bg-muted/10 rounded-xl border border-dashed border-border/50">
+              <AlertCircle className="h-16 w-16 mb-4 opacity-10" />
+              <p className="text-lg font-medium">Nenhuma delegacia encontrada.</p>
+              <p className="text-sm opacity-60 text-center max-w-xs mt-2">
+                Tente ajustar sua busca ou filtros para encontrar o que procura.
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {delegacias.map((delegacia) => (
+                <DelegaciaCard
+                  key={delegacia.delegaciaId}
+                  delegacia={delegacia}
+                  onEdit={setEditingDelegacia}
+                  onDelete={setDeletingDelegacia}
+                />
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Modal de Criação */}
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
