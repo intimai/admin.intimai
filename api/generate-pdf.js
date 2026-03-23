@@ -3,6 +3,12 @@ import chromium from '@sparticuz/chromium';
 import handlebars from 'handlebars';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Resolve the project root correctly regardless of process.cwd() on Vercel
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const PROJECT_ROOT = path.resolve(__dirname, '..');
 
 // Paths where Chrome/Edge is typically installed on Windows
 const LOCAL_CHROME_PATHS = [
@@ -29,29 +35,30 @@ export default async function handler(req, res) {
         console.log('[Backend] Dados recebidos para PDF:', JSON.stringify(data, null, 2));
 
         // 1. Carregar o template e as imagens (Base64)
-        const templatePath = path.resolve('./api/templates/proposta.html');
+        const templatePath = path.join(PROJECT_ROOT, 'api', 'templates', 'proposta.html');
         const templateHtml = fs.readFileSync(templatePath, 'utf8');
 
         // Função para converter arquivo local em Base64
-        const toBase64 = (filePath) => {
+        // Usa PROJECT_ROOT para funcionar tanto localmente quanto na Vercel
+        const toBase64 = (relativePath) => {
             try {
-                const fullPath = path.resolve(filePath);
+                const fullPath = path.join(PROJECT_ROOT, relativePath);
                 const bitmap = fs.readFileSync(fullPath);
                 const ext = path.extname(fullPath).replace('.', '').replace('jpg', 'jpeg');
                 return `data:image/${ext};base64,${bitmap.toString('base64')}`;
             } catch (e) {
-                console.warn(`Aviso: Não foi possível carregar a imagem em ${filePath}`);
+                console.warn(`Aviso: Não foi possível carregar a imagem em ${relativePath}`);
                 return '';
             }
         };
 
         // Adicionar as imagens ao objeto de dados
-        data.img1 = toBase64('./public/1.jpeg');
-        data.img2 = toBase64('./public/2.png');
-        data.img3 = toBase64('./public/3.jpeg');
-        data.img4 = toBase64('./public/4.jpeg');
-        data.img5 = toBase64('./public/5.png');
-        data.logoBase64 = toBase64('./public/logo.png');
+        data.img1 = toBase64('public/1.jpeg');
+        data.img2 = toBase64('public/2.png');
+        data.img3 = toBase64('public/3.jpeg');
+        data.img4 = toBase64('public/4.jpeg');
+        data.img5 = toBase64('public/5.png');
+        data.logoBase64 = toBase64('public/logo.png');
 
         // 2. Compilar e substituir variáveis
         const template = handlebars.compile(templateHtml);
@@ -75,11 +82,12 @@ export default async function handler(req, res) {
         }
 
         // 4. Configurar e executar o Puppeteer
+        // IMPORTANTE: usar chromium.headless na Vercel (não simplesmente true)
         const browser = await puppeteer.launch({
             args: launchArgs,
             defaultViewport: chromium.defaultViewport,
             executablePath: executablePath,
-            headless: true,
+            headless: isVercel ? chromium.headless : true,
         });
 
         const page = await browser.newPage();
