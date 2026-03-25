@@ -109,7 +109,7 @@ export default async function handler(req, res) {
         // 6. Retornar o PDF
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename=proposta.pdf`);
-        res.send(pdf);
+        res.send(Buffer.from(pdf));
 
     } catch (error) {
         console.error('Erro na geração do PDF:', error.message);
