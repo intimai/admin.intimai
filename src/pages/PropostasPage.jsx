@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { FileText, Download, Loader2, Sparkles } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { supabase } from '@/lib/customSupabaseClient';
 
 const PropostasPage = () => {
     const { toast } = useToast();
@@ -25,17 +27,36 @@ const PropostasPage = () => {
         contexto: 'A Polícia Civil enfrenta limitações operacionais relacionadas à escassez de efetivo e necessidade de maior eficiência na execução de atos administrativos. O INTIMAI.APP automatiza o cumprimento de intimações, atividade essencial para o andamento de inquéritos, reduzindo custos de deslocamento, papel e combustível.'
     });
 
+    const [leads, setLeads] = useState([]);
+    const [selectedLeadId, setSelectedLeadId] = useState('');
+
     useEffect(() => {
-        const delegacia = searchParams.get('delegacia');
-        const responsavel = searchParams.get('responsavel');
-        if (delegacia || responsavel) {
+        const fetchLeads = async () => {
+            const { data } = await supabase.from('leads').select('*').order('delegacia');
+            if (data) setLeads(data);
+        };
+        fetchLeads();
+    }, []);
+
+    useEffect(() => {
+        const leadId = searchParams.get('lead_id');
+        if (leadId && leads.length > 0) {
+            if (leadId !== selectedLeadId) {
+                handleLeadSelect(leadId);
+            }
+        }
+    }, [searchParams, leads]);
+
+    const handleLeadSelect = (id) => {
+        const lead = leads.find(l => l.id === id);
+        if (lead) {
+            setSelectedLeadId(id);
             setFormData(prev => ({
                 ...prev,
-                delegacia: delegacia || prev.delegacia,
-                responsavel: responsavel || prev.responsavel
+                delegacia: lead.delegacia || '',
             }));
         }
-    }, [searchParams]);
+    };
 
     // Função auxiliar para formatar moeda (ex: "390" -> "390,00")
     const formatCurrency = (val) => {
@@ -105,9 +126,30 @@ const PropostasPage = () => {
             a.click();
             window.URL.revokeObjectURL(url);
 
+            // Upload PDF to Supabase Storage and Update Lead
+            if (selectedLeadId && formData.delegacia) {
+                const fileName = `proposta_${formData.delegacia.replace(/\s+/g, '_')}_${Date.now()}.pdf`;
+                const file = new File([blob], fileName, { type: 'application/pdf' });
+
+                const { error: uploadError } = await supabase.storage
+                    .from('propostas')
+                    .upload(fileName, file);
+
+                if (uploadError) {
+                    console.error("Erro no upload do PDF:", uploadError);
+                } else {
+                    const { data: publicData } = supabase.storage.from('propostas').getPublicUrl(fileName);
+
+                    await supabase.from('leads').update({
+                        status: 'qualificado',
+                        proposta_url: publicData.publicUrl
+                    }).eq('id', selectedLeadId);
+                }
+            }
+
             toast({
                 title: "Proposta gerada",
-                description: "O PDF foi gerado e o download deve iniciar.",
+                description: "O PDF foi gerado e salvo no banco de dados com sucesso.",
             });
         } catch (error) {
             console.error('Erro:', error);
@@ -134,8 +176,17 @@ const PropostasPage = () => {
                     <CardContent className="space-y-6 pt-6">
                         <div className="flex flex-col sm:flex-row gap-4">
                             <div className="flex-1 space-y-2">
-                                <Label htmlFor="delegacia">Nome da Delegacia / Cliente</Label>
-                                <Input id="delegacia" name="delegacia" value={formData.delegacia} onChange={handleChange} placeholder="Ex: Delegacia de Leopoldina" />
+                                <Label htmlFor="delegacia">Selecione a Delegacia (Lead cadastrado)</Label>
+                                <Select value={selectedLeadId} onValueChange={handleLeadSelect}>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Escolha um Lead do funil" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {leads.map(l => (
+                                            <SelectItem key={l.id} value={l.id}>{l.delegacia}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                             <div className="w-full sm:w-20 space-y-2">
                                 <Label htmlFor="estado">Estado</Label>

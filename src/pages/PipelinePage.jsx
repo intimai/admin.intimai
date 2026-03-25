@@ -4,8 +4,13 @@ import { usePipeline } from '@/hooks/usePipeline';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, Phone, Mail, User, GripVertical, FileText } from 'lucide-react';
+import { Loader2, Phone, Mail, User, GripVertical, FileText, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/lib/customSupabaseClient';
 
 const KanbanColumn = ({ title, subtitle, items, status, onMove, colorClass }) => {
   const [isOver, setIsOver] = useState(false);
@@ -121,7 +126,7 @@ const PipelineCard = ({ item }) => {
               className="h-7 text-[10px] gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
               onClick={(e) => {
                 e.stopPropagation();
-                window.location.href = `/propostas?delegacia=${encodeURIComponent(item.delegacia)}&responsavel=${encodeURIComponent(item.delegadoResponsavel || '')}&email=${encodeURIComponent(item.email || '')}`;
+                window.location.href = `/propostas?lead_id=${item.id}`;
               }}
             >
               <FileText size={12} />
@@ -134,8 +139,96 @@ const PipelineCard = ({ item }) => {
   );
 };
 
+const NewLeadDialog = ({ onSuccess }) => {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+  const [formData, setFormData] = useState({
+    delegacia: '',
+    nome: '',
+    email: '',
+    telefone: '',
+    delegadoResponsavel: ''
+  });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const { error } = await supabase.from('leads').insert([{
+        delegacia: formData.delegacia,
+        nome: formData.nome,
+        email: formData.email,
+        telefone: formData.telefone,
+        delegadoResponsavel: formData.delegadoResponsavel,
+        status: 'pendente'
+      }]);
+
+      if (error) throw error;
+
+      toast({ title: "Lead Criado", description: "Novo lead adicionado com sucesso." });
+      setOpen(false);
+      setFormData({ delegacia: '', nome: '', email: '', telefone: '', delegadoResponsavel: '' });
+      if (onSuccess) onSuccess();
+    } catch (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (e) => setFormData(p => ({ ...p, [e.target.name]: e.target.value }));
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button className="gap-2 shadow-sm" variant="default">
+          <Plus size={16} /> Novo Lead
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Adicionar Novo Lead</DialogTitle>
+          <DialogDescription>Cadastre manualmente uma nova delegacia no funil de vendas.</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+          <div className="space-y-2">
+            <Label>Nome da Delegacia (Obrigatório)</Label>
+            <Input name="delegacia" value={formData.delegacia} onChange={handleChange} placeholder="Ex: Delegacia XPTO" required />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Nome do Contato</Label>
+              <Input name="nome" value={formData.nome} onChange={handleChange} placeholder="Ex: João Silva" />
+            </div>
+            <div className="space-y-2">
+              <Label>Delegado Responsável</Label>
+              <Input name="delegadoResponsavel" value={formData.delegadoResponsavel} onChange={handleChange} placeholder="Opcional" />
+            </div>
+            <div className="space-y-2">
+              <Label>E-mail</Label>
+              <Input name="email" type="email" value={formData.email} onChange={handleChange} placeholder="contato@exemplo.com" />
+            </div>
+            <div className="space-y-2">
+              <Label>Telefone / WhatsApp</Label>
+              <Input name="telefone" value={formData.telefone} onChange={handleChange} placeholder="(00) 00000-0000" />
+            </div>
+          </div>
+          <DialogFooter className="pt-4">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button type="submit" disabled={loading || !formData.delegacia}>
+              {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+              Salvar Lead
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 const PipelinePage = () => {
-  const { items, loading, updateStatus } = usePipeline();
+  const { items, loading, updateStatus, refresh } = usePipeline();
 
   const columns = useMemo(() => {
     return {
@@ -166,6 +259,7 @@ const PipelinePage = () => {
       <PageHeader
         title="Pipeline"
         description="Gestão estratégica de leads e progresso do funil de conversão das delegacias."
+        action={<NewLeadDialog onSuccess={refresh} />}
       />
 
       <Card className="bg-card/90 border-border/40 overflow-hidden shadow-xl backdrop-blur-md">
@@ -189,7 +283,7 @@ const PipelinePage = () => {
               />
               <KanbanColumn
                 title="Em Atendimento"
-                subtitle="humano"
+                subtitle="por humano"
                 status="em_atendimento"
                 items={columns.em_atendimento}
                 onMove={updateStatus}
@@ -197,7 +291,7 @@ const PipelinePage = () => {
               />
               <KanbanColumn
                 title="Qualificado"
-                subtitle="Enviar Proposta"
+                subtitle="Enviando Proposta..."
                 status="qualificado"
                 items={columns.qualificado}
                 onMove={updateStatus}
