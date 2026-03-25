@@ -140,9 +140,17 @@ const PropostasPage = () => {
                 } else {
                     const { data: publicData } = supabase.storage.from('propostas').getPublicUrl(fileName);
 
+                    // 1. Salva o histórico (Nova tabela 1:N)
+                    await supabase.from('lead_propostas').insert([{
+                        lead_id: selectedLeadId,
+                        pdf_url: publicData.publicUrl,
+                        valor_mensal: formData.total_mensal,
+                        valor_anual: formData.total_anual
+                    }]);
+
+                    // 2. Atualiza o status do Lead na Pipeline
                     await supabase.from('leads').update({
-                        status: 'qualificado',
-                        proposta_url: publicData.publicUrl
+                        status: 'qualificado'
                     }).eq('id', selectedLeadId);
                 }
             }
