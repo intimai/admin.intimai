@@ -148,10 +148,8 @@ const PropostasPage = () => {
                         valor_anual: formData.total_anual
                     }]);
 
-                    // 2. Atualiza o status do Lead na Pipeline
-                    await supabase.from('leads').update({
-                        status: 'qualificado'
-                    }).eq('id', selectedLeadId);
+                    // O Trigger do banco (admin_lead_propostas_trigger) assume daqui para frente:
+                    // dispara o webhook N8N e move o lead para o status 'proposta' automaticamente.
                 }
             }
 

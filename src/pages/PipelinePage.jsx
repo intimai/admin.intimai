@@ -60,7 +60,7 @@ const KanbanColumn = ({ title, subtitle, items, status, onMove, colorClass }) =>
           </div>
         ) : (
           items.map((item) => (
-            <PipelineCard key={item.id} item={item} />
+            <PipelineCard key={item.id} item={item} columnStatus={status} />
           ))
         )}
       </div>
@@ -68,7 +68,7 @@ const KanbanColumn = ({ title, subtitle, items, status, onMove, colorClass }) =>
   );
 };
 
-const PipelineCard = ({ item }) => {
+const PipelineCard = ({ item, columnStatus }) => {
   const handleDragStart = (e) => {
     e.dataTransfer.setData('itemId', item.id);
     e.dataTransfer.effectAllowed = 'move';
@@ -119,20 +119,22 @@ const PipelineCard = ({ item }) => {
               <span className="truncate">{item.telefone}</span>
             </div>
           </div>
-          <div className="mt-4 pt-3 border-t border-border/30 flex justify-end">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-7 text-[10px] gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={(e) => {
-                e.stopPropagation();
-                window.location.href = `/propostas?lead_id=${item.id}`;
-              }}
-            >
-              <FileText size={12} />
-              Gerar Proposta
-            </Button>
-          </div>
+          {columnStatus === 'qualificado' && (
+            <div className="mt-4 pt-3 border-t border-border/30 flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-[10px] gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.location.href = `/propostas?lead_id=${item.id}`;
+                }}
+              >
+                <FileText size={12} />
+                Gerar Proposta
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
