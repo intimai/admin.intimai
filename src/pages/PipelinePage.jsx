@@ -27,8 +27,6 @@ const KanbanColumn = ({ title, subtitle, items, status, onMove, colorClass, isLo
   const handleDrop = (e) => {
     e.preventDefault();
     setIsOver(false);
-    if (isLocked) return;
-
     const itemId = e.dataTransfer.getData('itemId');
     if (itemId) {
       onMove(itemId, status);
@@ -73,7 +71,8 @@ const KanbanColumn = ({ title, subtitle, items, status, onMove, colorClass, isLo
 };
 
 const PipelineCard = ({ item, columnStatus }) => {
-  const isDraggable = !['pendente', 'conversando', 'qualificado', 'fechado'].includes(columnStatus);
+  // Apenas Qualificado e Fechado são não-arrastáveis (aguardam ação de botão)
+  const isDraggable = !['qualificado', 'fechado'].includes(columnStatus);
 
   const handleDragStart = (e) => {
     if (!isDraggable) {
@@ -283,9 +282,9 @@ const PipelinePage = () => {
     // Regras de Transição (Validação)
     let errorMessage = '';
 
-    // Regra 1: Novo e IA são travados (Drag Out) - Já travado no PipelineCard draggable=false, mas backup aqui
+    // Regra 1: Novo e IA - o arrastar visualmente é permitido, mas a transferência é bloqueada com mensagem
     if (['novo', 'pendente', 'conversando'].includes(oldStatus)) {
-      errorMessage = "Este card está sendo processado pela IA. A qualificação é automática.";
+      errorMessage = "Este lead está na etapa de atendimento automatizado pela IA. Aguarde a qualificação automática para prosseguir.";
     }
     // Regra 3: Em Atendimento -> Qualificado ou Não Qualificado
     else if (oldStatus === 'em_atendimento' && !['qualificado', 'nao_qualificado'].includes(newStatus)) {
