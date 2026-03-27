@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/customSupabaseClient';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 // Mapa de transições permitidas para cada status
 const ALLOWED_TRANSITIONS = {
@@ -205,6 +206,7 @@ const NewLeadDialog = ({ onSuccess }) => {
     telefone: '',
     delegadoResponsavel: ''
   });
+  const [statusChoice, setStatusChoice] = useState('ia');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -212,14 +214,17 @@ const NewLeadDialog = ({ onSuccess }) => {
 
     setLoading(true);
     try {
-      console.log('[NewLeadDialog] Criando lead com status pendente...');
+      const selectedStatus = statusChoice === 'ia' ? 'pendente' : 'em_atendimento';
+      console.log(`[NewLeadDialog] Criando lead com status ${selectedStatus} e lead_admin: true...`);
+
       const { data, error } = await supabase.from('leads').insert([{
         delegacia: formData.delegacia,
         nome: formData.nome,
         email: formData.email,
         telefone: formData.telefone,
         delegadoResponsavel: formData.delegadoResponsavel,
-        status: 'pendente'
+        status: selectedStatus,
+        lead_admin: true
       }]).select();
 
       if (error) throw error;
@@ -264,6 +269,20 @@ const NewLeadDialog = ({ onSuccess }) => {
           <div className="space-y-2">
             <Label>Nome da Delegacia (Obrigatório)</Label>
             <Input name="delegacia" value={formData.delegacia} onChange={handleChange} placeholder="Ex: Delegacia XPTO" required />
+          </div>
+
+          <div className="space-y-3 bg-muted/40 p-4 rounded-lg border border-border/40">
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">FLUXO INICIAL DO LEAD</Label>
+            <RadioGroup value={statusChoice} onValueChange={setStatusChoice} className="flex gap-6 pt-1">
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="ia" id="ia" />
+                <Label htmlFor="ia" className="text-sm font-medium cursor-pointer">Esteira da IA (Prospecção)</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="humano" id="humano" />
+                <Label htmlFor="humano" className="text-sm font-medium cursor-pointer">Atendimento Humano</Label>
+              </div>
+            </RadioGroup>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
