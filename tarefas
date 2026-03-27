@@ -1,73 +1,12 @@
-Criação do Menu Propostas:
+Regras Kanban
 
+1 - Os cards "Novo" e "Conversando com IA" deverão ser travados (card não pode ser arrastado, tanto para entrada de cards quanto para saída - retirar o texto 'Arraste Itens aqui'). Nestas etapas a qualificação está sendo pela IA no N8N, onde a própria automação decide se o card deve ir para "Qualificado", "Não Qualificado" ou "Atendimento Humano". A única opção do usuário do IntimAI Admin pausar o atendimento pela IA é através do do chat da conversa, que ainda será implementado(futuramente). 
+2 - Alterar a coluna "Não Qualificado" para que ela apareça após a coluna "Qualificado".
+3 - Os cards de "Em Atendimento Humano" só podem ser arrastados para os cards "Qualificado" e "Não Qualificado".
+4 - Os cards de "Qualificado" não podem ser arrastados manualmente (serão arrastados automaticamente após a geração da proposta), e os cards de "Não Qualificado" somente podem ser arrastados para a coluna "Qualificado" (para assim seguir para a geração de proposta e continuidade da lógica do kanban)
+5 - O card "Proposta Enviada" somente poderá ser arrastado para a coluna "Fechado".
+6 - O cad "Fechado" terá um funcionamento parecido com o da coluna "Qualificado", ou seja, não poderá ser arrastado manualmente, mas terá um botão para geração do Contrato (Menu ainda não implementado), que levará para a tela de geração de contrato. Após o contrato gerado, o status deverá ser alterado automaticamente para que o card passe para a coluna "Ativo", assim como ocorre com a coluna "Qualificado" após a geração da proposta.
+7 -  O carda "Ativo" somente poderá ser arrastado para a coluna "Suspenso" (implementar coluna "Suspenso").
+8 - O card "Suspenso" somente poderá ser arrastado para as colunas "Ativo" ou "Inativo" (implementar coluna "Inativo").
 
-Quero implementar no meu backend uma funcionalidade para geração de propostas em PDF a partir de um template HTML.
-
-Requisitos:
-
-O sistema deve:
-
-Receber dados dinâmicos de uma proposta (ex: delegacia, valores, usuários, etc)
-
-Inserir esses dados em um template HTML
-
-Gerar um PDF a partir desse HTML
-
-Retornar o PDF para download
-
-Usar:
-
-Node.js
-
-Puppeteer para gerar o PDF
-
-Fluxo esperado:
-
-Criar uma função ou endpoint (ex: /gerar-proposta)
-
-Receber um objeto JSON com os dados da proposta
-
-Carregar um arquivo HTML local (template)
-
-Substituir variáveis no HTML no formato {{variavel}}
-
-Renderizar o HTML no Puppeteer
-
-Gerar o PDF no formato A4
-
-Retornar o PDF como resposta (download ou buffer)
-
-Variáveis que devem ser suportadas no template:
-
-{
-  "logo_url": "",
-  "delegacia": "",
-  "parceiro": "",
-  "proponente": "",
-  "responsavel": "",
-  "usuarios": "",
-  "valor_usuario": "",
-  "total_mensal": "",
-  "total_anual": "",
-  "total_anual_antecipado": "",
-  "contexto": ""
-}
-
-Requisitos importantes:
-
-O PDF deve manter cores e estilos (usar printBackground: true)
-
-Aguardar carregamento completo (imagens externas incluídas)
-
-Margens adequadas para documento formal
-
-Código simples e organizado
-
-Opcional (se possível):
-
-Criar função separada para substituir variáveis no HTML
-
-Permitir reutilização do sistema para outros documentos no futuro
-
-Objetivo final:
-Quero apenas chamar essa função passando os dados e receber o PDF pronto para download.
+Observação: COloquei o contexto de cada regra para que você entenda a lógica por trás de cada uma e crie alertas para cada situação. Quando o usuário tentar arrastar um card para uma coluna que não pode ser arrastado, deverá aparecer um alerta informando que o card não pode ser arrastado para aquela coluna e quais as colunas permitidas, informando maneira correta de proceder para cada situação. Exemplo: "O card 'Qualificado' não pode ser arrastado para a coluna 'Em Atendimento Humano'. Para prosseguir, gere a proposta clicando no botão 'Gerar Proposta' no card."  

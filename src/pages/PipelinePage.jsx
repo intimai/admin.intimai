@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/customSupabaseClient';
 
-const KanbanColumn = ({ title, subtitle, items, status, onMove, colorClass }) => {
+const KanbanColumn = ({ title, subtitle, items, status, onMove, colorClass, isLocked }) => {
   const [isOver, setIsOver] = useState(false);
 
   const handleDragOver = (e) => {
@@ -27,6 +27,8 @@ const KanbanColumn = ({ title, subtitle, items, status, onMove, colorClass }) =>
   const handleDrop = (e) => {
     e.preventDefault();
     setIsOver(false);
+    if (isLocked) return;
+
     const itemId = e.dataTransfer.getData('itemId');
     if (itemId) {
       onMove(itemId, status);
@@ -37,7 +39,7 @@ const KanbanColumn = ({ title, subtitle, items, status, onMove, colorClass }) =>
     <div
       className={cn(
         "flex flex-col gap-4 min-w-[280px] w-80 p-4 rounded-lg h-fit border flex-shrink-0 transition-colors duration-200",
-        isOver ? "bg-muted/60 border-primary/50" : "bg-muted/30 border-border/50"
+        isOver && !isLocked ? "bg-muted/60 border-primary/50" : "bg-muted/30 border-border/50"
       )}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
@@ -55,9 +57,11 @@ const KanbanColumn = ({ title, subtitle, items, status, onMove, colorClass }) =>
 
       <div className="flex flex-col gap-3 pr-2 min-h-[100px]">
         {items.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground text-sm italic border-2 border-dashed border-muted rounded-md bg-background/50">
-            Arraste itens aqui
-          </div>
+          !isLocked && (
+            <div className="text-center py-8 text-muted-foreground text-sm italic border-2 border-dashed border-muted rounded-md bg-background/50">
+              Arraste itens aqui
+            </div>
+          )
         ) : (
           items.map((item) => (
             <PipelineCard key={item.id} item={item} columnStatus={status} />
@@ -69,17 +73,23 @@ const KanbanColumn = ({ title, subtitle, items, status, onMove, colorClass }) =>
 };
 
 const PipelineCard = ({ item, columnStatus }) => {
+  const isDraggable = !['pendente', 'conversando', 'qualificado', 'fechado'].includes(columnStatus);
+
   const handleDragStart = (e) => {
+    if (!isDraggable) {
+      e.preventDefault();
+      return;
+    }
     e.dataTransfer.setData('itemId', item.id);
+    e.dataTransfer.setData('sourceStatus', columnStatus);
     e.dataTransfer.effectAllowed = 'move';
-    // Adiciona uma classe temporária para indicar que está sendo arrastado (opcional, pois o navegador já cria o "fantasma")
   };
 
   return (
     <div
-      draggable
+      draggable={isDraggable}
       onDragStart={handleDragStart}
-      className="cursor-grab active:cursor-grabbing group"
+      className={cn("group", isDraggable ? "cursor-grab active:cursor-grabbing" : "cursor-default")}
     >
       <Card className="shadow-sm hover:shadow-md transition-shadow bg-card border-l-4 border-l-primary/20 hover:border-l-primary group-active:opacity-50">
         <CardHeader className="p-4 pb-2">
@@ -155,27 +165,41 @@ const NewLeadDialog = ({ onSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
+
     setLoading(true);
     try {
-      const { error } = await supabase.from('leads').insert([{
+      console.log('[NewLeadDialog] Criando lead com status pendente...');
+      const { data, error } = await supabase.from('leads').insert([{
         delegacia: formData.delegacia,
         nome: formData.nome,
         email: formData.email,
         telefone: formData.telefone,
         delegadoResponsavel: formData.delegadoResponsavel,
         status: 'pendente'
-      }]);
+      }]).select();
 
       if (error) throw error;
 
+      console.log('[NewLeadDialog] Sucesso!', data);
       toast({ title: "Lead Criado", description: "Novo lead adicionado com sucesso." });
       setOpen(false);
       setFormData({ delegacia: '', nome: '', email: '', telefone: '', delegadoResponsavel: '' });
-      if (onSuccess) onSuccess();
+
+      // Chama o refresh depois de fechar o modal
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error) {
-      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      console.error('[NewLeadDialog] Erro:', error);
+      toast({
+        title: "Erro ao cadastrar",
+        description: error.message || "Tente novamente em instantes.",
+        variant: "destructive"
+      });
     } finally {
-      setLoading(false);
+      // Pequeno delay para garantir que o estado de loading não seja removido antes do unmount se estiver fechando
+      setTimeout(() => setLoading(false), 500);
     }
   };
 
@@ -238,12 +262,72 @@ const PipelinePage = () => {
       conversando: items.filter(i => i.status === 'conversando'),
       em_atendimento: items.filter(i => i.status === 'em_atendimento' || i.status === 'processando'),
       qualificado: items.filter(i => i.status === 'qualificado'),
+      nao_qualificado: items.filter(i => i.status === 'nao_qualificado'),
       proposta: items.filter(i => i.status === 'proposta'),
       fechado: items.filter(i => i.status === 'fechado'),
       ativo: items.filter(i => i.status === 'ativo' || i.status === 'concluido'),
-      nao_qualificado: items.filter(i => i.status === 'nao_qualificado'),
+      suspenso: items.filter(i => i.status === 'suspenso'),
+      inativo: items.filter(i => i.status === 'inativo'),
     };
   }, [items]);
+
+  const handleMoveCard = (id, newStatus) => {
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+
+    const oldStatus = item.status || 'pendente';
+
+    // Se for o mesmo status, ignora
+    if (oldStatus === newStatus) return;
+
+    // Regras de Transição (Validação)
+    let errorMessage = '';
+
+    // Regra 1: Novo e IA são travados (Drag Out) - Já travado no PipelineCard draggable=false, mas backup aqui
+    if (['novo', 'pendente', 'conversando'].includes(oldStatus)) {
+      errorMessage = "Este card está sendo processado pela IA. A qualificação é automática.";
+    }
+    // Regra 3: Em Atendimento -> Qualificado ou Não Qualificado
+    else if (oldStatus === 'em_atendimento' && !['qualificado', 'nao_qualificado'].includes(newStatus)) {
+      errorMessage = "Cards em 'Atendimento Humano' só podem ser movidos para 'Qualificado' ou 'Não Qualificado'.";
+    }
+    // Regra 4: Qualificado não arrasta manualmente
+    else if (oldStatus === 'qualificado') {
+      errorMessage = "O card 'Qualificado' não pode ser movido manualmente. Gere a proposta para avançar automaticamente.";
+    }
+    // Regra 4: Não Qualificado -> Qualificado
+    else if (oldStatus === 'nao_qualificado' && newStatus !== 'qualificado') {
+      errorMessage = "Cards 'Não Qualificados' só podem retornar para a coluna 'Qualificado'.";
+    }
+    // Regra 5: Proposta Enviada -> Fechado
+    else if (oldStatus === 'proposta' && newStatus !== 'fechado') {
+      errorMessage = "Cards com 'Proposta Enviada' só podem ser movidos para 'Fechado' após confirmação.";
+    }
+    // Regra 6: Fechado não arrasta manualmente
+    else if (oldStatus === 'fechado') {
+      errorMessage = "O card 'Fechado' requer a geração de contrato (em breve) para avançar para 'Ativo'.";
+    }
+    // Regra 7: Ativo -> Suspenso
+    else if (oldStatus === 'ativo' && newStatus !== 'suspenso') {
+      errorMessage = "Cards 'Ativos' só podem ser movidos para a coluna 'Suspenso'.";
+    }
+    // Regra 8: Suspenso -> Ativo ou Inativo
+    else if (oldStatus === 'suspenso' && !['ativo', 'inativo'].includes(newStatus)) {
+      errorMessage = "Cards 'Suspensos' só podem retornar para 'Ativo' ou ir para 'Inativo'.";
+    }
+
+    if (errorMessage) {
+      toast({
+        title: "Ação não permitida",
+        description: errorMessage,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Se passou nas regras, atualiza
+    updateStatus(id, newStatus);
+  };
 
   if (loading) {
     return (
@@ -272,64 +356,84 @@ const PipelinePage = () => {
                 title="Novo"
                 status="pendente"
                 items={columns.novo}
-                onMove={updateStatus}
+                onMove={handleMoveCard}
                 colorClass="text-zinc-100 border-zinc-100/20"
+                isLocked={true}
               />
               <KanbanColumn
                 title="Conversando"
-                subtitle="com IA"
+                subtitle="IA"
                 status="conversando"
                 items={columns.conversando}
-                onMove={updateStatus}
+                onMove={handleMoveCard}
                 colorClass="text-purple-400 border-purple-400/20"
+                isLocked={true}
               />
               <KanbanColumn
                 title="Em Atendimento"
-                subtitle="por humano"
+                subtitle="Humano"
                 status="em_atendimento"
                 items={columns.em_atendimento}
-                onMove={updateStatus}
+                onMove={handleMoveCard}
                 colorClass="text-cyan-400 border-cyan-400/20"
               />
               <KanbanColumn
                 title="Qualificado"
-                subtitle="Enviando Proposta..."
+                subtitle="Enviar Proposta"
                 status="qualificado"
                 items={columns.qualificado}
-                onMove={updateStatus}
+                onMove={handleMoveCard}
                 colorClass="text-pink-400 border-pink-400/20"
-              />
-              <KanbanColumn
-                title="Proposta"
-                subtitle="Aguardando Resposta"
-                status="proposta"
-                items={columns.proposta}
-                onMove={updateStatus}
-                colorClass="text-yellow-400 border-yellow-400/20"
-              />
-              <KanbanColumn
-                title="Fechado"
-                subtitle="Aguardando Contrato"
-                status="fechado"
-                items={columns.fechado}
-                onMove={updateStatus}
-                colorClass="text-indigo-400 border-indigo-400/20"
-              />
-              <KanbanColumn
-                title="Ativo"
-                subtitle="Contrato Assinado"
-                status="ativo"
-                items={columns.ativo}
-                onMove={updateStatus}
-                colorClass="text-green-400 border-green-400/20"
+                isLocked={true}
               />
               <KanbanColumn
                 title="Não Qualificado"
                 subtitle="Esteira de Reaquecimento"
                 status="nao_qualificado"
                 items={columns.nao_qualificado}
-                onMove={updateStatus}
+                onMove={handleMoveCard}
                 colorClass="text-red-400 border-red-400/20"
+              />
+              <KanbanColumn
+                title="Proposta Enviada"
+                subtitle="Aguardando Resposta"
+                status="proposta"
+                items={columns.proposta}
+                onMove={handleMoveCard}
+                colorClass="text-yellow-400 border-yellow-400/20"
+              />
+              <KanbanColumn
+                title="Fechado"
+                subtitle="Enviar Contrato"
+                status="fechado"
+                items={columns.fechado}
+                onMove={handleMoveCard}
+                colorClass="text-indigo-400 border-indigo-400/20"
+                isLocked={true}
+              />
+              <KanbanColumn
+                title="Ativo"
+                subtitle="Contrato Assinado"
+                status="ativo"
+                items={columns.ativo}
+                onMove={handleMoveCard}
+                colorClass="text-green-400 border-green-400/20"
+              />
+              <KanbanColumn
+                title="Suspenso"
+                subtitle="Pausado"
+                status="suspenso"
+                items={columns.suspenso}
+                onMove={handleMoveCard}
+                colorClass="text-orange-400 border-orange-400/20"
+              />
+              <KanbanColumn
+                title="Inativo"
+                subtitle="Perdido"
+                status="inativo"
+                items={columns.inativo}
+                onMove={handleMoveCard}
+                colorClass="text-slate-500 border-slate-500/20"
               />
             </div>
           </div>
