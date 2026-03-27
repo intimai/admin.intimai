@@ -609,9 +609,9 @@ const ContratosPage = () => {
                 description="Monte, edite e gere contratos personalizados em PDF. O corpo do contrato é carregado do modelo enviado e pode ser editado antes da geração."
             />
 
-            <div className="flex flex-col xl:flex-row gap-6">
+            <div className="flex flex-col lg:flex-row gap-6">
                 {/* ─── FORMULÁRIO LATERAL ─── */}
-                <div className="w-full xl:w-[420px] flex-shrink-0 space-y-4">
+                <div className="w-full lg:w-[400px] xl:w-[420px] flex-shrink-0 space-y-4">
                     {/* Seleção de Lead */}
                     <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-xl">
                         <CardContent className="space-y-4 pt-6">
