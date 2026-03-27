@@ -541,7 +541,10 @@ const ContratosPage = () => {
 
             // Upload PDF para Supabase Storage
             if (selectedLeadId && fields.NOME_CONTRATANTE) {
-                const pdfFileName = `contrato_${fields.NOME_CONTRATANTE.replace(/\s+/g, '_')}_${Date.now()}.pdf`;
+                console.log('[Upload] Iniciando upload para o Supabase...');
+                // Limpar caracteres estranhos do nome do arquivo para evitar problemas
+                const cleanName = fields.NOME_CONTRATANTE.replace(/[^a-zA-Z0-9_\-]/g, '_');
+                const pdfFileName = `contrato_${cleanName}_${Date.now()}.pdf`;
                 const pdfFile = new File([blob], pdfFileName, { type: 'application/pdf' });
 
                 const { error: uploadError } = await supabase.storage
@@ -549,32 +552,39 @@ const ContratosPage = () => {
                     .upload(pdfFileName, pdfFile);
 
                 if (uploadError) {
-                    console.error('Erro no upload do PDF:', uploadError);
-                } else {
-                    const { data: publicData } = supabase.storage.from('contratos').getPublicUrl(pdfFileName);
+                    console.error('[Upload] Erro ao salvar arquivo no bucket:', uploadError);
+                    throw new Error(`Erro ao salvar no bucket: ${uploadError.message}`);
+                }
+                
+                console.log('[Upload] Arquivo salvo no bucket com sucesso!');
+                const { data: publicData } = supabase.storage.from('contratos').getPublicUrl(pdfFileName);
 
-                    // Salvar no banco
-                    await supabase.from('lead_contratos').insert([{
+                console.log('[DB] Salvando histórico na tabela lead_contratos...');
+                const { error: dbError } = await supabase.from('lead_contratos').insert([{
+                    lead_id: selectedLeadId,
+                    pdf_url: publicData.publicUrl,
+                }]);
+
+                if (dbError) {
+                    console.error('[DB] Erro ao salvar histórico:', dbError);
+                } else {
+                    console.log('[DB] Histórico salvo com sucesso!');
+                }
+
+                console.log('[Webhook] Acionando n8n de forma assíncrona...');
+                // Acionar webhook SEM await para não travar a tela se n8n atrasar resposta
+                fetch('https://hook.intimai.app/webhook/admin_contratos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
                         lead_id: selectedLeadId,
                         pdf_url: publicData.publicUrl,
-                    }]);
-
-                    // Acionar webhook
-                    try {
-                        await fetch('https://hook.intimai.app/webhook/admin_contratos', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                lead_id: selectedLeadId,
-                                pdf_url: publicData.publicUrl,
-                                delegacia: fields.NOME_CONTRATANTE,
-                                created_at: new Date().toISOString(),
-                            }),
-                        });
-                    } catch (webhookErr) {
-                        console.warn('Webhook não acionado:', webhookErr.message);
-                    }
-                }
+                        delegacia: fields.NOME_CONTRATANTE,
+                        created_at: new Date().toISOString(),
+                    }),
+                })
+                .then(res => console.log('[Webhook] Resposta recebida:', res.status))
+                .catch(err => console.warn('[Webhook] Erro no acionamento (assíncrono):', err.message));
             }
 
             toast({
