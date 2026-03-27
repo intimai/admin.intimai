@@ -23,7 +23,7 @@ const ALLOWED_TRANSITIONS = {
   'fechado': ['suspenso', 'qualificado'],  // Suspenso ou volta para qualificado
   'ativo': ['suspenso'],
   'suspenso': ['ativo', 'inativo'],
-  'inativo': [],
+  'inativo': ['suspenso', 'ativo', 'qualificado'],
 };
 
 const KanbanColumn = ({ title, subtitle, items, status, onMove, colorClass, isLocked, dragSourceStatus, onDragStart, onDragEnd }) => {
@@ -344,6 +344,8 @@ const PipelinePage = () => {
         errorMessage = `Cards 'Ativos' só podem ser movidos para 'Suspenso'.`;
       } else if (oldStatus === 'suspenso') {
         errorMessage = `Cards 'Suspensos' só podem retornar para 'Ativo' ou ir para 'Inativo'.`;
+      } else if (oldStatus === 'inativo') {
+        errorMessage = `Cards 'Inativos' podem retornar para 'Qualificado', 'Ativo' ou 'Suspenso'.`;
       } else {
         errorMessage = `Esta transição não é permitida.`;
       }
