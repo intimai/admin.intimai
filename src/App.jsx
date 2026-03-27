@@ -14,6 +14,7 @@ import SemPermissaoPage from './pages/SemPermissaoPage';
 import SetPasswordPage from './pages/SetPasswordPage';
 import EmDesenvolvimentoPage from './pages/EmDesenvolvimentoPage';
 import PropostasPage from './pages/PropostasPage';
+import ContratosPage from './pages/ContratosPage';
 import AdminLayout from './components/layout/AdminLayout';
 import AdminProtectedRoute from './components/layout/AdminProtectedRoute';
 import { AdminAuthProvider } from './contexts/AdminAuthContext';
@@ -50,7 +51,7 @@ function App() {
               } />
               <Route path="contratos" element={
                 <AdminProtectedRoute menuSlug="contratos">
-                  <EmDesenvolvimentoPage title="Contratos" />
+                  <ContratosPage />
                 </AdminProtectedRoute>
               } />
               <Route path="nfe" element={
