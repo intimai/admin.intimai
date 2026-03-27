@@ -1,10 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import PageHeader from '@/components/ui/PageHeader';
 import { usePipeline } from '@/hooks/usePipeline';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, Phone, Mail, User, GripVertical, FileText, Plus } from 'lucide-react';
+import { Loader2, Phone, Mail, User, GripVertical, FileText, Plus, ScrollText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -12,8 +12,27 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/customSupabaseClient';
 
-const KanbanColumn = ({ title, subtitle, items, status, onMove, colorClass, isLocked }) => {
+// Mapa de transições permitidas para cada status
+const ALLOWED_TRANSITIONS = {
+  'pendente': [],            // IA cuida
+  'conversando': [],         // IA cuida
+  'em_atendimento': ['qualificado', 'nao_qualificado'],
+  'qualificado': ['nao_qualificado'],  // Exceção para corrigir erros
+  'nao_qualificado': ['qualificado'],
+  'proposta': ['fechado'],
+  'fechado': ['suspenso', 'qualificado'],  // Suspenso ou volta para qualificado
+  'ativo': ['suspenso'],
+  'suspenso': ['ativo', 'inativo'],
+  'inativo': [],
+};
+
+const KanbanColumn = ({ title, subtitle, items, status, onMove, colorClass, isLocked, dragSourceStatus, onDragStart, onDragEnd }) => {
   const [isOver, setIsOver] = useState(false);
+
+  // Determina visualmente se esta coluna é alvo válido ou inválido durante um drag
+  const isDragging = dragSourceStatus !== null;
+  const isValidTarget = isDragging && dragSourceStatus && ALLOWED_TRANSITIONS[dragSourceStatus]?.includes(status);
+  const isInvalidTarget = isDragging && dragSourceStatus && !ALLOWED_TRANSITIONS[dragSourceStatus]?.includes(status) && dragSourceStatus !== status;
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -36,8 +55,12 @@ const KanbanColumn = ({ title, subtitle, items, status, onMove, colorClass, isLo
   return (
     <div
       className={cn(
-        "flex flex-col gap-4 min-w-[280px] w-80 p-4 rounded-lg h-fit border flex-shrink-0 transition-colors duration-200",
-        isOver && !isLocked ? "bg-muted/60 border-primary/50" : "bg-muted/30 border-border/50"
+        "flex flex-col gap-4 min-w-[280px] w-80 p-4 rounded-lg h-fit border flex-shrink-0 transition-all duration-200",
+        isOver && isValidTarget ? "bg-green-500/10 border-green-400/60 scale-[1.01]" :
+          isOver && isInvalidTarget ? "bg-red-500/10 border-red-400/60" :
+            isValidTarget ? "border-green-400/40 bg-green-500/5" :
+              isInvalidTarget ? "border-red-400/20 opacity-60" :
+                "bg-muted/30 border-border/50"
       )}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
@@ -62,7 +85,7 @@ const KanbanColumn = ({ title, subtitle, items, status, onMove, colorClass, isLo
           )
         ) : (
           items.map((item) => (
-            <PipelineCard key={item.id} item={item} columnStatus={status} />
+            <PipelineCard key={item.id} item={item} columnStatus={status} onDragStart={onDragStart} onDragEnd={onDragEnd} />
           ))
         )}
       </div>
@@ -70,25 +93,27 @@ const KanbanColumn = ({ title, subtitle, items, status, onMove, colorClass, isLo
   );
 };
 
-const PipelineCard = ({ item, columnStatus }) => {
-  // Apenas Qualificado e Fechado são não-arrastáveis (aguardam ação de botão)
-  const isDraggable = !['qualificado', 'fechado'].includes(columnStatus);
+const PipelineCard = ({ item, columnStatus, onDragStart, onDragEnd }) => {
+  // Qualificado e Fechado agora têm transições excepcionais - podem ser arrastados
+  const isDraggable = true;
 
   const handleDragStart = (e) => {
-    if (!isDraggable) {
-      e.preventDefault();
-      return;
-    }
     e.dataTransfer.setData('itemId', item.id);
     e.dataTransfer.setData('sourceStatus', columnStatus);
     e.dataTransfer.effectAllowed = 'move';
+    if (onDragStart) onDragStart(columnStatus);
+  };
+
+  const handleDragEnd = () => {
+    if (onDragEnd) onDragEnd();
   };
 
   return (
     <div
       draggable={isDraggable}
       onDragStart={handleDragStart}
-      className={cn("group", isDraggable ? "cursor-grab active:cursor-grabbing" : "cursor-default")}
+      onDragEnd={handleDragEnd}
+      className="cursor-grab active:cursor-grabbing group"
     >
       <Card className="shadow-sm hover:shadow-md transition-shadow bg-card border-l-4 border-l-primary/20 hover:border-l-primary group-active:opacity-50">
         <CardHeader className="p-4 pb-2">
@@ -128,12 +153,13 @@ const PipelineCard = ({ item, columnStatus }) => {
               <span className="truncate">{item.telefone}</span>
             </div>
           </div>
+          {/* Botão Gerar Proposta - somente na coluna Qualificado, sempre visível */}
           {columnStatus === 'qualificado' && (
             <div className="mt-4 pt-3 border-t border-border/30 flex justify-end">
               <Button
                 variant="outline"
                 size="sm"
-                className="h-7 text-[10px] gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="h-7 text-[10px] gap-1.5"
                 onClick={(e) => {
                   e.stopPropagation();
                   window.location.href = `/propostas?lead_id=${item.id}`;
@@ -141,6 +167,24 @@ const PipelineCard = ({ item, columnStatus }) => {
               >
                 <FileText size={12} />
                 Gerar Proposta
+              </Button>
+            </div>
+          )}
+          {/* Botão Gerar Contrato - somente na coluna Fechado, sempre visível */}
+          {columnStatus === 'fechado' && (
+            <div className="mt-4 pt-3 border-t border-border/30 flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-[10px] gap-1.5 text-indigo-400 border-indigo-400/30 hover:bg-indigo-400/10"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // TODO: Redirecionar para página de contratos quando implementada
+                  window.location.href = `/contratos?lead_id=${item.id}`;
+                }}
+              >
+                <ScrollText size={12} />
+                Gerar Contrato
               </Button>
             </div>
           )}
@@ -254,6 +298,8 @@ const NewLeadDialog = ({ onSuccess }) => {
 
 const PipelinePage = () => {
   const { items, loading, updateStatus, refresh } = usePipeline();
+  const { toast } = useToast();
+  const [dragSourceStatus, setDragSourceStatus] = useState(null);
 
   const columns = useMemo(() => {
     return {
@@ -271,62 +317,45 @@ const PipelinePage = () => {
   }, [items]);
 
   const handleMoveCard = (id, newStatus) => {
+    setDragSourceStatus(null);
     const item = items.find(i => i.id === id);
     if (!item) return;
 
     const oldStatus = item.status || 'pendente';
-
-    // Se for o mesmo status, ignora
     if (oldStatus === newStatus) return;
 
-    // Regras de Transição (Validação)
-    let errorMessage = '';
-
-    // Regra 1: Novo e IA - o arrastar visualmente é permitido, mas a transferência é bloqueada com mensagem
-    if (['novo', 'pendente', 'conversando'].includes(oldStatus)) {
-      errorMessage = "Este lead está na etapa de atendimento automatizado pela IA. Aguarde a qualificação automática para prosseguir.";
-    }
-    // Regra 3: Em Atendimento -> Qualificado ou Não Qualificado
-    else if (oldStatus === 'em_atendimento' && !['qualificado', 'nao_qualificado'].includes(newStatus)) {
-      errorMessage = "Cards em 'Atendimento Humano' só podem ser movidos para 'Qualificado' ou 'Não Qualificado'.";
-    }
-    // Regra 4: Qualificado não arrasta manualmente
-    else if (oldStatus === 'qualificado') {
-      errorMessage = "O card 'Qualificado' não pode ser movido manualmente. Gere a proposta para avançar automaticamente.";
-    }
-    // Regra 4: Não Qualificado -> Qualificado
-    else if (oldStatus === 'nao_qualificado' && newStatus !== 'qualificado') {
-      errorMessage = "Cards 'Não Qualificados' só podem retornar para a coluna 'Qualificado'.";
-    }
-    // Regra 5: Proposta Enviada -> Fechado
-    else if (oldStatus === 'proposta' && newStatus !== 'fechado') {
-      errorMessage = "Cards com 'Proposta Enviada' só podem ser movidos para 'Fechado' após confirmação.";
-    }
-    // Regra 6: Fechado não arrasta manualmente
-    else if (oldStatus === 'fechado') {
-      errorMessage = "O card 'Fechado' requer a geração de contrato (em breve) para avançar para 'Ativo'.";
-    }
-    // Regra 7: Ativo -> Suspenso
-    else if (oldStatus === 'ativo' && newStatus !== 'suspenso') {
-      errorMessage = "Cards 'Ativos' só podem ser movidos para a coluna 'Suspenso'.";
-    }
-    // Regra 8: Suspenso -> Ativo ou Inativo
-    else if (oldStatus === 'suspenso' && !['ativo', 'inativo'].includes(newStatus)) {
-      errorMessage = "Cards 'Suspensos' só podem retornar para 'Ativo' ou ir para 'Inativo'.";
-    }
-
-    if (errorMessage) {
-      toast({
-        title: "Ação não permitida",
-        description: errorMessage,
-        variant: "destructive"
-      });
+    // Valida usando o mapa centralizado de transições
+    const allowed = ALLOWED_TRANSITIONS[oldStatus] || [];
+    if (!allowed.includes(newStatus)) {
+      let errorMessage = '';
+      if (!allowed.length || ['pendente', 'conversando'].includes(oldStatus)) {
+        errorMessage = "Este lead está na etapa de atendimento automatizado pela IA. Aguarde a qualificação automática para prosseguir.";
+      } else if (oldStatus === 'em_atendimento') {
+        errorMessage = `Cards em 'Atendimento Humano' só podem ir para 'Qualificado' ou 'Não Qualificado'.`;
+      } else if (oldStatus === 'qualificado') {
+        errorMessage = `Cards 'Qualificados' só podem ser enviados para 'Não Qualificado' (correção). Para avançar, gere a proposta.`;
+      } else if (oldStatus === 'nao_qualificado') {
+        errorMessage = `Cards 'Não Qualificados' só podem retornar para 'Qualificado'.`;
+      } else if (oldStatus === 'proposta') {
+        errorMessage = `Cards com 'Proposta Enviada' só podem ser movidos para 'Fechado' após confirmação.`;
+      } else if (oldStatus === 'fechado') {
+        errorMessage = `Cards 'Fechados' podem voltar para 'Qualificado' (revisar proposta) ou ir para 'Suspenso'.`;
+      } else if (oldStatus === 'ativo') {
+        errorMessage = `Cards 'Ativos' só podem ser movidos para 'Suspenso'.`;
+      } else if (oldStatus === 'suspenso') {
+        errorMessage = `Cards 'Suspensos' só podem retornar para 'Ativo' ou ir para 'Inativo'.`;
+      } else {
+        errorMessage = `Esta transição não é permitida.`;
+      }
+      toast({ title: "Ação não permitida", description: errorMessage, variant: "destructive" });
       return;
     }
 
-    // Se passou nas regras, atualiza
     updateStatus(id, newStatus);
   };
+
+  const handleDragStart = useCallback((sourceStatus) => setDragSourceStatus(sourceStatus), []);
+  const handleDragEnd = useCallback(() => setDragSourceStatus(null), []);
 
   if (loading) {
     return (
@@ -358,6 +387,9 @@ const PipelinePage = () => {
                 onMove={handleMoveCard}
                 colorClass="text-zinc-100 border-zinc-100/20"
                 isLocked={true}
+                dragSourceStatus={dragSourceStatus}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
               />
               <KanbanColumn
                 title="Conversando"
@@ -367,6 +399,9 @@ const PipelinePage = () => {
                 onMove={handleMoveCard}
                 colorClass="text-purple-400 border-purple-400/20"
                 isLocked={true}
+                dragSourceStatus={dragSourceStatus}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
               />
               <KanbanColumn
                 title="Em Atendimento"
@@ -375,6 +410,9 @@ const PipelinePage = () => {
                 items={columns.em_atendimento}
                 onMove={handleMoveCard}
                 colorClass="text-cyan-400 border-cyan-400/20"
+                dragSourceStatus={dragSourceStatus}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
               />
               <KanbanColumn
                 title="Qualificado"
@@ -384,6 +422,9 @@ const PipelinePage = () => {
                 onMove={handleMoveCard}
                 colorClass="text-pink-400 border-pink-400/20"
                 isLocked={true}
+                dragSourceStatus={dragSourceStatus}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
               />
               <KanbanColumn
                 title="Não Qualificado"
@@ -392,6 +433,9 @@ const PipelinePage = () => {
                 items={columns.nao_qualificado}
                 onMove={handleMoveCard}
                 colorClass="text-red-400 border-red-400/20"
+                dragSourceStatus={dragSourceStatus}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
               />
               <KanbanColumn
                 title="Proposta Enviada"
@@ -400,6 +444,9 @@ const PipelinePage = () => {
                 items={columns.proposta}
                 onMove={handleMoveCard}
                 colorClass="text-yellow-400 border-yellow-400/20"
+                dragSourceStatus={dragSourceStatus}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
               />
               <KanbanColumn
                 title="Fechado"
@@ -409,6 +456,9 @@ const PipelinePage = () => {
                 onMove={handleMoveCard}
                 colorClass="text-indigo-400 border-indigo-400/20"
                 isLocked={true}
+                dragSourceStatus={dragSourceStatus}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
               />
               <KanbanColumn
                 title="Ativo"
@@ -417,6 +467,9 @@ const PipelinePage = () => {
                 items={columns.ativo}
                 onMove={handleMoveCard}
                 colorClass="text-green-400 border-green-400/20"
+                dragSourceStatus={dragSourceStatus}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
               />
               <KanbanColumn
                 title="Suspenso"
@@ -425,6 +478,9 @@ const PipelinePage = () => {
                 items={columns.suspenso}
                 onMove={handleMoveCard}
                 colorClass="text-orange-400 border-orange-400/20"
+                dragSourceStatus={dragSourceStatus}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
               />
               <KanbanColumn
                 title="Inativo"
@@ -433,6 +489,9 @@ const PipelinePage = () => {
                 items={columns.inativo}
                 onMove={handleMoveCard}
                 colorClass="text-slate-500 border-slate-500/20"
+                dragSourceStatus={dragSourceStatus}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
               />
             </div>
           </div>
