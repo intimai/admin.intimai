@@ -335,7 +335,7 @@ const PipelinePage = () => {
       } else if (oldStatus === 'qualificado') {
         errorMessage = `Cards 'Qualificados' só podem ser enviados para 'Não Qualificado' (correção). Para avançar, gere a proposta.`;
       } else if (oldStatus === 'nao_qualificado') {
-        errorMessage = `Cards 'Não Qualificados' só podem retornar para 'Qualificado'.`;
+        errorMessage = `Card 'Não Qualificado' só pode retornar para 'Qualificado' (Correção).`;
       } else if (oldStatus === 'proposta') {
         errorMessage = `Cards com 'Proposta Enviada' só podem ser movidos para 'Fechado' após confirmação.`;
       } else if (oldStatus === 'fechado') {
@@ -347,7 +347,7 @@ const PipelinePage = () => {
       } else {
         errorMessage = `Esta transição não é permitida.`;
       }
-      toast({ title: "Ação não permitida", description: errorMessage, variant: "destructive" });
+      toast({ title: "Ação não permitida", description: errorMessage });
       return;
     }
 
