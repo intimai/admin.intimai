@@ -339,7 +339,7 @@ const PipelinePage = () => {
       } else if (oldStatus === 'proposta') {
         errorMessage = `Cards com 'Proposta Enviada' só podem ser movidos para 'Fechado' após confirmação.`;
       } else if (oldStatus === 'fechado') {
-        errorMessage = `Cards 'Fechados' podem voltar para 'Qualificado' (revisar proposta) ou ir para 'Suspenso'.`;
+        errorMessage = `Cards 'Fechados' podem voltar para 'Qualificado' (revisar proposta) ou ir para 'Suspenso' (contrato interrompido).`;
       } else if (oldStatus === 'ativo') {
         errorMessage = `Cards 'Ativos' só podem ser movidos para 'Suspenso'.`;
       } else if (oldStatus === 'suspenso') {
