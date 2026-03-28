@@ -305,11 +305,11 @@ const DelegaciaCard = ({ delegacia, onEdit, onDelete }) => {
               {delegacia.bloqueado ? (
                 <Badge variant="destructive" className="text-[10px] uppercase shrink-0 py-0 h-5">Bloqueado</Badge>
               ) : (
-                <Badge
+              <Badge
                   className={cn(
                     "text-[10px] uppercase border-none shrink-0 py-0 h-5 shadow-sm font-semibold",
                     delegacia.status_conta === 'ativa'
-                      ? "bg-green-500 text-white"
+                      ? "bg-green-500 text-zinc-900"
                       : "bg-secondary text-secondary-foreground"
                   )}
                 >

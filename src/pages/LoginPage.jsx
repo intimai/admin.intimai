@@ -20,7 +20,7 @@ const LoginPage = () => {
   const location = useLocation();
   const { toast } = useToast();
 
-  const from = location.state?.from?.pathname || '/dashboard';
+  const from = location.state?.from?.pathname || '/pipeline';
 
   // Redirecionamento automático se já logado
   useEffect(() => {
@@ -54,7 +54,7 @@ const LoginPage = () => {
         // Forçar navegação direta após um breve delay se o useEffect não pegar
         setTimeout(() => {
           console.log('Tentando navegação forçada após login...');
-          navigate('/dashboard');
+          navigate('/pipeline');
         }, 500);
       }
     } catch (error) {

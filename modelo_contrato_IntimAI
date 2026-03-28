@@ -1,0 +1,365 @@
+# MODELO PADRÃO DE CONTRATO – INTIMAI (SAAS)
+
+> **Estrutura ideal para automação e redução de variáveis no corpo:**
+>
+> * **Anexo 0 (100% dinâmico): Quadro de Dados do Contrato**
+> * **Corpo do Contrato (fixo, sem variáveis)**
+> * **Anexo I (100% dinâmico): Plano / Condições Comerciais**
+> * **Anexo II (opcional): SLA**
+> * **Anexo III (opcional): LGPD / Segurança**
+> * **Assinaturas (dinâmico)**
+
+---
+
+# ANEXO 0 – QUADRO DE DADOS DO CONTRATO (100% DINÂMICO)
+
+**CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE TECNOLOGIA (SOFTWARE COMO SERVIÇO – SAAS)**
+
+**NÚMERO DO CONTRATO:** {{NUMERO_CONTRATO}}
+
+**DATA DE ASSINATURA:** {{DATA_ASSINATURA}}
+
+## 0.1 PARTES
+
+**CONTRATANTE:** {{NOME_CONTRATANTE}}
+
+* CNPJ(ou identificador institucional equivalente): {{IDENTIFICADOR_CONTRATANTE}}
+* Endereço: {{ENDERECO_CONTRATANTE}}
+* Representante: {{REPRESENTANTE_CONTRATANTE}}
+* Cargo: {{CARGO_REPRESENTANTE_CONTRATANTE}}
+* CPF: {{CPF_REPRESENTANTE_CONTRATANTE}}
+* RG: {{RG_REPRESENTANTE_CONTRATANTE}}
+
+**CONTRATADA:** {{NOME_CONTRATADA}}
+
+* CNPJ: {{CNPJ_CONTRATADA}}
+* Endereço: {{ENDERECO_CONTRATADA}}
+* Representante: {{REPRESENTANTE_CONTRATADA}}
+* Cargo: {{CARGO_REPRESENTANTE_CONTRATADA}}
+* CPF: {{CPF_REPRESENTANTE_CONTRATADA}}
+* RG: {{RG_REPRESENTANTE_CONTRATADA}}
+
+## 0.2 UNIDADE BENEFICIÁRIA (USUÁRIA DO SISTEMA)
+
+**Órgão/Unidade Beneficiária:** {{UNIDADE_BENEFICIARIA}}
+
+**Endereço da Unidade Beneficiária:** {{ENDERECO_UNIDADE_BENEFICIARIA}}
+
+## 0.3 VIGÊNCIA
+
+**Data de início da vigência:** {{DATA_INICIO_CONTRATO}}
+
+**Data final da vigência:** {{DATA_FIM_CONTRATO}}
+
+**Prazo total:** {{VIGENCIA_MESES}} meses
+
+## 0.4 FORO
+
+**Foro eleito:** {{CIDADE_FORO}}/{{UF_FORO}}
+
+---
+
+# CORPO DO CONTRATO (FIXO – SEM VARIÁVEIS)
+
+Pelo presente instrumento particular, as partes identificadas no **Anexo 0 – Quadro de Dados do Contrato**, resolvem celebrar o presente **Contrato de Prestação de Serviços de Tecnologia (Software como Serviço – SaaS)**, mediante as cláusulas e condições abaixo.
+
+---
+
+## CLÁUSULA 1ª – DO OBJETO
+
+1.1. O presente contrato tem por objeto a prestação, pela CONTRATADA, de serviço de disponibilização e operação do software denominado **IntimAI**, na modalidade **Software como Serviço (SaaS)**, incluindo recursos de automação, gerenciamento e acompanhamento de intimações digitais, comunicações institucionais e organização do ciclo de vida das interações com intimados.
+
+1.2. O IntimAI contempla recursos de:
+
+a) cadastro e gestão de intimações;
+
+b) controle de ciclo de vida por estados e transições;
+
+c) envio automatizado de comunicações via canais integrados (incluindo WhatsApp, quando aplicável);
+
+d) interação automatizada condicionada a regras e estados;
+
+e) agendamento automatizado e gestão de agenda;
+
+f) acompanhamento e auditoria de eventos e status;
+
+g) relatórios operacionais e indicadores.
+
+1.3. O serviço será disponibilizado para uso da unidade indicada no **Anexo 0 – Quadro de Dados do Contrato**, podendo ser utilizado por servidores autorizados, mediante credenciais individuais e observância das regras de segurança e governança.
+
+---
+
+## CLÁUSULA 2ª – DO MODELO DE PRESTAÇÃO
+
+2.1. O IntimAI será disponibilizado por meio de plataforma web e/ou aplicativo, com acesso controlado por login e senha.
+
+2.2. O serviço inclui hospedagem, manutenção corretiva, atualizações evolutivas de rotina e suporte operacional dentro dos limites deste contrato.
+
+2.3. A CONTRATADA poderá realizar atualizações no sistema para melhoria de desempenho, segurança e correções, desde que não causem indisponibilidade prolongada.
+
+2.4. A CONTRATADA poderá utilizar infraestrutura própria ou de terceiros para hospedagem e processamento, mantendo as obrigações de confidencialidade e segurança.
+
+---
+
+## CLÁUSULA 3ª – DA VIGÊNCIA
+
+3.1. A vigência do contrato será aquela definida no **Anexo 0 – Quadro de Dados do Contrato**, podendo haver renovação mediante termo aditivo ou renovação automática conforme plano contratado.
+
+3.2. Caso haja renovação automática, a CONTRATANTE será comunicada previamente conforme definido no plano.
+
+---
+
+## CLÁUSULA 4ª – DA LICENÇA DE USO
+
+4.1. A CONTRATADA concede à CONTRATANTE licença de uso não exclusiva, intransferível e limitada ao prazo de vigência contratual, para utilização do IntimAI exclusivamente para fins institucionais vinculados à unidade beneficiária.
+
+4.2. A CONTRATANTE não poderá:
+
+a) copiar, reproduzir, desmontar, realizar engenharia reversa ou tentar obter o código-fonte do sistema;
+
+b) sublicenciar, ceder, alugar ou disponibilizar o software a terceiros fora do escopo contratual;
+
+c) utilizar o sistema para finalidades ilegais, abusivas ou fora do escopo institucional.
+
+4.3. Este contrato não transfere à CONTRATANTE qualquer direito de propriedade intelectual sobre o software, suas regras internas, arquitetura, fluxos de automação, documentação, interfaces ou estrutura de dados.
+
+---
+
+## CLÁUSULA 5ª – OBRIGAÇÕES DA CONTRATADA
+
+5.1. São obrigações da CONTRATADA:
+
+a) disponibilizar o acesso ao IntimAI conforme plano contratado;
+
+b) manter o sistema operacional, com medidas adequadas de segurança;
+
+c) prestar suporte técnico conforme níveis definidos neste contrato;
+
+d) aplicar correções e atualizações necessárias;
+
+e) preservar a confidencialidade e a integridade das informações tratadas;
+
+f) manter registro de logs e auditoria conforme boas práticas de segurança.
+
+---
+
+## CLÁUSULA 6ª – OBRIGAÇÕES DA CONTRATANTE
+
+6.1. São obrigações da CONTRATANTE:
+
+a) fornecer informações corretas para cadastro e uso do sistema;
+
+b) garantir que apenas usuários autorizados tenham acesso ao sistema;
+
+c) zelar pelo uso correto das credenciais;
+
+d) respeitar o escopo e as limitações do contrato;
+
+e) efetuar o pagamento nas condições acordadas;
+
+f) garantir que o uso do sistema esteja alinhado às normas internas e regulamentos do órgão.
+
+---
+
+## CLÁUSULA 7ª – DO SUPORTE E DISPONIBILIDADE
+
+7.1. A CONTRATADA prestará suporte técnico e operacional por meio de canais oficiais (e-mail, WhatsApp empresarial, sistema de tickets ou outro canal definido).
+
+7.2. O suporte compreende atendimento para falhas técnicas, dúvidas operacionais e orientações de uso.
+
+7.3. A CONTRATADA não se responsabiliza por indisponibilidades decorrentes de:
+
+a) falhas na internet da CONTRATANTE;
+
+b) falhas de energia;
+
+c) bloqueios de operadoras;
+
+d) instabilidades em APIs de terceiros (incluindo Meta/WhatsApp);
+
+e) uso indevido por parte de usuários.
+
+7.4. Os níveis de serviço (SLA) poderão ser detalhados em anexo específico.
+
+---
+
+## CLÁUSULA 8ª – DA REMUNERAÇÃO
+
+8.1. Pela prestação do serviço, a CONTRATANTE pagará à CONTRATADA os valores definidos no **Anexo I – Plano / Condições Comerciais**.
+
+8.2. Poderão existir custos variáveis vinculados a consumo, especialmente custos de mensagens enviadas por provedores oficiais (ex.: Meta/WhatsApp), conforme detalhado no plano.
+
+8.3. A CONTRATADA poderá reajustar valores em caso de alteração significativa de custos de terceiros, mediante comunicação prévia.
+
+---
+
+## CLÁUSULA 9ª – DA PROTEÇÃO DE DADOS (LGPD)
+
+9.1. As partes declaram estar cientes e comprometidas com o cumprimento da Lei Geral de Proteção de Dados Pessoais (Lei nº 13.709/2018 – LGPD).
+
+9.2. Para fins de LGPD:
+
+a) a CONTRATANTE será considerada, em regra, Controladora dos dados tratados no sistema;
+
+b) a CONTRATADA será considerada, em regra, Operadora dos dados, tratando-os conforme as instruções e finalidades institucionais definidas pela CONTRATANTE.
+
+9.3. A CONTRATADA se compromete a adotar medidas técnicas e administrativas adequadas para proteção dos dados pessoais.
+
+9.4. Caso ocorra incidente de segurança relevante, a CONTRATADA comunicará a CONTRATANTE em prazo razoável.
+
+---
+
+## CLÁUSULA 10ª – DA CONFIDENCIALIDADE
+
+10.1. As partes se comprometem a manter sigilo absoluto sobre informações técnicas, operacionais, dados pessoais, processos internos e quaisquer informações obtidas em razão deste contrato.
+
+10.2. Consideram-se informações confidenciais, entre outras:
+
+a) arquitetura do sistema, fluxos internos, regras e estados;
+
+b) dados de usuários e intimados;
+
+c) informações de integrações, chaves, tokens e parâmetros;
+
+d) relatórios e métricas internas.
+
+---
+
+## CLÁUSULA 11ª – DA PROPRIEDADE INTELECTUAL
+
+11.1. O IntimAI, incluindo código-fonte, estrutura lógica, arquitetura, fluxos automatizados, regras de estados, documentação e integrações, constitui propriedade intelectual da CONTRATADA.
+
+11.2. A CONTRATANTE não adquire qualquer direito de propriedade intelectual, exceto a licença de uso temporária prevista neste contrato.
+
+11.3. Qualquer tentativa de reprodução literal, cópia de estrutura interna, fluxos ou componentes proprietários constitui violação contratual e poderá ensejar medidas judiciais.
+
+---
+
+## CLÁUSULA 12ª – RESPONSABILIDADE E LIMITAÇÃO
+
+12.1. A CONTRATADA se compromete a manter o funcionamento do sistema conforme condições técnicas e melhores práticas, mas não garante resultados específicos de comparecimento, resposta ou agendamento por parte de intimados.
+
+12.2. A CONTRATADA não se responsabiliza por decisões administrativas, jurídicas ou operacionais tomadas pela CONTRATANTE com base no uso do sistema.
+
+12.3. A CONTRATADA não se responsabiliza por falhas decorrentes de terceiros.
+
+---
+
+## CLÁUSULA 13ª – DA RESCISÃO
+
+13.1. O contrato poderá ser rescindido:
+
+a) por comum acordo;
+
+b) por descumprimento contratual, mediante notificação e prazo para saneamento;
+
+c) por interesse público devidamente justificado.
+
+13.2. Em caso de inadimplemento, a CONTRATADA poderá suspender o acesso ao sistema após notificação.
+
+---
+
+## CLÁUSULA 14ª – DA PORTABILIDADE E GUARDA DE DADOS
+
+14.1. Ao término do contrato, a CONTRATANTE poderá solicitar exportação dos dados em formato padrão.
+
+14.2. A CONTRATADA poderá manter backups pelo período definido em sua política interna ou no plano contratado.
+
+---
+
+## CLÁUSULA 15ª – DISPOSIÇÕES FINAIS
+
+15.1. Este contrato constitui o acordo integral entre as partes.
+
+15.2. Qualquer alteração deverá ser realizada por termo aditivo.
+
+15.3. A eventual tolerância de uma parte para com a outra não constitui renúncia de direitos.
+
+15.4. Este contrato obriga as partes e seus sucessores.
+
+---
+
+## CLÁUSULA 16ª – DO FORO
+
+16.1. Fica eleito o foro definido no **Anexo 0 – Quadro de Dados do Contrato** para dirimir quaisquer controvérsias decorrentes deste contrato.
+
+---
+
+# ANEXO I – PLANO / CONDIÇÕES COMERCIAIS (100% DINÂMICO)
+
+**Plano contratado:** {{PLANO_NOME}}
+
+**Modalidade de cobrança:** {{MODALIDADE_COBRANCA}} (Mensal / Anual)
+
+**Número de usuários licenciados:** {{NUMERO_USUARIOS}}
+
+**Franquia mensal de intimações:** {{FRANQUIA_INTIMACOES_MENSAL}}
+
+**Valor fixo do plano:** R$ {{VALOR_PLANO}}
+
+**Cobrança por excedente:** {{COBRANCA_EXCEDENTE}} (Sim/Não)
+
+**Valor por intimação excedente:** R$ {{VALOR_EXCEDENTE}}
+
+**Pagamento antecipado:** {{PAGAMENTO_ANTECIPADO}} (Sim/Não)
+
+**Forma de pagamento:** {{FORMA_PAGAMENTO}} (Boleto / Transferência / Pix / Cartão / Empenho)
+
+**Prazo para pagamento:** {{PRAZO_PAGAMENTO_DIAS}} dias
+
+**Reajuste:** {{REAJUSTE}} (IPCA / IGP-M / outro)
+
+**Data do primeiro vencimento:** {{DATA_PRIMEIRO_VENCIMENTO}}
+
+**Observações adicionais:** {{OBSERVACOES_PLANO}}
+
+---
+
+# ANEXO II (OPCIONAL) – NÍVEIS DE SERVIÇO (SLA)
+
+* Disponibilidade mínima: {{SLA_DISPONIBILIDADE}}%
+* Horário de suporte: {{HORARIO_SUPORTE}}
+* Tempo de resposta: {{TEMPO_RESPOSTA_SUPORTE}}
+* Tempo de resolução estimado: {{TEMPO_RESOLUCAO_SUPORTE}}
+
+---
+
+# ANEXO III (OPCIONAL) – POLÍTICA DE SEGURANÇA E LGPD
+
+A CONTRATADA declara adotar:
+
+* criptografia em trânsito e em repouso quando aplicável;
+* controle de acesso por credenciais;
+* registro de logs;
+* segregação de dados por ambiente;
+* práticas compatíveis com LGPD.
+
+---
+
+# ASSINATURAS (DINÂMICO)
+
+E por estarem justas e contratadas, firmam o presente instrumento na data definida no **Anexo 0 – Quadro de Dados do Contrato**.
+
+**CONTRATANTE:** {{NOME_CONTRATANTE}}
+
+Representante: {{REPRESENTANTE_CONTRATANTE}}
+
+CPF: {{CPF_REPRESENTANTE_CONTRATANTE}}
+
+Assinatura: __________________________________________
+
+**CONTRATADA:** {{NOME_CONTRATADA}}
+
+Representante: {{REPRESENTANTE_CONTRATADA}}
+
+CPF: {{CPF_REPRESENTANTE_CONTRATADA}}
+
+Assinatura: __________________________________________
+
+**TESTEMUNHA 1:** {{NOME_TESTEMUNHA_1}} – CPF: {{CPF_TESTEMUNHA_1}}
+
+Assinatura: __________________________________________
+
+**TESTEMUNHA 2:** {{NOME_TESTEMUNHA_2}} – CPF: {{CPF_TESTEMUNHA_2}}
+
+Assinatura: __________________________________________

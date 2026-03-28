@@ -1,17 +1,39 @@
 import express from 'express';
-import handler from './api/generate-pdf.js';
+import handlerPdf from './api/generate-pdf.js';
+import handlerContrato from './api/generate-contrato.js';
+import handlerPreview from './api/preview-proposta.js';
 import bodyParser from 'body-parser';
 
 const app = express();
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 // Mock do ambiente Vercel
 app.post('/api/generate-pdf', async (req, res) => {
-    console.log('[API Local] Gerando PDF para:', req.body.delegacia);
+    console.log('[API Local] Gerando PDF (Proposta) para:', req.body.delegacia);
     try {
-        await handler(req, res);
+        await handlerPdf(req, res);
     } catch (e) {
-        console.error('[API Local] Erro:', e);
+        console.error('[API Local] Erro na Proposta:', e);
+        res.status(500).send(e.message);
+    }
+});
+
+app.post('/api/generate-contrato', async (req, res) => {
+    console.log('[API Local] Gerando PDF (Contrato) acessado...');
+    try {
+        await handlerContrato(req, res);
+    } catch (e) {
+        console.error('[API Local] Erro no Contrato:', e);
+        res.status(500).send(e.message);
+    }
+});
+
+app.post('/api/preview-proposta', async (req, res) => {
+    try {
+        await handlerPreview(req, res);
+    } catch (e) {
+        console.error('[API Local] Erro no Preview:', e);
         res.status(500).send(e.message);
     }
 });

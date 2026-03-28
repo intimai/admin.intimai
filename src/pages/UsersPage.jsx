@@ -164,7 +164,7 @@ const UserCard = ({ user, onEdit, onDelete }) => {
                 className={cn(
                   "text-[10px] uppercase border-none shrink-0 py-0 h-5 shadow-sm font-semibold",
                   user.ativo
-                    ? "bg-green-500 text-white"
+                    ? "bg-green-500 text-zinc-900"
                     : "bg-secondary text-secondary-foreground"
                 )}
               >

@@ -18,7 +18,7 @@ export const useSuporte = () => {
       setLoading(true);
       setError(null);
 
-      const { data, error } = await supabase
+      const { data: suporteData, error } = await supabase
         .from('suporte')
         .select('*')
         .order('created_at', { ascending: false });
@@ -33,7 +33,42 @@ export const useSuporte = () => {
         throw error;
       }
 
-      setItems(data || []);
+      // Se conseguir os tickets, busca as delegacias para resolver o nome manualmente 
+      // (pois o banco estava rejeitando o join com erro 400 por falta de foreign key vinculada)
+      if (suporteData && suporteData.length > 0) {
+        try {
+          const { data: delegaciasData } = await supabase
+            .from('delegacias')
+            .select('*');
+
+          if (delegaciasData) {
+            // Cria um dicionário rápido para lookup O(1) e a prova de falhas de case/type
+            const delegaciasMap = delegaciasData.reduce((acc, del) => {
+              const id = del.delegaciaId || del.delegaciaid;
+              if (id) acc[String(id)] = del.nome;
+              return acc;
+            }, {});
+
+            // Preenche o nome da delegacia em cada ticket de suporte
+            suporteData.forEach(item => {
+              const dId = item.delegaciaId || item.delegacia_id || item.delegaciaid;
+              if (dId && delegaciasMap[String(dId)]) {
+                item.delegaciaNomeMapeado = delegaciasMap[String(dId)];
+              }
+            });
+            console.log('[useSuporte] Amostra de item RAW COMPLETA:', JSON.stringify(suporteData[0]));
+            if (suporteData.length > 0) {
+              const dIds = suporteData.map(i => ({ id_ticket: i.id, id_del: i.delegaciaId }));
+              console.log('[useSuporte] Valores de delegaciaId nos tickets:', dIds);
+            }
+            console.log('[useSuporte] Exemplo Map (ID -> Nome):', Object.entries(delegaciasMap).slice(0, 3));
+          }
+        } catch (delErr) {
+          console.warn('[useSuporte] Erro ao mapear nomes de delegacias:', delErr);
+        }
+      }
+
+      setItems(suporteData || []);
     } catch (err) {
       console.error('Erro ao buscar tickets de suporte:', err);
       setError(err.message);

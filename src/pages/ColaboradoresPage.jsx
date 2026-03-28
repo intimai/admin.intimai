@@ -13,36 +13,13 @@ import ConfirmationModal from '@/components/ui/ConfirmationModal';
 import { Loader2, Plus, Edit, Trash2, UserCheck, UserX, Mail, ShieldCheck, Shield, Check, Minus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Menus disponíveis agrupados por categorias
-const MENU_CATEGORIES = [
-    {
-        id: 'comercial',
-        label: 'Comercial',
-        items: [
-            { slug: 'pipeline', label: 'Pipeline' },
-            { slug: 'propostas', label: 'Propostas' },
-            { slug: 'suporte', label: 'Suporte' }
-        ]
-    },
-    {
-        id: 'cadastros',
-        label: 'Cadastros',
-        items: [
-            { slug: 'delegacias', label: 'Delegacias' },
-            { slug: 'users', label: 'Usuários' }
-        ]
-    },
-    {
-        id: 'administrativo',
-        label: 'Administrativo',
-        items: [
-            { slug: 'contratos', label: 'Contratos' },
-            { slug: 'nfe', label: 'NF-e' },
-            { slug: 'finance', label: 'Financeiro' },
-            { slug: 'settings', label: 'Configurações' }
-        ]
-    }
-];
+import { MENU_CONFIG } from '@/config/menuConfig';
+
+// Filtramos Colaboradores do formulário pois ele já é restrito e não faria sentido atribuí-lo a alguém não Super Admin
+const MENU_CATEGORIES = MENU_CONFIG.map(cat => ({
+    ...cat,
+    items: cat.items.filter(i => !i.isSuperAdminOnly)
+})).filter(cat => cat.items.length > 0);
 
 const MENU_OPTIONS = MENU_CATEGORIES.flatMap(cat => cat.items);
 
@@ -163,7 +140,7 @@ const ColaboradorForm = ({ initialData, onSubmit, onCancel, isLoading }) => {
                         </p>
                     </div>
 
-                    <div className="space-y-3 max-h-[200px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
+                    <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
                         {MENU_CATEGORIES.map(category => {
                             const categorySlugs = category.items.map(i => i.slug);
                             const currentMenus = form.admin_menus || [];
@@ -186,7 +163,7 @@ const ColaboradorForm = ({ initialData, onSubmit, onCancel, isLoading }) => {
                                             {someSelected && !allSelected && <Minus size={12} strokeWidth={3} />}
                                         </button>
                                         <Label className="font-semibold cursor-pointer select-none text-sm" onClick={() => handleCategoryToggle(category.id)}>
-                                            {category.label}
+                                            {category.category}
                                         </Label>
                                     </div>
 
@@ -376,7 +353,7 @@ const ColaboradoresPage = () => {
 
             {/* Modal Criar */}
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-                <DialogContent className="max-w-lg">
+                <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto custom-scrollbar">
                     <DialogHeader>
                         <DialogTitle>Novo Colaborador</DialogTitle>
                         <DialogDescription>Preencha os dados e defina as permissões de acesso.</DialogDescription>
@@ -391,7 +368,7 @@ const ColaboradoresPage = () => {
 
             {/* Modal Editar */}
             <Dialog open={!!editingColaborador} onOpenChange={(open) => !open && setEditingColaborador(null)}>
-                <DialogContent className="max-w-lg">
+                <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto custom-scrollbar">
                     <DialogHeader>
                         <DialogTitle>Editar Colaborador</DialogTitle>
                         <DialogDescription>Altere os dados ou permissões do colaborador.</DialogDescription>

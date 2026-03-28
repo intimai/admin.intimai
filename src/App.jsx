@@ -36,7 +36,7 @@ function App() {
                 <AdminLayout />
               </AdminProtectedRoute>
             }>
-              <Route index element={<Navigate to="/dashboard" replace />} />
+              <Route index element={<Navigate to="/pipeline" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
 
               <Route path="pipeline" element={
@@ -93,6 +93,33 @@ function App() {
               <Route path="colaboradores" element={
                 <AdminProtectedRoute menuSlug="colaboradores">
                   <ColaboradoresPage />
+                </AdminProtectedRoute>
+              } />
+
+              {/* Categoria: Financeiro (em desenvolvimento) */}
+              <Route path="contas-pagar" element={
+                <AdminProtectedRoute menuSlug="contas-pagar">
+                  <EmDesenvolvimentoPage title="Contas a Pagar" />
+                </AdminProtectedRoute>
+              } />
+              <Route path="contas-receber" element={
+                <AdminProtectedRoute menuSlug="contas-receber">
+                  <EmDesenvolvimentoPage title="Contas a Receber" />
+                </AdminProtectedRoute>
+              } />
+              <Route path="receitas" element={
+                <AdminProtectedRoute menuSlug="receitas">
+                  <EmDesenvolvimentoPage title="Receitas" />
+                </AdminProtectedRoute>
+              } />
+              <Route path="despesas" element={
+                <AdminProtectedRoute menuSlug="despesas">
+                  <EmDesenvolvimentoPage title="Despesas" />
+                </AdminProtectedRoute>
+              } />
+              <Route path="relatorios-financeiros" element={
+                <AdminProtectedRoute menuSlug="relatorios-financeiros">
+                  <EmDesenvolvimentoPage title="Relatórios Financeiros" />
                 </AdminProtectedRoute>
               } />
             </Route>

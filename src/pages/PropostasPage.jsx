@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { FileText, Download, Loader2, Sparkles } from 'lucide-react';
+import { FileText, Download, Loader2, Sparkles, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/lib/customSupabaseClient';
@@ -29,6 +29,7 @@ const PropostasPage = () => {
 
     const [leads, setLeads] = useState([]);
     const [selectedLeadId, setSelectedLeadId] = useState('');
+    const [showPreview, setShowPreview] = useState(true);
 
     const [previewHtml, setPreviewHtml] = useState('');
     const [previewLoading, setPreviewLoading] = useState(false);
@@ -201,67 +202,76 @@ const PropostasPage = () => {
     };
 
     return (
-        <div className="flex flex-col gap-6 max-w-5xl mx-auto">
+        <div className="flex flex-col gap-6 max-w-7xl mx-auto">
             <PageHeader
                 title="Gerador de Propostas"
                 description="Configure os dados dinâmicos para gerar propostas comerciais personalizadas em PDF de alta qualidade (Puppeteer)."
             />
 
-            <div className="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto w-full items-start">
+            <div className="flex flex-col lg:flex-row gap-8 w-full">
                 {/* ─── FORMULÁRIO LATERAL ─── */}
                 <div className="w-full lg:w-[460px] xl:w-[480px] flex-shrink-0 space-y-4">
                     <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-xl">
-                    <CardContent className="space-y-6 pt-6">
-                        <div className="flex flex-col sm:flex-row gap-4">
-                            <div className="flex-1 space-y-2">
-                                <Label htmlFor="delegacia">Selecione a Delegacia (Lead cadastrado)</Label>
-                                <Select value={selectedLeadId} onValueChange={handleLeadSelect}>
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Escolha um Lead do funil" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {leads.map(l => (
-                                            <SelectItem key={l.id} value={l.id}>{l.delegacia}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="w-full sm:w-20 space-y-2">
-                                <Label htmlFor="estado">Estado</Label>
-                                <Input id="estado" name="estado" value={formData.estado} onChange={handleChange} placeholder="MG" maxLength={2} className="text-center uppercase" />
-                            </div>
-                            <div className="flex-1 space-y-2">
+                    <CardContent className="space-y-5 pt-6">
+
+                        {/* Linha 1: Delegacia (full) */}
+                        <div className="space-y-2">
+                            <Label htmlFor="delegacia">Delegacia (Lead do Funil)</Label>
+                            <Select value={selectedLeadId} onValueChange={handleLeadSelect}>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Escolha um Lead do funil" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {leads.map(l => (
+                                        <SelectItem key={l.id} value={l.id}>{l.delegacia}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Linha 2: Parceiro + Estado */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
                                 <Label htmlFor="parceiro">Parceiro Institucional</Label>
-                                <Input id="parceiro" name="parceiro" value={formData.parceiro} onChange={handleChange} placeholder="Ex: Câmara Municipal de Leopoldina" />
+                                <Input id="parceiro" name="parceiro" value={formData.parceiro} onChange={handleChange} placeholder="Ex: Câmara Municipal" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="estado">Estado (UF)</Label>
+                                <Input id="estado" name="estado" value={formData.estado} onChange={handleChange} placeholder="MG" maxLength={2} className="uppercase" />
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-border/20 pt-4">
+                        {/* Linha 3: Usuários + Valor por Usuário */}
+                        <div className="grid grid-cols-2 gap-4 border-t border-border/20 pt-4">
                             <div className="space-y-2">
                                 <Label htmlFor="usuarios">Qtd de Usuários</Label>
-                                <Input id="usuarios" name="usuarios" value={formData.usuarios} onChange={handleChange} />
+                                <Input id="usuarios" name="usuarios" value={formData.usuarios} onChange={handleChange} placeholder="Ex: 10" />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="valor_usuario">Valor por Usuário (R$)</Label>
-                                <Input id="valor_usuario" name="valor_usuario" value={formData.valor_usuario} onChange={handleChange} onBlur={handleBlur} />
+                                <Input id="valor_usuario" name="valor_usuario" value={formData.valor_usuario} onChange={handleChange} onBlur={handleBlur} placeholder="Ex: 390,00" />
                             </div>
+                        </div>
+
+                        {/* Linha 4: Total Mensal + Total Anual */}
+                        <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="total_mensal">Total Mensal (R$)</Label>
                                 <Input id="total_mensal" name="total_mensal" value={formData.total_mensal} readOnly className="bg-muted/50 font-mono font-bold" />
                             </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="total_anual">Total Anual (R$)</Label>
                                 <Input id="total_anual" name="total_anual" value={formData.total_anual} readOnly className="bg-muted/50 font-mono font-bold" />
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="total_anual_antecipado">Anual Antecipado (R$)</Label>
-                                <Input id="total_anual_antecipado" name="total_anual_antecipado" value={formData.total_anual_antecipado} onChange={handleChange} onBlur={handleBlur} placeholder="Valor com desconto manual" />
-                            </div>
                         </div>
 
+                        {/* Linha 5: Anual Antecipado (full) */}
+                        <div className="space-y-2">
+                            <Label htmlFor="total_anual_antecipado">Anual Antecipado (R$)</Label>
+                            <Input id="total_anual_antecipado" name="total_anual_antecipado" value={formData.total_anual_antecipado} onChange={handleChange} onBlur={handleBlur} placeholder="Valor com desconto manual" />
+                        </div>
+
+                        {/* Linha 6: Contexto (full width) */}
                         <div className="space-y-2">
                             <Label htmlFor="contexto">Contexto / Justificativa</Label>
                             <Textarea
@@ -321,25 +331,51 @@ const PropostasPage = () => {
                 </div>
 
                 {/* ─── PREVIEW (Documento Real Renderizado) ─── */}
-                <div className="flex-1 rounded-xl border border-border/30 bg-card overflow-hidden flex flex-col w-full h-auto min-h-[500px] lg:h-[760px] shadow-2xl sticky top-8 relative">
-                    {previewLoading && (
-                        <div className="absolute inset-0 z-10 bg-background/50 backdrop-blur-sm flex items-center justify-center">
-                            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                        </div>
-                    )}
-                    
-                    {!previewHtml ? (
-                        <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-8 text-center bg-muted/10">
-                            <FileText className="w-16 h-16 mb-4 opacity-20" />
-                            <p>Preencha os dados ao lado para pré-visualizar o documento real da proposta.</p>
-                        </div>
-                    ) : (
-                        <iframe 
-                            srcDoc={previewHtml} 
-                            className="w-full h-full border-none bg-transparent"
-                            title="Preview da Proposta"
-                        />
-                    )}
+                <div className="flex-1 min-w-0">
+                    <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-xl sticky top-4">
+                        <CardContent className="pt-6">
+                            {/* Toolbar do Preview */}
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-sm font-bold flex items-center gap-2 text-muted-foreground">
+                                    <FileText size={16} className="text-primary" />
+                                    Pré-visualização da Proposta
+                                    <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">real-time</span>
+                                </h3>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setShowPreview(!showPreview)}
+                                    className="h-7 text-xs gap-1.5"
+                                >
+                                    {showPreview ? <EyeOff size={14} /> : <Eye size={14} />}
+                                    {showPreview ? 'Ocultar' : 'Mostrar'}
+                                </Button>
+                            </div>
+
+                            {showPreview && (
+                                <div className="relative rounded-xl border border-border/30 bg-card overflow-hidden flex flex-col w-full min-h-[500px] max-h-[80vh] shadow-inner" style={{ height: '70vh' }}>
+                                    {previewLoading && (
+                                        <div className="absolute inset-0 z-10 bg-background/50 backdrop-blur-sm flex items-center justify-center">
+                                            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                                        </div>
+                                    )}
+                                    
+                                    {!previewHtml ? (
+                                        <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-8 text-center bg-muted/10">
+                                            <FileText className="w-16 h-16 mb-4 opacity-20" />
+                                            <p>Preencha os dados ao lado para pré-visualizar o documento real da proposta.</p>
+                                        </div>
+                                    ) : (
+                                        <iframe 
+                                            srcDoc={previewHtml} 
+                                            className="w-full h-full border-none bg-transparent custom-scrollbar"
+                                            title="Preview da Proposta"
+                                        />
+                                    )}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
         </div>

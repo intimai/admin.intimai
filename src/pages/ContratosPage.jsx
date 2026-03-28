@@ -34,6 +34,8 @@ function buildContratoHTML(fields, corpoHTML, logoBase64) {
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
     color: #fff; padding: 36px 40px 28px; border-radius: 0 0 20px 20px;
     margin-bottom: 28px; position: relative; overflow: hidden;
+    break-after: avoid;
+    page-break-after: avoid;
   }
   .contract-header::after {
     content: ''; position: absolute; top: -40%; right: -10%; width: 300px; height: 300px;
@@ -55,8 +57,14 @@ function buildContratoHTML(fields, corpoHTML, logoBase64) {
     position: relative; z-index: 1;
   }
 
+  /* Primeira section — mantém junto com o header */
+  .first-section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
   /* ── SECTIONS ── */
-  .section { margin-bottom: 22px; }
+  .section { margin-bottom: 22px; page-break-inside: avoid; }
   .section-title {
     font-size: 14px; font-weight: 800; color: #1a1a2e;
     border-bottom: 2px solid #8b5cf6; padding-bottom: 6px; margin-bottom: 14px;
@@ -115,7 +123,7 @@ function buildContratoHTML(fields, corpoHTML, logoBase64) {
   </div>
 
   <!-- ═══ ANEXO 0 – QUADRO DE DADOS ═══ -->
-  <div class="section">
+  <div class="section first-section">
     <div class="section-title">Anexo 0 – Quadro de Dados do Contrato</div>
 
     <div class="party-block">
@@ -498,7 +506,7 @@ const ContratosPage = () => {
             setLoading(true);
             const finalHTML = editorRef.current.innerHTML;
 
-            // Envolver no estilo do documento para o PDF
+            // Envolver no estilo completo do documento para o PDF
             const fullHTML = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -577,7 +585,6 @@ const ContratosPage = () => {
             toast({
                 title: 'Contrato gerado',
                 description: 'O PDF foi gerado, salvo e o download iniciado com sucesso.',
-                className: 'bg-green-600 text-white border-green-700',
             });
         } catch (error) {
             console.error('Erro:', error);
