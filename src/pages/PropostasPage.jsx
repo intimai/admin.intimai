@@ -236,7 +236,7 @@ const PropostasPage = () => {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-border/20 pt-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-border/20 pt-4">
                             <div className="space-y-2">
                                 <Label htmlFor="usuarios">Qtd de Usuários</Label>
                                 <Input id="usuarios" name="usuarios" value={formData.usuarios} onChange={handleChange} />

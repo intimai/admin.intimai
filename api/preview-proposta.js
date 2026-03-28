@@ -38,7 +38,8 @@ export default async function handler(req, res) {
                 }
                 .page {
                     transform-origin: top left !important;
-                    margin: 20px 0 0 20px !important;
+                    margin-top: 20px !important;
+                    margin-left: 20px !important;
                     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
                 }
             </style>

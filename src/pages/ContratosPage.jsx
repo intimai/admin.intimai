@@ -56,7 +56,7 @@ function buildContratoHTML(fields, corpoHTML, logoBase64) {
   }
 
   /* ── SECTIONS ── */
-  .section { margin-bottom: 22px; page-break-inside: avoid; }
+  .section { margin-bottom: 22px; }
   .section-title {
     font-size: 14px; font-weight: 800; color: #1a1a2e;
     border-bottom: 2px solid #8b5cf6; padding-bottom: 6px; margin-bottom: 14px;
@@ -68,7 +68,7 @@ function buildContratoHTML(fields, corpoHTML, logoBase64) {
   .data-value { font-size: 12px; font-weight: 600; color: #1a1a2e; }
   .party-block {
     background: #f8f7ff; border: 1px solid #e8e4f8; border-radius: 10px;
-    padding: 14px 18px; margin-bottom: 10px;
+    padding: 14px 18px; margin-bottom: 10px; page-break-inside: avoid;
   }
   .party-title {
     font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
