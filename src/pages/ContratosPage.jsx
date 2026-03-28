@@ -571,9 +571,9 @@ const ContratosPage = () => {
                     console.log('[DB] Histórico salvo com sucesso!');
                 }
 
-                console.log('[Webhook] Acionando n8n de forma assíncrona...');
-                // Acionar webhook SEM await para não travar a tela se n8n atrasar resposta
-                fetch('https://hook.intimai.app/webhook/admin_contratos', {
+                console.log('[Webhook] Acionando API proxy de webhook de forma assíncrona...');
+                // Acionar webhook via API local para evitar erro de CORS
+                fetch('/api/trigger-contrato-webhook', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
