@@ -34,10 +34,11 @@ export default async function handler(req, res) {
                     margin: 0;
                     padding: 0;
                     overflow-x: hidden;
+                    width: 100%;
                 }
                 .page {
-                    transform-origin: top center;
-                    margin: 20px auto 0 auto;
+                    transform-origin: top left !important;
+                    margin: 20px 0 0 20px !important;
                     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
                 }
             </style>
@@ -52,10 +53,9 @@ export default async function handler(req, res) {
                     
                     pages.forEach(p => {
                         p.style.transform = 'scale(' + scale + ')';
-                        // Compensar o espaço vazio que o transform: scale deixa embaixo do container original
-                        const pageHeight = 793.7; // A4 height (210mm) in px
+                        // Compensar o espaço vazio
+                        const pageHeight = 793.7; 
                         const diff = pageHeight * (1 - scale);
-                        // Adicionar um pouco de margem extra para separar as paginas
                         p.style.marginBottom = '-' + (diff - 40) + 'px';
                     });
                 }
