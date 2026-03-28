@@ -15,6 +15,8 @@ import SetPasswordPage from './pages/SetPasswordPage';
 import EmDesenvolvimentoPage from './pages/EmDesenvolvimentoPage';
 import PropostasPage from './pages/PropostasPage';
 import ContratosPage from './pages/ContratosPage';
+import AuditoriaPage from './pages/AuditoriaPage';
+import MonitoramentoIAPage from './pages/MonitoramentoIAPage';
 import AdminLayout from './components/layout/AdminLayout';
 import AdminProtectedRoute from './components/layout/AdminProtectedRoute';
 import { AdminAuthProvider } from './contexts/AdminAuthContext';
@@ -38,10 +40,31 @@ function App() {
             }>
               <Route index element={<Navigate to="/pipeline" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
+              
+              <Route path="conexoes" element={
+                <AdminProtectedRoute menuSlug="conexoes">
+                  <EmDesenvolvimentoPage title="Conexões e Integrações (Meta)" />
+                </AdminProtectedRoute>
+              } />
+              <Route path="monitoramento-ia" element={
+                <AdminProtectedRoute menuSlug="monitoramento-ia">
+                  <MonitoramentoIAPage />
+                </AdminProtectedRoute>
+              } />
+              <Route path="auditoria" element={
+                <AdminProtectedRoute menuSlug="auditoria">
+                  <AuditoriaPage />
+                </AdminProtectedRoute>
+              } />
 
               <Route path="pipeline" element={
                 <AdminProtectedRoute menuSlug="pipeline">
                   <PipelinePage />
+                </AdminProtectedRoute>
+              } />
+              <Route path="chat" element={
+                <AdminProtectedRoute menuSlug="chat">
+                  <EmDesenvolvimentoPage title="Chat com Clientes" />
                 </AdminProtectedRoute>
               } />
               <Route path="propostas" element={

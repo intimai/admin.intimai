@@ -15,12 +15,35 @@ import { cn } from '@/lib/utils';
 
 import { MENU_CONFIG } from '@/config/menuConfig';
 
-// Filtramos Colaboradores do formulário pois ele já é restrito e não faria sentido atribuí-lo a alguém não Super Admin
-const MENU_CATEGORIES = MENU_CONFIG.map(cat => ({
-    ...cat,
-    items: cat.items.filter(i => !i.isSuperAdminOnly)
-})).filter(cat => cat.items.length > 0);
+// Processamos o MENU_CONFIG para o formulário
+const processedCategories = [];
+const standaloneItems = [];
 
+MENU_CONFIG.forEach(option => {
+    if (option.type === 'item' && !option.isSuperAdminOnly) {
+        standaloneItems.push(option);
+    } else if (option.type === 'group') {
+        const filteredItems = option.items.filter(i => !i.isSuperAdminOnly);
+        if (filteredItems.length > 0) {
+            processedCategories.push({
+                id: option.id,
+                category: option.category,
+                items: filteredItems
+            });
+        }
+    }
+});
+
+// Se houver itens vulsos, adicionamos na categoria "Geral"
+if (standaloneItems.length > 0) {
+    processedCategories.unshift({
+        id: 'geral',
+        category: 'Geral',
+        items: standaloneItems
+    });
+}
+
+const MENU_CATEGORIES = processedCategories;
 const MENU_OPTIONS = MENU_CATEGORIES.flatMap(cat => cat.items);
 
 const INITIAL_FORM = {

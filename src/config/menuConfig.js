@@ -16,39 +16,59 @@ import {
   TrendingUp,
   TrendingDown,
   BarChart3,
+  MessageSquare,
+  Zap,
+  Activity,
+  ShieldCheck,
 } from 'lucide-react';
 
 export const MENU_CONFIG = [
   {
+    type: 'group',
+    category: 'Central de Controle',
+    id: 'central_controle',
+    icon: ShieldCheck,
+    items: [
+      { slug: 'conexoes', path: '/conexoes', label: 'Conexões (API)', icon: Zap },
+      { slug: 'monitoramento-ia', path: '/monitoramento-ia', label: 'Monitoramento IA', icon: Activity },
+      { slug: 'auditoria', path: '/auditoria', label: 'Governança & LGPD', icon: ShieldCheck },
+    ],
+  },
+  {
+    type: 'group',
     category: 'Comercial',
     id: 'comercial',
     icon: Briefcase,
     items: [
       { slug: 'pipeline', path: '/pipeline', label: 'Pipeline', icon: Target },
-      { slug: 'propostas', path: '/propostas', label: 'Propostas', icon: FileText },
+      { slug: 'chat', path: '/chat', label: 'Chat', icon: MessageSquare },
       { slug: 'suporte', path: '/suporte', label: 'Suporte', icon: Headphones },
     ],
   },
   {
+    type: 'group',
     category: 'Cadastros',
     id: 'cadastros',
     icon: FolderOpen,
     items: [
       { slug: 'delegacias', path: '/delegacias', label: 'Delegacias', icon: Building2 },
       { slug: 'users', path: '/users', label: 'Usuários', icon: Users },
-    ],
-  },
-  {
-    category: 'Administrativo',
-    id: 'administrativo',
-    icon: Settings2,
-    items: [
-      { slug: 'contratos', path: '/contratos', label: 'Contratos', icon: Gavel },
-      { slug: 'nfe', path: '/nfe', label: 'Notas Fiscais (NF-e)', icon: Receipt },
       { slug: 'colaboradores', path: '/colaboradores', label: 'Colaboradores', icon: UserCog, isSuperAdminOnly: true },
     ],
   },
   {
+    type: 'group',
+    category: 'Administrativo',
+    id: 'administrativo',
+    icon: Settings2,
+    items: [
+      { slug: 'propostas', path: '/propostas', label: 'Propostas', icon: FileText },
+      { slug: 'contratos', path: '/contratos', label: 'Contratos', icon: Gavel },
+      { slug: 'nfe', path: '/nfe', label: 'Notas Fiscais (NF-e)', icon: Receipt },
+    ],
+  },
+  {
+    type: 'group',
     category: 'Financeiro',
     id: 'financeiro',
     icon: Wallet,

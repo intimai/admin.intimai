@@ -189,30 +189,50 @@ const AdminLayout = () => {
         >
           <NavItem to="/dashboard" icon={LayoutDashboard} label="Dashboard" />
 
-          {MENU_CONFIG.map((category) => {
-            const accessibleItems = category.items.filter((item) =>
-              item.isSuperAdminOnly ? isSuperAdmin : hasMenuAccess(item.slug)
-            );
+          {MENU_CONFIG.map((option) => {
+            // Se for um item direto (standalone)
+            if (option.type === 'item') {
+              const hasAccess = option.isSuperAdminOnly ? isSuperAdmin : hasMenuAccess(option.slug);
+              if (!hasAccess) return null;
+              
+              return (
+                <NavItem 
+                  key={option.slug} 
+                  to={option.path} 
+                  icon={option.icon} 
+                  label={option.label} 
+                />
+              );
+            }
 
-            if (accessibleItems.length === 0) return null;
+            // Se for um grupo (categoria)
+            if (option.type === 'group') {
+              const accessibleItems = option.items.filter((item) =>
+                item.isSuperAdminOnly ? isSuperAdmin : hasMenuAccess(item.slug)
+              );
 
-            return (
-              <NavGroup
-                key={category.id}
-                label={category.category}
-                icon={category.icon}
-                paths={accessibleItems.map((i) => i.path)}
-              >
-                {accessibleItems.map((item) => (
-                  <SubNavItem
-                    key={item.slug}
-                    to={item.path}
-                    icon={item.icon}
-                    label={item.label}
-                  />
-                ))}
-              </NavGroup>
-            );
+              if (accessibleItems.length === 0) return null;
+
+              return (
+                <NavGroup
+                  key={option.id}
+                  label={option.category}
+                  icon={option.icon}
+                  paths={accessibleItems.map((i) => i.path)}
+                >
+                  {accessibleItems.map((item) => (
+                    <SubNavItem
+                      key={item.slug}
+                      to={item.path}
+                      icon={item.icon}
+                      label={item.label}
+                    />
+                  ))}
+                </NavGroup>
+              );
+            }
+
+            return null;
           })}
         </nav>
       </aside>
