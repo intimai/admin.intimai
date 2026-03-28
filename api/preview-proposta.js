@@ -24,18 +24,45 @@ export default async function handler(req, res) {
         const templatePath = path.join(PROJECT_ROOT, 'api', 'templates', 'proposta.html');
         let templateHtml = fs.readFileSync(templatePath, 'utf8');
 
-        // Adicionando tag style extra para fazer o HTML do preview escalar bem na div React
+        // Adicionando tag style/script extra para fazer o HTML do preview escalar bem na div React
         // porque a page tem dimensions fixas para A4 landscape no CSS original
         templateHtml = templateHtml.replace('</head>', `
             <style>
+                /* Manter o fundo escuro da proposta verdadeira, e escalar responsivamente */
                 html, body {
-                    background: transparent !important;
+                    background: var(--bg-dark) !important;
+                    margin: 0;
+                    padding: 0;
+                    overflow-x: hidden;
                 }
                 .page {
-                    transform-origin: top left;
-                    margin: 0 auto;
+                    transform-origin: top center;
+                    margin: 20px auto 0 auto;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
                 }
             </style>
+            <script>
+                function scalePages() {
+                    const pages = document.querySelectorAll('.page');
+                    if(!pages || pages.length === 0) return;
+                    
+                    const containerWidth = window.innerWidth;
+                    // Largura A4 Paisagem (297mm) ~= 1122.5px
+                    const scale = Math.min((containerWidth - 40) / 1122.5, 1);
+                    
+                    pages.forEach(p => {
+                        p.style.transform = 'scale(' + scale + ')';
+                        // Compensar o espaço vazio que o transform: scale deixa embaixo do container original
+                        const pageHeight = 793.7; // A4 height (210mm) in px
+                        const diff = pageHeight * (1 - scale);
+                        // Adicionar um pouco de margem extra para separar as paginas
+                        p.style.marginBottom = '-' + (diff - 40) + 'px';
+                    });
+                }
+                window.addEventListener('resize', scalePages);
+                window.addEventListener('load', scalePages);
+                setTimeout(scalePages, 50);
+            </script>
         </head>`);
 
         // Função para converter arquivo local em Base64

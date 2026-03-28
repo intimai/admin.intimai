@@ -336,7 +336,7 @@ const PropostasPage = () => {
                     ) : (
                         <iframe 
                             srcDoc={previewHtml} 
-                            className="w-full h-full border-none bg-white"
+                            className="w-full h-full border-none bg-transparent"
                             title="Preview da Proposta"
                         />
                     )}
