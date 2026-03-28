@@ -569,22 +569,9 @@ const ContratosPage = () => {
                     console.error('[DB] Erro ao salvar histórico:', dbError);
                 } else {
                     console.log('[DB] Histórico salvo com sucesso!');
+                    // O Trigger do banco (admin_lead_contratos_trigger) assume daqui para frente:
+                    // dispara o webhook N8N e atualiza o funil automaticamente.
                 }
-
-                console.log('[Webhook] Acionando API proxy de webhook de forma assíncrona...');
-                // Acionar webhook via API local para evitar erro de CORS
-                fetch('/api/trigger-contrato-webhook', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        lead_id: selectedLeadId,
-                        pdf_url: publicData.publicUrl,
-                        delegacia: fields.NOME_CONTRATANTE,
-                        created_at: new Date().toISOString(),
-                    }),
-                })
-                .then(res => console.log('[Webhook] Resposta recebida:', res.status))
-                .catch(err => console.warn('[Webhook] Erro no acionamento (assíncrono):', err.message));
             }
 
             toast({
