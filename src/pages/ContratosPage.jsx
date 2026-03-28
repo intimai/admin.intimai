@@ -577,6 +577,7 @@ const ContratosPage = () => {
             toast({
                 title: 'Contrato gerado',
                 description: 'O PDF foi gerado, salvo e o download iniciado com sucesso.',
+                className: 'bg-green-600 text-white border-green-700',
             });
         } catch (error) {
             console.error('Erro:', error);
@@ -594,7 +595,7 @@ const ContratosPage = () => {
     const renderField = (label, name, placeholder, extraClassName, extraProps) => (
         <div className={`space-y-1.5 ${extraClassName || ''}`} key={name}>
             <Label htmlFor={name} className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{label}</Label>
-            <Input id={name} name={name} value={fields[name] || ''} onChange={handleInputChange} placeholder={placeholder} className="h-9 text-sm" {...(extraProps || {})} />
+            <Input id={name} name={name} value={fields[name] || ''} onChange={handleInputChange} placeholder={placeholder} className="h-9 text-sm placeholder:opacity-40" {...(extraProps || {})} />
         </div>
     );
 

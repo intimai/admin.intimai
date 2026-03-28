@@ -176,9 +176,10 @@ const PropostasPage = () => {
                 description="Configure os dados dinâmicos para gerar propostas comerciais personalizadas em PDF de alta qualidade (Puppeteer)."
             />
 
-            <div className="flex flex-col gap-6 max-w-4xl mx-auto w-full">
-                {/* Formulario */}
-                <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-xl">
+            <div className="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto w-full items-start">
+                {/* ─── FORMULÁRIO LATERAL ─── */}
+                <div className="w-full lg:w-[460px] xl:w-[480px] flex-shrink-0 space-y-4">
+                    <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-xl">
                     <CardContent className="space-y-6 pt-6">
                         <div className="flex flex-col sm:flex-row gap-4">
                             <div className="flex-1 space-y-2">
@@ -286,6 +287,89 @@ const PropostasPage = () => {
                         </div>
                     </CardContent>
                 </Card>
+                </div>
+
+                {/* ─── PREVIEW (Simulação Visual da Proposta) ─── */}
+                <div className="flex-1 rounded-xl border border-border/30 bg-card overflow-hidden flex flex-col w-full h-auto lg:h-[760px] shadow-2xl sticky top-8">
+                    {/* Header Cover */}
+                    <div className="bg-gradient-to-br from-primary/20 via-primary/5 to-transparent p-8 border-b border-border/10 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-6 opacity-10 blur-sm pointer-events-none">
+                            <Sparkles className="w-32 h-32" />
+                        </div>
+                        <span className="inline-block px-3 py-1 bg-primary/20 text-primary text-xs font-bold uppercase tracking-wider rounded-full mb-4">
+                            Pré-visualização
+                        </span>
+                        <h2 className="text-3xl font-extrabold tracking-tight mb-2 text-foreground/90 leading-tight">
+                            Proposta de Parceria Tecnológica
+                        </h2>
+                        <p className="text-lg font-medium text-muted-foreground">
+                            Apresentada para: <span className="text-primary font-bold">{formData.delegacia || 'Nome da Delegacia'}</span>
+                        </p>
+                        {formData.parceiro && (
+                            <p className="text-sm text-muted-foreground mt-2">Parceiro Institucional: {formData.parceiro}</p>
+                        )}
+                    </div>
+
+                    {/* Content Summary */}
+                    <div className="flex-1 overflow-y-auto p-8 space-y-8 bg-background/50">
+                        {/* Contexto */}
+                        <div className="space-y-3">
+                            <h3 className="text-sm font-bold uppercase tracking-wider text-primary flex items-center gap-2">
+                                Contexto e Justificativa
+                            </h3>
+                            <p className="text-sm leading-relaxed opacity-80 whitespace-pre-wrap">{formData.contexto || 'Descreva a necessidade do cliente...'}</p>
+                        </div>
+
+                        {/* Escopo */}
+                        <div className="space-y-4">
+                            <h3 className="text-sm font-bold uppercase tracking-wider text-primary flex items-center gap-2">
+                                Escopo da Solução
+                            </h3>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-card p-4 border border-border/40 rounded-xl shadow-sm">
+                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Licenças Iniciais</p>
+                                    <p className="text-2xl font-bold">{formData.usuarios || '0'} <span className="text-sm font-normal text-muted-foreground">usuários</span></p>
+                                </div>
+                                <div className="bg-card p-4 border border-border/40 rounded-xl shadow-sm">
+                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Franquia INTIMAI</p>
+                                    <p className="text-2xl font-bold">Inclusa</p>
+                                </div>
+                            </div>
+                            <div className="bg-card p-4 border border-border/40 rounded-xl shadow-sm">
+                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Implantação & Onboarding</p>
+                                <p className="text-sm font-medium opacity-80">Configuração do ambiente, paramerização e treinamento guiado para a equipe da unidade.</p>
+                            </div>
+                        </div>
+
+                        {/* Investimento */}
+                        <div className="space-y-4 pb-8">
+                            <h3 className="text-sm font-bold uppercase tracking-wider text-primary flex items-center gap-2">
+                                Investimento
+                            </h3>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="p-5 border-l-4 border-l-primary/60 bg-primary/5 rounded-r-xl rounded-l-sm shadow-sm">
+                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Assinatura Mensal</p>
+                                    <p className="text-xl font-mono font-bold text-primary">R$ {formData.total_mensal || '0,00'}</p>
+                                    <p className="text-[11px] opacity-60 mt-1.5">Faturamento mensal recorrente</p>
+                                </div>
+                                <div className="p-5 border-l-4 border-l-blue-500/60 bg-blue-500/5 rounded-r-xl rounded-l-sm shadow-sm">
+                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Contrato Anual</p>
+                                    <p className="text-xl font-mono font-bold text-blue-500">R$ {formData.total_anual || '0,00'}</p>
+                                    <p className="text-[11px] opacity-60 mt-1.5">Acordo com fidelidade de 12 meses</p>
+                                </div>
+                            </div>
+                            <div className="p-6 border border-green-500/30 bg-green-500/10 rounded-xl flex flex-col sm:flex-row justify-between sm:items-center gap-3 shadow-sm">
+                                <div>
+                                    <p className="text-[10px] font-bold text-green-700 dark:text-green-400 uppercase tracking-widest mb-1">Condição Especial: Pagamento à Vista</p>
+                                    <p className="text-2xl font-mono font-bold text-green-700 dark:text-green-400">R$ {formData.total_anual_antecipado || '0,00'}</p>
+                                </div>
+                                <div className="bg-green-600 text-white px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider text-center w-max">
+                                    Melhor Opção
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );
