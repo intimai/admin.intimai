@@ -113,7 +113,7 @@ const NFePage = () => {
   const handleDelete = async () => {
     if (!deletingNota) return;
     setActionLoading(true);
-    await deleteNota(deletingNota.id);
+    await deleteNota(deletingNota);
     setActionLoading(false);
     setDeletingNota(null);
   };
@@ -190,7 +190,7 @@ const NFePage = () => {
               <Receipt className="h-16 w-16 mb-4 opacity-10" />
               <p className="text-lg font-medium">Nenhuma nota fiscal encontrada.</p>
               <p className="text-sm opacity-60 text-center max-w-xs mt-2">
-                Clique em "Nova NF-e" para registrar sua primeira nota fiscal.
+                Clique em "Suber NF-e" para registrar sua primeira nota fiscal.
               </p>
             </div>
           ) : (
@@ -403,7 +403,7 @@ const NFePage = () => {
               </Button>
               <Button type="submit" disabled={uploading} className="gap-2">
                 {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-                {uploading ? 'Enviando...' : 'Registrar NF-e'}
+                {uploading ? 'Enviando...' : 'Subir NF-e'}
               </Button>
             </DialogFooter>
           </form>

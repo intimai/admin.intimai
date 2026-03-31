@@ -116,12 +116,24 @@ export const useNotasFiscais = () => {
     }
   };
 
-  const deleteNota = async (id) => {
+  const deleteNota = async (nota) => {
     try {
-      const { error } = await supabase.from('notas_fiscais').delete().eq('id', id);
+      // 1. Storage Deletion
+      if (nota.arquivo_url) {
+        // Pega o nome do arquivo da URL (ex: .../notas-fiscais/nf_123.pdf)
+        const parts = nota.arquivo_url.split('/notas-fiscais/');
+        if (parts.length > 1) {
+          const fileName = parts[1];
+          await supabase.storage.from('notas-fiscais').remove([fileName]);
+        }
+      }
+
+      // 2. Banco Deletion
+      const { error } = await supabase.from('notas_fiscais').delete().eq('id', nota.id);
       if (error) throw error;
-      setNotas(prev => prev.filter(n => n.id !== id));
-      toast({ title: "NF-e excluída", description: "Registro removido com sucesso." });
+
+      setNotas(prev => prev.filter(n => n.id !== nota.id));
+      toast({ title: "NF-e excluída", description: "Registro e arquivo removidos com sucesso." });
       return { success: true };
     } catch (err) {
       toast({ title: "Erro ao excluir", description: err.message, variant: "destructive" });

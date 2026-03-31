@@ -17,8 +17,9 @@ import {
   AlertCircle,
   Loader2,
   Lock,
-  Eye,
-  ArrowRight
+  ArrowRight,
+  Send,
+  Eye
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Pagination } from '@/components/ui/Pagination';
@@ -32,6 +33,8 @@ const AuditoriaPage = () => {
     const { toast } = useToast();
     const [isExporting, setIsExporting] = useState(false);
     const [selectedLgpdRequest, setSelectedLgpdRequest] = useState(null);
+    const [respostaTexto, setRespostaTexto] = useState('');
+    const [loadingResponse, setLoadingResponse] = useState(false);
     
     // Estados para Audit Logs
     const [auditLogs, setAuditLogs] = useState([]);
@@ -91,6 +94,34 @@ const AuditoriaPage = () => {
             console.error('Erro ao buscar solicitações LGPD:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleSalvarResposta = async () => {
+        if (!selectedLgpdRequest || !respostaTexto.trim()) return;
+
+        setLoadingResponse(true);
+        try {
+            const { error } = await supabase
+                .from('lgpd_requests')
+                .update({ 
+                    status: 'processado', 
+                    response_text: respostaTexto,
+                    processed_at: new Date().toISOString()
+                })
+                .eq('id', selectedLgpdRequest.id);
+
+            if (error) throw error;
+
+            toast({ title: "Resposta Enviada", description: "A resolução foi salva e o processamento disparado." });
+            setRespostaTexto('');
+            setSelectedLgpdRequest(null);
+            fetchLgpdRequests();
+        } catch (error) {
+            console.error('Erro ao responder solicitação:', error);
+            toast({ title: "Erro na Resolução", description: "Não foi possível enviar a resposta.", variant: "destructive" });
+        } finally {
+            setLoadingResponse(false);
         }
     };
 
@@ -224,7 +255,7 @@ const AuditoriaPage = () => {
                             )}
                         >
                             <Clock size={16} />
-                            Trilha de Acessos
+                            Eventos LGPD
                         </button>
                         <button
                             onClick={() => setActiveTab('lgpd')}
@@ -258,149 +289,146 @@ const AuditoriaPage = () => {
                     </div>
 
                     {/* Tabela de Dados */}
-                    <div className="border border-border/40 rounded-xl overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
-                                <thead>
-                                    <tr className="border-b border-border/60 bg-muted/20">
-                                        {activeTab === 'logs' ? (
-                                            <>
-                                                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Usuário / Origem</th>
-                                                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ação</th>
-                                                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Recurso</th>
-                                                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">IP / Dispositivo</th>
-                                                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-right">Data/Hora</th>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Titular</th>
-                                                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Solicitação</th>
-                                                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
-                                                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Data</th>
-                                                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-right">Ação</th>
-                                            </>
-                                        )}
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="border-b border-border/50 text-muted-foreground text-[11px] uppercase tracking-wider">
+                                    {activeTab === 'logs' ? (
+                                        <>
+                                            <th className="text-left py-3 px-3 font-semibold">Usuário / Origem</th>
+                                            <th className="text-left py-3 px-3 font-semibold">Ação</th>
+                                            <th className="text-left py-3 px-3 font-semibold">Recurso</th>
+                                            <th className="text-left py-3 px-3 font-semibold">IP / Dispositivo</th>
+                                            <th className="text-right py-3 px-3 font-semibold">Data/Hora</th>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <th className="text-left py-3 px-3 font-semibold">Titular</th>
+                                            <th className="text-left py-3 px-3 font-semibold">Solicitação</th>
+                                            <th className="text-left py-3 px-3 font-semibold">Status</th>
+                                            <th className="text-left py-3 px-3 font-semibold">Data</th>
+                                            <th className="text-right py-3 px-3 font-semibold">Ação</th>
+                                        </>
+                                    )}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {loading ? (
+                                    <tr>
+                                        <td colSpan={6} className="py-12 px-3 text-center text-muted-foreground">
+                                            <div className="flex flex-col items-center gap-2">
+                                                <Loader2 className="animate-spin text-primary" size={32} />
+                                                <span className="text-sm">Consultando registros seguros...</span>
+                                            </div>
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody className="divide-y divide-border/40">
-                                    {loading ? (
-                                        <tr>
-                                            <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
-                                                <div className="flex flex-col items-center gap-2">
-                                                    <Loader2 className="animate-spin text-primary" size={32} />
-                                                    <span className="text-sm">Consultando registros seguros...</span>
+                                ) : activeTab === 'logs' ? (
+                                    auditLogs.length > 0 ? auditLogs.map((log) => (
+                                        <tr key={log.id} className="border-b border-border/30 hover:bg-muted/20 transition-colors">
+                                            <td className="py-3 px-3">
+                                                <div className="flex items-center gap-3">
+                                                    <User size={16} className="text-primary/60 shrink-0" />
+                                                    <div>
+                                                        <div className="font-semibold text-foreground truncate max-w-[200px]">{log.userNome}</div>
+                                                        <div className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                                            <MapPin size={10} />
+                                                            {log.delegaciaNome}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="py-3 px-3">
+                                                <Badge className={cn("text-[10px] font-bold border", getActionBadge(log.actionType))}>
+                                                    {log.actionType}
+                                                </Badge>
+                                            </td>
+                                            <td className="py-3 px-3">
+                                                <div className="font-medium">{log.resourceType}</div>
+                                                <div className="text-[11px] text-muted-foreground">ID: {log.resourceId}</div>
+                                            </td>
+                                            <td className="py-3 px-3">
+                                                <div className="flex flex-col gap-0.5">
+                                                    <div className="text-xs font-mono flex items-center gap-1.5">
+                                                        <Globe size={12} className="text-muted-foreground shrink-0" />
+                                                        {log.ipAddress}
+                                                    </div>
+                                                    <div className="text-[10px] text-muted-foreground truncate max-w-[150px]">
+                                                        {log.userAgent}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="py-3 px-3 text-right">
+                                                <div className="font-medium text-foreground text-xs">
+                                                    {new Date(log.createdAt).toLocaleDateString('pt-BR')}
+                                                </div>
+                                                <div className="text-[11px] text-muted-foreground">
+                                                    {new Date(log.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                                                 </div>
                                             </td>
                                         </tr>
-                                    ) : activeTab === 'logs' ? (
-                                        auditLogs.length > 0 ? auditLogs.map((log) => (
-                                            <tr key={log.id} className="hover:bg-muted/10 transition-colors group">
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
-                                                            {log.userNome?.charAt(0).toUpperCase() || '?'}
-                                                        </div>
-                                                        <div>
-                                                            <div className="text-sm font-semibold">{log.userNome}</div>
-                                                            <div className="text-[11px] text-muted-foreground flex items-center gap-1">
-                                                                <MapPin size={10} />
-                                                                {log.delegaciaNome}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <Badge className={cn("text-[10px] font-bold border", getActionBadge(log.actionType))}>
-                                                        {log.actionType}
-                                                    </Badge>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="text-sm font-medium">{log.resourceType}</div>
-                                                    <div className="text-[11px] text-muted-foreground">ID: {log.resourceId}</div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex flex-col gap-0.5">
-                                                        <div className="text-sm font-mono flex items-center gap-1.5">
-                                                            <Globe size={12} className="text-muted-foreground" />
-                                                            {log.ipAddress}
-                                                        </div>
-                                                        <div className="text-[10px] text-muted-foreground truncate max-w-[150px]">
-                                                            {log.userAgent}
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 text-right">
-                                                    <div className="text-sm font-medium">
-                                                        {new Date(log.createdAt).toLocaleDateString('pt-BR')}
-                                                    </div>
-                                                    <div className="text-xs text-muted-foreground">
-                                                        {new Date(log.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        )) : (
-                                            <tr>
-                                                <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
-                                                    <FileText className="mx-auto mb-2 opacity-20" size={40} />
-                                                    <p>Nenhum log de auditoria encontrado para esta busca.</p>
-                                                </td>
-                                            </tr>
-                                        )
-                                    ) : (
-                                        lgpdRequests.length > 0 ? lgpdRequests.map((req) => (
-                                            <tr key={req.id} className="hover:bg-muted/10 transition-colors group">
-                                                <td className="px-6 py-4">
-                                                    <div className="text-sm font-semibold">{req.nome}</div>
-                                                    <div className="text-[11px] text-muted-foreground font-mono">{req.documento}</div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="text-sm font-medium">{req.tipo_solicitacao}</div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <Badge variant={req.status === 'pendente' ? 'outline' : 'default'} className="text-[10px]">
-                                                        {req.status?.toUpperCase()}
-                                                    </Badge>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="text-sm">
-                                                        {new Date(req.created_at).toLocaleDateString('pt-BR')}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 text-right">
-                                                    <Button size="sm" variant="ghost" className="h-8 px-2 group-hover:bg-primary/20 group-hover:text-primary" onClick={() => setSelectedLgpdRequest(req)}>
-                                                        <Eye size={16} />
-                                                    </Button>
-                                                </td>
-                                            </tr>
-                                        )) : (
-                                            <tr>
-                                                <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
-                                                    <Lock className="mx-auto mb-2 opacity-20" size={40} />
-                                                    <p>Nenhuma solicitação de titular aberta no momento.</p>
-                                                </td>
-                                            </tr>
-                                        )
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {activeTab === 'logs' && auditTotal > itemsPerPage && (
-                            <div className="p-4 border-t border-border/40 bg-muted/10">
-                                <Pagination
-                                    currentPage={auditPage}
-                                    totalItems={auditTotal}
-                                    itemsPerPage={itemsPerPage}
-                                    totalPages={Math.ceil(auditTotal / itemsPerPage)}
-                                    onPageChange={setAuditPage}
-                                    onNextPage={() => setAuditPage(prev => prev + 1)}
-                                    onPreviousPage={() => setAuditPage(prev => prev - 1)}
-                                    hasNextPage={auditPage < Math.ceil(auditTotal / itemsPerPage)}
-                                    hasPreviousPage={auditPage > 1}
-                                />
-                            </div>
-                        )}
+                                    )) : (
+                                        <tr>
+                                            <td colSpan={5} className="py-12 px-3 text-center text-muted-foreground bg-muted/10 rounded-xl border border-dashed border-border/50">
+                                                <FileText className="mx-auto mb-2 opacity-20" size={40} />
+                                                <p>Nenhum log de auditoria encontrado para esta busca.</p>
+                                            </td>
+                                        </tr>
+                                    )
+                                ) : (
+                                    lgpdRequests.length > 0 ? lgpdRequests.map((req) => (
+                                        <tr key={req.id} className="border-b border-border/30 hover:bg-muted/20 transition-colors group">
+                                            <td className="py-3 px-3">
+                                                <div className="font-semibold text-foreground">{req.nome}</div>
+                                                <div className="text-[11px] text-muted-foreground font-mono">{req.documento}</div>
+                                            </td>
+                                            <td className="py-3 px-3">
+                                                <div className="font-medium text-xs">{req.tipo_solicitacao}</div>
+                                            </td>
+                                            <td className="py-3 px-3">
+                                                <Badge variant={req.status === 'pendente' ? 'outline' : 'default'} className="text-[10px]">
+                                                    {req.status?.toUpperCase()}
+                                                </Badge>
+                                            </td>
+                                            <td className="py-3 px-3 text-muted-foreground text-xs">
+                                                {new Date(req.created_at).toLocaleDateString('pt-BR')}
+                                            </td>
+                                            <td className="py-3 px-3 text-right">
+                                                <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-primary group-hover:bg-primary/20" onClick={() => {
+                                                    setRespostaTexto(req.response_text || '');
+                                                    setSelectedLgpdRequest(req);
+                                                }}>
+                                                    <Eye size={16} />
+                                                </Button>
+                                            </td>
+                                        </tr>
+                                    )) : (
+                                        <tr>
+                                            <td colSpan={5} className="py-12 px-3 text-center text-muted-foreground bg-muted/10 rounded-xl border border-dashed border-border/50">
+                                                <Lock className="mx-auto mb-2 opacity-20" size={40} />
+                                                <p>Nenhuma solicitação de titular aberta no momento.</p>
+                                            </td>
+                                        </tr>
+                                    )
+                                )}
+                            </tbody>
+                        </table>
                     </div>
+
+                    {activeTab === 'logs' && auditTotal > itemsPerPage && (
+                        <div className="pt-4 mt-2">
+                            <Pagination
+                                currentPage={auditPage}
+                                totalItems={auditTotal}
+                                itemsPerPage={itemsPerPage}
+                                totalPages={Math.ceil(auditTotal / itemsPerPage)}
+                                onPageChange={setAuditPage}
+                                onNextPage={() => setAuditPage(prev => prev + 1)}
+                                onPreviousPage={() => setAuditPage(prev => prev - 1)}
+                                hasNextPage={auditPage < Math.ceil(auditTotal / itemsPerPage)}
+                                hasPreviousPage={auditPage > 1}
+                            />
+                        </div>
+                    )}
 
                     {/* Cards Informativos Integrados */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-border/40">
@@ -443,7 +471,7 @@ const AuditoriaPage = () => {
 
             {/* Modal de Detalhes da Solicitação LGPD */}
             <Dialog open={!!selectedLgpdRequest} onOpenChange={(open) => !open && setSelectedLgpdRequest(null)}>
-                <DialogContent className="sm:max-w-[600px] border-border/60 bg-card/95 backdrop-blur-md">
+                <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto border-border/60 bg-card/95 backdrop-blur-md">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2 text-xl">
                             <Lock className="text-primary" size={24} /> 
@@ -475,11 +503,36 @@ const AuditoriaPage = () => {
                                         {selectedLgpdRequest.status || '-'}
                                     </Badge>
                                 </div>
+                                <div className="space-y-1">
+                                    <div className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">E-mail de Contato</div>
+                                    <div className="text-sm font-medium">{selectedLgpdRequest.email || '-'}</div>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Telefone / WhatsApp</div>
+                                    <div className="text-sm font-medium">{selectedLgpdRequest.telefone || 'Não informado'}</div>
+                                </div>
                                 <div className="space-y-1 col-span-2">
-                                    <div className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Comentário/Justificativa</div>
+                                    <div className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Comentário/Justificativa do Titular</div>
                                     <div className="text-sm p-3 bg-muted/20 border border-border/40 rounded-lg min-h-[60px]">
-                                        {selectedLgpdRequest.comentario || 'Nenhum comentário fornecido pelo titular.'}
+                                        {selectedLgpdRequest.descricao || selectedLgpdRequest.comentario || 'Nenhum comentário fornecido pelo titular.'}
                                     </div>
+                                </div>
+                                <div className="space-y-1 col-span-2 mt-4 pt-4 border-t border-border/40">
+                                    <div className="text-xs text-muted-foreground uppercase tracking-wider font-semibold flex items-center gap-2 mb-2">
+                                        <ShieldCheck size={14} className="text-primary" /> Parecer / Resolução Técnica (Resposta Oficial)
+                                    </div>
+                                    {selectedLgpdRequest.status === 'pendente' ? (
+                                        <textarea
+                                            value={respostaTexto}
+                                            onChange={(e) => setRespostaTexto(e.target.value)}
+                                            placeholder="Digite a resposta que o titular receberá de forma documentada..."
+                                            className="w-full text-sm p-3 bg-background border border-border/40 rounded-lg min-h-[100px] focus:ring-1 focus:ring-primary focus:outline-none"
+                                        />
+                                    ) : (
+                                        <div className="text-sm p-3 bg-primary/5 text-primary border border-primary/20 rounded-lg min-h-[80px]">
+                                            {selectedLgpdRequest.response_text || 'Solicitação resolvida (sem parecer registrado na plataforma).'}
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="space-y-1 col-span-2 flex items-center justify-between">
                                     <div>
@@ -500,11 +553,17 @@ const AuditoriaPage = () => {
                                 <Button variant="outline" onClick={() => setSelectedLgpdRequest(null)}>
                                     Fechar Janela
                                 </Button>
-                                {/* Exemplo de botão no futuro caso atenda o chamado por aqui */}
-                                <Button variant="default" className="gap-2">
-                                    <ShieldCheck size={16} />
-                                    Atender Solicitação
-                                </Button>
+                                {selectedLgpdRequest.status === 'pendente' && (
+                                    <Button 
+                                        variant="default" 
+                                        className="gap-2"
+                                        disabled={loadingResponse || !respostaTexto.trim()}
+                                        onClick={handleSalvarResposta}
+                                    >
+                                        {loadingResponse ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                                        Salvar e Enviar Resposta
+                                    </Button>
+                                )}
                             </div>
                         </div>
                     )}

@@ -5,10 +5,35 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ScrollText, Download, Loader2, Upload, Settings2, Eye, EyeOff, FileUp } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/lib/customSupabaseClient';
+import { useContratos } from '@/hooks/useContratos';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import ConfirmationModal from '@/components/ui/ConfirmationModal';
+import { 
+    ScrollText, 
+    Download, 
+    Loader2, 
+    Upload, 
+    Settings2, 
+    Eye, 
+    EyeOff, 
+    FileUp,
+    History,
+    Plus,
+    Search,
+    Trash2,
+    ExternalLink,
+    Calendar,
+    CheckCircle2,
+    Clock,
+    XCircle,
+    Send,
+    Building2,
+    FileText
+} from 'lucide-react';
 
 // ─── Construtor do HTML do contrato ──────────────────────────────
 function buildContratoHTML(fields, corpoHTML, logoBase64) {
@@ -280,11 +305,15 @@ function markdownToHTML(md) {
 // ═══════════════════════════════════════════════════════════════════
 // COMPONENTE PRINCIPAL
 // ═══════════════════════════════════════════════════════════════════
+
+
 const ContratosPage = () => {
     const { toast } = useToast();
+    const [activeTab, setActiveTab] = useState('historico'); // 'gerar' ou 'historico'
     const [loading, setLoading] = useState(false);
     const [searchParams] = useSearchParams();
     const editorRef = useRef(null);
+    const { contratos, loading: loadingHistorico, updateStatus, deleteContrato, fetchContratos } = useContratos();
 
     // ─── Leads ───────────────────────────────────────────────────
     const [leads, setLeads] = useState([]);
@@ -295,11 +324,15 @@ const ContratosPage = () => {
     const [templateLoading, setTemplateLoading] = useState(true);
     const [uploadingTemplate, setUploadingTemplate] = useState(false);
 
+    // ─── Filtros do Histórico ────────────────────────────────────
+    const [filtroStatus, setFiltroStatus] = useState('todos');
+    const [buscaHistorico, setBuscaHistorico] = useState('');
+    const [isDeleting, setIsDeleting] = useState(null);
+
     // ─── Campos dinâmicos do formulário ──────────────────────────
     const [fields, setFields] = useState({
         NUMERO_CONTRATO: '',
         DATA_ASSINATURA: new Date().toLocaleDateString('pt-BR'),
-        // Contratante
         NOME_CONTRATANTE: '',
         IDENTIFICADOR_CONTRATANTE: '',
         ENDERECO_CONTRATANTE: '',
@@ -307,7 +340,6 @@ const ContratosPage = () => {
         CARGO_REPRESENTANTE_CONTRATANTE: '',
         CPF_REPRESENTANTE_CONTRATANTE: '',
         RG_REPRESENTANTE_CONTRATANTE: '',
-        // Contratada
         NOME_CONTRATADA: 'IntimAI Soluções Ltda.',
         CNPJ_CONTRATADA: '63.058.837/0001-01',
         ENDERECO_CONTRATADA: '',
@@ -315,16 +347,13 @@ const ContratosPage = () => {
         CARGO_REPRESENTANTE_CONTRATADA: 'CEO',
         CPF_REPRESENTANTE_CONTRATADA: '',
         RG_REPRESENTANTE_CONTRATADA: '',
-        // Unidade
         UNIDADE_BENEFICIARIA: '',
         ENDERECO_UNIDADE_BENEFICIARIA: '',
-        // Vigência
         DATA_INICIO_CONTRATO: '',
         DATA_FIM_CONTRATO: '',
         VIGENCIA_MESES: '12',
         CIDADE_FORO: '',
         UF_FORO: 'MG',
-        // Anexo I
         PLANO_NOME: 'IntimAI Pro',
         MODALIDADE_COBRANCA: 'Mensal',
         NUMERO_USUARIOS: '',
@@ -337,12 +366,10 @@ const ContratosPage = () => {
         REAJUSTE: 'IPCA',
         DATA_PRIMEIRO_VENCIMENTO: '',
         OBSERVACOES_PLANO: '',
-        // Anexo II – SLA
         SLA_DISPONIBILIDADE: '99,5',
         HORARIO_SUPORTE: 'Seg a Sex, 08h às 18h',
         TEMPO_RESPOSTA_SUPORTE: 'Até 4 horas úteis',
         TEMPO_RESOLUCAO_SUPORTE: 'Até 24 horas úteis',
-        // Testemunhas
         NOME_TESTEMUNHA_1: '',
         CPF_TESTEMUNHA_1: '',
         NOME_TESTEMUNHA_2: '',
@@ -352,7 +379,6 @@ const ContratosPage = () => {
     const [showPreview, setShowPreview] = useState(true);
     const [logoBase64, setLogoBase64] = useState('');
 
-    // ─── Carregar logo como Base64 ───────────────────────────────
     useEffect(() => {
         fetch('/logo.png')
             .then(res => res.blob())
@@ -364,7 +390,6 @@ const ContratosPage = () => {
             .catch(() => console.warn('Logo não encontrada'));
     }, []);
 
-    // ─── Carregar leads ──────────────────────────────────────────
     useEffect(() => {
         const fetchLeads = async () => {
             const { data } = await supabase.from('leads').select('*').order('delegacia');
@@ -373,7 +398,6 @@ const ContratosPage = () => {
         fetchLeads();
     }, []);
 
-    // ─── Pré-selecionar lead via URL ─────────────────────────────
     useEffect(() => {
         const leadId = searchParams.get('lead_id');
         if (leadId && leads.length > 0 && leadId !== selectedLeadId) {
@@ -381,12 +405,10 @@ const ContratosPage = () => {
         }
     }, [searchParams, leads]);
 
-    // ─── Carregar template do corpo do Supabase ──────────────────
     useEffect(() => {
         const loadTemplate = async () => {
             try {
                 setTemplateLoading(true);
-                // Buscar a referência salva
                 const { data: setting } = await supabase
                     .from('app_settings')
                     .select('value')
@@ -415,23 +437,17 @@ const ContratosPage = () => {
         loadTemplate();
     }, []);
 
-    // ─── Atualizar preview quando dados mudam (debounced) ────────
     const debounceRef = useRef(null);
     useEffect(() => {
-        if (!editorRef.current || !corpoTemplate) return;
+        if (!editorRef.current || !corpoTemplate || activeTab !== 'gerar') return;
         if (debounceRef.current) clearTimeout(debounceRef.current);
         debounceRef.current = setTimeout(() => {
-            // Salvar posição do cursor/seleção antes de atualizar
-            const activeEl = document.activeElement;
-            const isEditorFocused = editorRef.current.contains(activeEl);
             const corpoHTML = markdownToHTML(corpoTemplate);
             editorRef.current.innerHTML = buildContratoHTML(fields, corpoHTML, logoBase64);
-            // Não restaurar foco no editor se o usuário está digitando nos inputs
         }, 400);
         return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-    }, [fields, corpoTemplate, logoBase64]);
+    }, [fields, corpoTemplate, logoBase64, activeTab]);
 
-    // ─── Handlers ────────────────────────────────────────────────
     const handleLeadSelect = (id) => {
         const lead = leads.find(l => l.id === id);
         if (lead) {
@@ -453,7 +469,6 @@ const ContratosPage = () => {
         handleFieldChange(e.target.name, e.target.value);
     };
 
-    // ─── Upload do template ──────────────────────────────────────
     const handleTemplateUpload = async (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -463,14 +478,12 @@ const ContratosPage = () => {
             const text = await file.text();
             const fileName = `modelo_contrato_${Date.now()}.txt`;
 
-            // Upload para Supabase Storage
             const { error: uploadError } = await supabase.storage
                 .from('contratos-template')
                 .upload(fileName, file, { upsert: true });
 
             if (uploadError) throw uploadError;
 
-            // Salvar referência em app_settings (upsert)
             const { error: settingError } = await supabase
                 .from('app_settings')
                 .upsert({ key: 'contrato_template_path', value: fileName, updated_at: new Date().toISOString() }, { onConflict: 'key' });
@@ -480,7 +493,6 @@ const ContratosPage = () => {
             setCorpoTemplate(text);
             toast({ title: 'Modelo atualizado', description: 'O modelo do contrato foi salvo com sucesso.' });
         } catch (err) {
-            console.error('Erro ao fazer upload do template:', err);
             toast({ title: 'Erro no upload', description: err.message, variant: 'destructive' });
         } finally {
             setUploadingTemplate(false);
@@ -488,15 +500,11 @@ const ContratosPage = () => {
         }
     };
 
-    // ─── Gerar PDF ───────────────────────────────────────────────
     const generatePDF = async () => {
         if (!editorRef.current) return;
-
         try {
             setLoading(true);
             const finalHTML = editorRef.current.innerHTML;
-
-            // Envolver no estilo completo do documento para o PDF
             const fullHTML = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -524,12 +532,9 @@ const ContratosPage = () => {
             });
 
             if (!response.ok) throw new Error('Falha ao gerar PDF');
-
             const blob = await response.blob();
 
-            // Escolha de local para salvar o PDF ou Download direto (Fallback)
             let saveSuccessful = false;
-            
             if (window.showSaveFilePicker) {
                 try {
                     const handle = await window.showSaveFilePicker({
@@ -541,77 +546,61 @@ const ContratosPage = () => {
                     await writable.close();
                     saveSuccessful = true;
                 } catch (err) {
-                    if (err.name === 'AbortError') {
-                        toast({ title: 'Operação Cancelada', description: 'O salvamento do contrato foi cancelado pelo usuário.' });
-                        return; // Aborta sem gerar registros fantasma no banco
-                    }
-                    console.error("FilePicker API falhou, usando fallback estrutural:", err);
+                    if (err.name === 'AbortError') return;
                 }
             }
 
             if (!saveSuccessful) {
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = url;
-                a.download = safeFileName;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                a.remove();
+                a.href = url; a.download = safeFileName;
+                document.body.appendChild(a); a.click();
+                window.URL.revokeObjectURL(url); a.remove();
             }
 
-            // Upload PDF para Supabase Storage
             if (selectedLeadId && fields.NOME_CONTRATANTE) {
-                console.log('[Upload] Iniciando upload para o Supabase...');
-                // Limpar caracteres estranhos do nome do arquivo para evitar problemas
                 const cleanName = fields.NOME_CONTRATANTE.replace(/[^a-zA-Z0-9_\-]/g, '_');
                 const pdfFileName = `contrato_${cleanName}_${Date.now()}.pdf`;
                 const pdfFile = new File([blob], pdfFileName, { type: 'application/pdf' });
 
-                const { error: uploadError } = await supabase.storage
-                    .from('contratos')
-                    .upload(pdfFileName, pdfFile);
-
-                if (uploadError) {
-                    console.error('[Upload] Erro ao salvar arquivo no bucket:', uploadError);
-                    throw new Error(`Erro ao salvar no bucket: ${uploadError.message}`);
-                }
+                const { error: uploadError } = await supabase.storage.from('contratos').upload(pdfFileName, pdfFile);
+                if (uploadError) throw uploadError;
                 
-                console.log('[Upload] Arquivo salvo no bucket com sucesso!');
                 const { data: publicData } = supabase.storage.from('contratos').getPublicUrl(pdfFileName);
-
-                console.log('[DB] Salvando histórico na tabela lead_contratos...');
-                const { error: dbError } = await supabase.from('lead_contratos').insert([{
+                await supabase.from('lead_contratos').insert([{
                     lead_id: selectedLeadId,
                     pdf_url: publicData.publicUrl,
+                    status: 'pendente'
                 }]);
-
-                if (dbError) {
-                    console.error('[DB] Erro ao salvar histórico:', dbError);
-                } else {
-                    console.log('[DB] Histórico salvo com sucesso!');
-                    // O Trigger do banco (admin_lead_contratos_trigger) assume daqui para frente:
-                    // dispara o webhook N8N e atualiza o funil automaticamente.
-                }
+                fetchContratos();
             }
 
-            toast({
-                title: 'Contrato gerado',
-                description: 'O PDF foi gerado, salvo e o download iniciado com sucesso.',
-            });
+            toast({ title: 'Contrato gerado', description: 'O PDF foi salvo no histórico.' });
         } catch (error) {
-            console.error('Erro:', error);
-            toast({
-                title: 'Erro ao gerar',
-                description: 'Não foi possível gerar o PDF. Verifique os dados.',
-                variant: 'destructive',
-            });
+            toast({ title: 'Erro ao gerar', description: error.message, variant: 'destructive' });
         } finally {
             setLoading(false);
         }
     };
 
-    // ─── Render helper (inline) ───────────────────────────────────
+    // ─── Lógica do Histórico ─────────────────────────────────────
+    
+    const contratosFiltrados = useMemo(() => {
+        return contratos.filter(c => {
+            const matchesStatus = filtroStatus === 'todos' || c.status === filtroStatus;
+            const matchesSearch = c.delegacia_nome.toLowerCase().includes(buscaHistorico.toLowerCase());
+            return matchesStatus && matchesSearch;
+        });
+    }, [contratos, filtroStatus, buscaHistorico]);
+
+    const handleDelete = async () => {
+        if (!isDeleting) return;
+        setLoading(true);
+        await deleteContrato(isDeleting);
+        setLoading(false);
+        setIsDeleting(null);
+    };
+
     const renderField = (label, name, placeholder, extraClassName, extraProps) => (
         <div className={`space-y-1.5 ${extraClassName || ''}`} key={name}>
             <Label htmlFor={name} className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{label}</Label>
@@ -619,329 +608,260 @@ const ContratosPage = () => {
         </div>
     );
 
-    // ═══ RENDER ═══════════════════════════════════════════════════
     return (
         <div className="flex flex-col gap-6 max-w-7xl mx-auto">
             <PageHeader
-                title="Gerador de Contratos"
-                description="Monte, edite e gere contratos personalizados em PDF. O corpo do contrato é carregado do modelo enviado e pode ser editado antes da geração."
+                title="Gestão de Contratos"
+                description="Gere contratos jurídicos personalizados ou gerencie o status das assinaturas."
             />
 
-            <div className="flex flex-col lg:flex-row gap-6">
-                {/* ─── FORMULÁRIO LATERAL ─── */}
-                <div className="w-full lg:w-[400px] xl:w-[420px] flex-shrink-0 space-y-4">
-                    {/* Seleção de Lead */}
-                    <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-xl">
-                        <CardContent className="space-y-4 pt-6">
-                            <div className="space-y-1.5">
-                                <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Selecione o Lead</Label>
-                                <Select value={selectedLeadId} onValueChange={handleLeadSelect}>
-                                    <SelectTrigger className="w-full h-9">
-                                        <SelectValue placeholder="Escolha um Lead do funil" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {leads.map(l => (
-                                            <SelectItem key={l.id} value={l.id}>{l.delegacia}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
+            <Card className="border-border/60 bg-card/40 backdrop-blur-sm overflow-hidden min-h-[500px]">
+                <CardContent className="p-6 space-y-6">
+                    {/* Tabs de Navegação */}
+                    <div className="flex items-center gap-1 p-1 bg-muted/30 border border-border/50 rounded-xl w-fit">
+                        <button
+                            onClick={() => setActiveTab('historico')}
+                            className={cn(
+                                "flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all",
+                                activeTab === 'historico' 
+                                    ? "bg-background text-primary shadow-sm ring-1 ring-border" 
+                                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                            )}
+                        >
+                            <History size={16} />
+                            Histórico de Contratos
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('gerar')}
+                            className={cn(
+                                "flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all",
+                                activeTab === 'gerar' 
+                                    ? "bg-background text-primary shadow-sm ring-1 ring-border" 
+                                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                            )}
+                        >
+                            <Plus size={16} />
+                            Gerar Novo
+                        </button>
+                    </div>
 
-                            <div className="grid grid-cols-2 gap-3">
-                                {renderField('Nº Contrato', 'NUMERO_CONTRATO', '001/2026')}
-                                {renderField('Data Assinatura', 'DATA_ASSINATURA', '27/03/2026')}
-                            </div>
-                        </CardContent>
-                    </Card>
+                    {activeTab === 'gerar' ? (
+                        /* ═══ ABA GERAR ═══ */
+                        <div className="flex flex-col lg:flex-row gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="w-full lg:w-[400px] xl:w-[420px] flex-shrink-0 space-y-4">
+                                <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-xl">
+                                    <CardContent className="space-y-4 pt-6">
+                                        <div className="space-y-1.5">
+                                            <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Selecione o Lead</Label>
+                                            <Select value={selectedLeadId} onValueChange={handleLeadSelect}>
+                                                <SelectTrigger className="w-full h-9">
+                                                    <SelectValue placeholder="Escolha um Lead do funil" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {leads.map(l => (
+                                                        <SelectItem key={l.id} value={l.id}>{l.delegacia}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            {renderField('Nº Contrato', 'NUMERO_CONTRATO', '001/2026')}
+                                            {renderField('Data Assinatura', 'DATA_ASSINATURA', '27/03/2026')}
+                                        </div>
+                                    </CardContent>
+                                </Card>
 
-                    {/* Dados do Contratante */}
-                    <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-xl">
-                        <CardContent className="space-y-3 pt-6">
-                            <h3 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
-                                Contratante
-                            </h3>
-                            {renderField('Nome / Razão Social', 'NOME_CONTRATANTE', 'Delegacia XPTO')}
-                            <div className="grid grid-cols-2 gap-3">
-                                {renderField('CNPJ / Identificador', 'IDENTIFICADOR_CONTRATANTE', '00.000.000/0001-00')}
-                                {renderField('Representante', 'REPRESENTANTE_CONTRATANTE', 'Nome completo')}
-                            </div>
-                            {renderField('Endereço', 'ENDERECO_CONTRATANTE', 'Rua, nº, Bairro, Cidade/UF')}
-                            <div className="grid grid-cols-3 gap-3">
-                                {renderField('Cargo', 'CARGO_REPRESENTANTE_CONTRATANTE', 'Delegado')}
-                                {renderField('CPF', 'CPF_REPRESENTANTE_CONTRATANTE', '000.000.000-00')}
-                                {renderField('RG', 'RG_REPRESENTANTE_CONTRATANTE', 'MG-00.000.000')}
-                            </div>
-                        </CardContent>
-                    </Card>
+                                <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-xl">
+                                    <CardContent className="space-y-3 pt-6">
+                                        <h3 className="text-xs font-bold uppercase tracking-wider text-primary">Contratante</h3>
+                                        {renderField('Razão Social', 'NOME_CONTRATANTE', 'Delegacia XPTO')}
+                                        <div className="grid grid-cols-2 gap-3">
+                                            {renderField('CNPJ/Identificador', 'IDENTIFICADOR_CONTRATANTE', '00.000.000/0001-00')}
+                                            {renderField('Representante', 'REPRESENTANTE_CONTRATANTE', 'Nome completo')}
+                                        </div>
+                                        {renderField('Endereço', 'ENDERECO_CONTRATANTE', 'Rua, nº, Bairro, Cidade/UF')}
+                                    </CardContent>
+                                </Card>
 
-                    {/* Dados da Contratada */}
-                    <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-xl">
-                        <CardContent className="space-y-3 pt-6">
-                            <h3 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
-                                Contratada
-                            </h3>
-                            {renderField('Nome / Razão Social', 'NOME_CONTRATADA', 'IntimAI Soluções Ltda.')}
-                            <div className="grid grid-cols-2 gap-3">
-                                {renderField('CNPJ / Identificador', 'CNPJ_CONTRATADA', '00.000.000/0001-00')}
-                                {renderField('Representante', 'REPRESENTANTE_CONTRATADA', 'Nome completo')}
-                            </div>
-                            {renderField('Endereço', 'ENDERECO_CONTRATADA', 'Rua, nº, Bairro, Cidade/UF')}
-                            <div className="grid grid-cols-3 gap-3">
-                                {renderField('Cargo', 'CARGO_REPRESENTANTE_CONTRATADA', 'CEO')}
-                                {renderField('CPF', 'CPF_REPRESENTANTE_CONTRATADA', '000.000.000-00')}
-                                {renderField('RG', 'RG_REPRESENTANTE_CONTRATADA', 'MG-00.000.000')}
-                            </div>
-                        </CardContent>
-                    </Card>
+                                <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-xl">
+                                    <CardContent className="space-y-4 pt-6">
+                                        <h3 className="text-xs font-bold uppercase tracking-wider text-primary">Vigência e Plano</h3>
+                                        <div className="grid grid-cols-3 gap-3">
+                                            {renderField('Início', 'DATA_INICIO_CONTRATO', '01/04/2026')}
+                                            {renderField('Fim', 'DATA_FIM_CONTRATO', '01/04/2027')}
+                                            {renderField('Meses', 'VIGENCIA_MESES', '12')}
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            {renderField('Valor Plano (R$)', 'VALOR_PLANO', '1.500,00')}
+                                            {renderField('Cid/UF Foro', 'CIDADE_FORO', 'MG')}
+                                        </div>
+                                    </CardContent>
+                                </Card>
 
-                    {/* Unidade e Vigência */}
-                    <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-xl">
-                        <CardContent className="space-y-4 pt-6">
-                            {/* Bloco Unidade */}
-                            <div className="space-y-3 p-4 bg-muted/20 border border-muted/50 rounded-xl">
-                                <h3 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
-                                    Unidade Beneficiária
-                                </h3>
-                                {renderField('Órgão / Unidade', 'UNIDADE_BENEFICIARIA', 'Delegacia XPTO')}
-                                {renderField('Endereço da Unidade', 'ENDERECO_UNIDADE_BENEFICIARIA', 'Endereço completo')}
-                            </div>
-                            
-                            {/* Bloco Vigência */}
-                            <div className="space-y-3 pt-2">
-                                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                                    Vigência e Foro
-                                </h3>
-                                <div className="grid grid-cols-3 gap-3">
-                                    {renderField('Início', 'DATA_INICIO_CONTRATO', '01/04/2026')}
-                                    {renderField('Fim', 'DATA_FIM_CONTRATO', '01/04/2027')}
-                                    {renderField('Meses', 'VIGENCIA_MESES', '12')}
-                                </div>
-                                <div className="grid grid-cols-2 gap-3">
-                                    {renderField('Cidade (Foro)', 'CIDADE_FORO', 'Leopoldina')}
-                                    {renderField('UF', 'UF_FORO', 'MG', 'uppercase', { maxLength: 2 })}
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Anexo I – Comercial */}
-                    <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-xl">
-                        <CardContent className="space-y-3 pt-6">
-                            <h3 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
-                                Anexo I – Plano / Condições Comerciais
-                            </h3>
-                            <div className="grid grid-cols-2 gap-3">
-                                {renderField('Plano', 'PLANO_NOME', 'IntimAI Pro')}
-                                <div className="space-y-1.5">
-                                    <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Modalidade</Label>
-                                    <Select value={fields.MODALIDADE_COBRANCA} onValueChange={(v) => handleFieldChange('MODALIDADE_COBRANCA', v)}>
-                                        <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="Mensal">Mensal</SelectItem>
-                                            <SelectItem value="Anual">Anual</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-3 gap-3">
-                                {renderField('Nº Usuários', 'NUMERO_USUARIOS', '10')}
-                                {renderField('Franquia (mês)', 'FRANQUIA_INTIMACOES_MENSAL', '500')}
-                                {renderField('Valor Plano (R$)', 'VALOR_PLANO', '1.500,00')}
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                <div className="space-y-1.5">
-                                    <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Cobra Excedente?</Label>
-                                    <Select value={fields.COBRANCA_EXCEDENTE} onValueChange={(v) => handleFieldChange('COBRANCA_EXCEDENTE', v)}>
-                                        <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="Sim">Sim</SelectItem>
-                                            <SelectItem value="Não">Não</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                {renderField('Valor Excedente (R$)', 'VALOR_EXCEDENTE', '3,50')}
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                <div className="space-y-1.5">
-                                    <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Forma Pagamento</Label>
-                                    <Select value={fields.FORMA_PAGAMENTO} onValueChange={(v) => handleFieldChange('FORMA_PAGAMENTO', v)}>
-                                        <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="Pix">Pix</SelectItem>
-                                            <SelectItem value="Boleto">Boleto</SelectItem>
-                                            <SelectItem value="Transferência">Transferência</SelectItem>
-                                            <SelectItem value="Cartão">Cartão</SelectItem>
-                                            <SelectItem value="Empenho">Empenho</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                {renderField('Prazo (dias)', 'PRAZO_PAGAMENTO_DIAS', '30')}
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                {renderField('Reajuste', 'REAJUSTE', 'IPCA')}
-                                {renderField('1º Vencimento', 'DATA_PRIMEIRO_VENCIMENTO', '01/05/2026')}
-                            </div>
-                            {renderField('Observações', 'OBSERVACOES_PLANO', 'Observações adicionais...')}
-                        </CardContent>
-                    </Card>
-
-                    {/* Anexo II – SLA */}
-                    <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-xl">
-                        <CardContent className="space-y-3 pt-6">
-                            <h3 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
-                                Anexo II – Níveis de Serviço (SLA)
-                            </h3>
-                            <div className="grid grid-cols-2 gap-3">
-                                {renderField('Disponibilidade (%)', 'SLA_DISPONIBILIDADE', '99,5')}
-                                {renderField('Horário de Suporte', 'HORARIO_SUPORTE', 'Seg a Sex, 08h às 18h')}
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                {renderField('Tempo de Resposta', 'TEMPO_RESPOSTA_SUPORTE', 'Até 4 horas úteis')}
-                                {renderField('Tempo de Resolução', 'TEMPO_RESOLUCAO_SUPORTE', 'Até 24 horas úteis')}
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Testemunhas */}
-                    <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-xl">
-                        <CardContent className="space-y-3 pt-6">
-                            <h3 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
-                                Testemunhas
-                            </h3>
-                            <div className="grid grid-cols-2 gap-3">
-                                {renderField('Nome Testemunha 1', 'NOME_TESTEMUNHA_1', 'Nome completo')}
-                                {renderField('CPF Testemunha 1', 'CPF_TESTEMUNHA_1', '000.000.000-00')}
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                {renderField('Nome Testemunha 2', 'NOME_TESTEMUNHA_2', 'Nome completo')}
-                                {renderField('CPF Testemunha 2', 'CPF_TESTEMUNHA_2', '000.000.000-00')}
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Modelo e Geração */}
-                    <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-xl">
-                        <CardContent className="space-y-4 pt-6">
-                            {/* Upload */}
-                            <div className="space-y-3">
-                                <h3 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
-                                    <Settings2 size={14} />
-                                    Modelo do Corpo do Contrato
-                                </h3>
-                                <p className="text-[11px] text-muted-foreground leading-relaxed">
-                                    Suba um arquivo <code className="bg-muted px-1 py-0.5 rounded text-[10px]">.txt</code> com as cláusulas. O cabeçalho e rodapé dinâmicos são gerados automaticamente.
-                                </p>
-                                <label className="cursor-pointer">
-                                    <input
-                                        type="file"
-                                        accept=".txt,.md"
-                                        onChange={handleTemplateUpload}
-                                        className="hidden"
-                                    />
-                                    <div className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed transition-all text-sm font-medium
-                                        ${corpoTemplate
-                                            ? 'border-green-500/30 bg-green-500/5 text-green-400 hover:bg-green-500/10'
-                                            : 'border-primary/30 bg-primary/5 text-primary hover:bg-primary/10'
-                                        }`}
-                                    >
-                                        {uploadingTemplate ? (
-                                            <Loader2 className="animate-spin" size={16} />
-                                        ) : corpoTemplate ? (
-                                            <>
-                                                <FileUp size={16} />
-                                                Atualizar Modelo
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Upload size={16} />
-                                                Enviar Modelo (.txt)
-                                            </>
-                                        )}
+                                <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-xl p-4">
+                                    <div className="space-y-3 text-center">
+                                        <Label className="text-xs font-bold uppercase text-muted-foreground flex items-center justify-center gap-2">
+                                            <Settings2 size={14} /> Modelo do Corpo (Markdown)
+                                        </Label>
+                                        <div className="flex flex-col gap-2">
+                                            <Button variant="outline" size="sm" className="w-full relative overflow-hidden h-10 gap-2 border-dashed">
+                                                {uploadingTemplate ? <Loader2 className="animate-spin" size={16} /> : <FileUp size={16} />}
+                                                {uploadingTemplate ? 'Enviando...' : 'Atualizar Modelo (.txt)'}
+                                                <input type="file" accept=".txt,.md" onChange={handleTemplateUpload} disabled={uploadingTemplate} className="absolute inset-0 opacity-0 cursor-pointer" />
+                                            </Button>
+                                            <p className="text-[10px] text-muted-foreground">O conteúdo textual do contrato é baseado em um arquivo markdown (.txt).</p>
+                                        </div>
                                     </div>
-                                </label>
-                            </div>
+                                </Card>
 
-                            {/* Botão Gerar */}
-                            <Button
-                                onClick={generatePDF}
-                                disabled={loading || !fields.NOME_CONTRATANTE || !corpoTemplate || !selectedLeadId}
-                                size="lg"
-                                className="w-full h-14 text-lg font-bold gap-3 shadow-xl shadow-primary/20 hover:scale-[1.01] transition-transform"
-                            >
-                                {loading ? (
-                                    <>
-                                        <Loader2 className="animate-spin" />
-                                        Gerando Contrato...
-                                    </>
-                                ) : (
-                                    <>
-                                        <ScrollText size={22} />
-                                        Gerar Contrato
-                                    </>
-                                )}
-                            </Button>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* ─── PREVIEW DO CONTRATO ─── */}
-                <div className="flex-1 min-w-0">
-                    <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-xl sticky top-4">
-                        <CardContent className="pt-6">
-                            {/* Toolbar do Preview */}
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-sm font-bold flex items-center gap-2 text-muted-foreground">
-                                    <ScrollText size={16} className="text-primary" />
-                                    Pré-visualização do Contrato
-                                    <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">editável</span>
-                                </h3>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setShowPreview(!showPreview)}
-                                    className="h-7 text-xs gap-1.5"
-                                >
-                                    {showPreview ? <EyeOff size={14} /> : <Eye size={14} />}
-                                    {showPreview ? 'Ocultar' : 'Mostrar'}
+                                <Button onClick={generatePDF} disabled={loading || !corpoTemplate} size="lg" className="w-full h-14 text-lg font-bold gap-3 shadow-xl shadow-primary/10">
+                                    {loading ? <Loader2 className="animate-spin" /> : <ScrollText size={22} />}
+                                    {loading ? 'Gerando...' : 'Gerar Contrato'}
                                 </Button>
                             </div>
 
-                            {showPreview && (
-                                <>
-                                    {templateLoading ? (
-                                        <div className="flex items-center justify-center py-20">
-                                            <Loader2 className="h-8 w-8 animate-spin text-primary opacity-50" />
+                            <div className="flex-1 min-w-0">
+                                <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-xl sticky top-4">
+                                    <CardContent className="pt-6">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h3 className="text-sm font-bold flex items-center gap-2 text-muted-foreground">
+                                                <Eye size={16} className="text-primary" /> Visualização do Documento
+                                            </h3>
+                                            <Button variant="ghost" size="sm" onClick={() => setShowPreview(!showPreview)} className="h-7 text-xs">
+                                                {showPreview ? <EyeOff size={14} /> : <Eye size={14} />} {showPreview ? 'Ocultar' : 'Mostrar'}
+                                            </Button>
                                         </div>
-                                    ) : !corpoTemplate ? (
-                                        <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-                                            <Upload size={48} className="text-muted-foreground/30" />
-                                            <div>
-                                                <p className="font-semibold text-muted-foreground">Nenhum modelo de contrato configurado</p>
-                                                <p className="text-xs text-muted-foreground/60 mt-1">
-                                                    Use o botão "Enviar Modelo" ao lado para carregar o corpo do contrato.
-                                                </p>
+                                        {showPreview && (
+                                            <div className="relative rounded-xl border border-border/30 bg-card overflow-hidden h-[75vh] shadow-inner">
+                                                {(loading || templateLoading) && (
+                                                    <div className="absolute inset-0 z-10 bg-background/50 backdrop-blur-sm flex items-center justify-center">
+                                                        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                                                    </div>
+                                                )}
+                                                <div ref={editorRef} className="w-full h-full overflow-y-auto p-4 bg-white" />
                                             </div>
-                                        </div>
-                                    ) : (
-                                        <div
-                                            ref={editorRef}
-                                            contentEditable
-                                            suppressContentEditableWarning
-                                            className="bg-white rounded-xl shadow-inner overflow-auto max-h-[80vh] p-0 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow"
-                                            style={{
-                                                minHeight: '600px',
-                                                color: '#1a1a2e',
-                                                fontSize: '13px',
-                                                lineHeight: '1.7',
-                                            }}
-                                        />
-                                    )}
-                                </>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </div>
+                    ) : (
+                        /* ═══ ABA HISTÓRICO ═══ */
+                        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="flex flex-col md:flex-row gap-4">
+                                <div className="relative flex-1">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+                                    <Input placeholder="Buscar por delegacia..." value={buscaHistorico} onChange={(e) => setBuscaHistorico(e.target.value)} className="pl-10 h-10 bg-background/50 border-border/60 focus:border-primary/50" />
+                                </div>
+                                <div className="flex items-center gap-3 w-full md:w-auto">
+                                    <Select value={filtroStatus} onValueChange={setFiltroStatus}>
+                                        <SelectTrigger className="w-[160px] h-10 bg-background/50 border-border/60">
+                                            <SelectValue placeholder="Status" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="todos">Todos os Status</SelectItem>
+                                            <SelectItem value="pendente">Pendente</SelectItem>
+                                            <SelectItem value="enviado">Enviado</SelectItem>
+                                            <SelectItem value="assinado">Assinado</SelectItem>
+                                            <SelectItem value="cancelado">Cancelado</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+
+                            {loadingHistorico ? (
+                                <div className="flex flex-col items-center justify-center py-20 gap-3">
+                                    <Loader2 className="animate-spin text-primary" size={40} />
+                                    <p className="text-muted-foreground font-medium">Carregando histórico...</p>
+                                </div>
+                            ) : contratosFiltrados.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center py-20 text-muted-foreground bg-muted/10 rounded-xl border border-dashed border-border/50">
+                                    <FileText className="h-16 w-16 mb-4 opacity-10" />
+                                    <p className="text-lg font-medium">Nenhum contrato encontrado.</p>
+                                    <p className="text-sm opacity-60 text-center max-w-xs mt-2">
+                                        Ajuste os filtros ou gere um novo contrato jurídico.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm">
+                                        <thead>
+                                            <tr className="border-b border-border/50 text-muted-foreground text-[11px] uppercase tracking-wider">
+                                                <th className="text-left py-3 px-3 font-semibold">Delegacia</th>
+                                                <th className="text-left py-3 px-3 font-semibold">Geração</th>
+                                                <th className="text-left py-3 px-3 font-semibold">Status</th>
+                                                <th className="text-center py-3 px-3 font-semibold">Ações</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {contratosFiltrados.map((contrato) => (
+                                                <tr key={contrato.id} className="border-b border-border/30 hover:bg-muted/20 transition-colors">
+                                                    <td className="py-3 px-3">
+                                                        <div className="flex items-center gap-3">
+                                                            <Building2 size={16} className="text-primary/60 shrink-0" />
+                                                            <div className="flex flex-col">
+                                                                <span className="font-semibold text-foreground">{contrato.delegacia_nome}</span>
+                                                                <span className="text-[10px] text-muted-foreground uppercase opacity-70">ID #{contrato.id.slice(0, 8)}</span>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-3 px-3 text-muted-foreground text-xs whitespace-nowrap">
+                                                        <div className="flex items-center gap-2">
+                                                            <Calendar size={14} className="opacity-50" />
+                                                            {new Date(contrato.created_at).toLocaleDateString('pt-BR')}
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-3 px-3">
+                                                        <Select value={contrato.status || 'pendente'} onValueChange={(val) => updateStatus(contrato.id, val)}>
+                                                            <SelectTrigger className={cn(
+                                                                "h-7 w-[110px] text-[10px] font-bold uppercase border rounded-full px-2.5 bg-background transition-all",
+                                                                contrato.status === 'pendente' ? 'text-amber-500 border-amber-500/20 bg-amber-500/10' :
+                                                                contrato.status === 'enviado' ? 'text-blue-500 border-blue-500/20 bg-blue-500/10' :
+                                                                contrato.status === 'assinado' ? 'text-emerald-500 border-emerald-500/20 bg-emerald-500/10' :
+                                                                'text-red-500 border-red-500/20 bg-red-500/10'
+                                                            )}>
+                                                                <SelectValue />
+                                                            </SelectTrigger>
+                                                            <SelectContent className="text-xs">
+                                                                <SelectItem value="pendente">Pendente</SelectItem>
+                                                                <SelectItem value="enviado">Enviado</SelectItem>
+                                                                <SelectItem value="assinado">Assinado</SelectItem>
+                                                                <SelectItem value="cancelado">Cancelado</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </td>
+                                                    <td className="py-3 px-3 text-center">
+                                                        <div className="flex items-center justify-center gap-1">
+                                                            <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-primary" asChild>
+                                                                <a href={contrato.pdf_url} target="_blank" rel="noreferrer" title="Visualizar PDF">
+                                                                    <ExternalLink size={16} />
+                                                                </a>
+                                                            </Button>
+                                                            <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-500/10" onClick={() => setIsDeleting(contrato)} title="Excluir">
+                                                                <Trash2 size={16} />
+                                                            </Button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
                             )}
-                        </CardContent>
-                    </Card>
-                </div>
-            </div>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+
+            <ConfirmationModal
+                isOpen={!!isDeleting}
+                onClose={() => setIsDeleting(null)}
+                onConfirm={handleDelete}
+                title="Excluir Contrato"
+                description={`Tem certeza que deseja excluir este contrato da delegacia "${isDeleting?.delegacia_nome}"? O arquivo PDF também será removido permanentemente.`}
+                loading={loading}
+                variant="destructive"
+            />
         </div>
     );
 };
