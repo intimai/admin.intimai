@@ -4,14 +4,16 @@ import { usePipeline } from '@/hooks/usePipeline';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, Phone, Mail, User, GripVertical, FileText, Plus, ScrollText } from 'lucide-react';
+import { Loader2, Phone, Mail, User, GripVertical, FileText, Plus, ScrollText, Send, CheckCircle2, Bot, UserCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/customSupabaseClient';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useLeadChat } from '@/hooks/useLeadChat';
 
 // Mapa de transições permitidas para cada status
 const ALLOWED_TRANSITIONS = {
@@ -27,7 +29,7 @@ const ALLOWED_TRANSITIONS = {
   'inativo': ['suspenso', 'ativo', 'qualificado'],
 };
 
-const KanbanColumn = ({ title, subtitle, items, status, onMove, colorClass, isLocked, dragSourceStatus, onDragStart, onDragEnd }) => {
+const KanbanColumn = ({ title, subtitle, items, status, onMove, colorClass, isLocked, dragSourceStatus, onDragStart, onDragEnd, updateStatus }) => {
   const [isOver, setIsOver] = useState(false);
 
   // Determina visualmente se esta coluna é alvo válido ou inválido durante um drag
@@ -86,7 +88,7 @@ const KanbanColumn = ({ title, subtitle, items, status, onMove, colorClass, isLo
           )
         ) : (
           items.map((item) => (
-            <PipelineCard key={item.id} item={item} columnStatus={status} onDragStart={onDragStart} onDragEnd={onDragEnd} />
+            <PipelineCard key={item.id} item={item} columnStatus={status} onDragStart={onDragStart} onDragEnd={onDragEnd} updateStatus={updateStatus} />
           ))
         )}
       </div>
@@ -94,9 +96,20 @@ const KanbanColumn = ({ title, subtitle, items, status, onMove, colorClass, isLo
   );
 };
 
-const PipelineCard = ({ item, columnStatus, onDragStart, onDragEnd }) => {
-  // Qualificado e Fechado agora têm transições excepcionais - podem ser arrastados
+const IA_LOCKED_STATUSES = ['pendente', 'novo', 'conversando'];
+
+const PipelineCard = ({ item, columnStatus, onDragStart, onDragEnd, updateStatus }) => {
   const isDraggable = true;
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [resposta, setResposta] = useState('');
+  const [currentStatus, setCurrentStatus] = useState(columnStatus);
+  const [isAssuming, setIsAssuming] = useState(false);
+  const { toast } = useToast();
+  
+  const isIALocked = IA_LOCKED_STATUSES.includes(currentStatus);
+
+  // Conditionally fetch ONLY when the dialog opens
+  const { messages, loading: chatLoading, isSending, sendMessage } = useLeadChat(isChatOpen ? item.id : null);
 
   const handleDragStart = (e) => {
     e.dataTransfer.setData('itemId', item.id);
@@ -109,11 +122,41 @@ const PipelineCard = ({ item, columnStatus, onDragStart, onDragEnd }) => {
     if (onDragEnd) onDragEnd();
   };
 
+  const handleSend = async () => {
+    if (!resposta.trim() || isIALocked) return;
+    const success = await sendMessage(item.telefone, resposta);
+    if (success) {
+      setResposta('');
+    }
+  };
+
+  const handleAssumir = async () => {
+    setIsAssuming(true);
+    try {
+      await updateStatus(item.id, 'em_atendimento');
+      setCurrentStatus('em_atendimento');
+      toast({
+        title: "Atendimento assumido",
+        description: "Você assumiu este lead. A IA não irá mais interagir.",
+      });
+    } catch (err) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível assumir o atendimento.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsAssuming(false);
+    }
+  };
+
   return (
+    <>
     <div
       draggable={isDraggable}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onClick={() => setIsChatOpen(true)}
       className="cursor-grab active:cursor-grabbing group"
     >
       <Card className="shadow-sm hover:shadow-md transition-shadow bg-card border-l-4 border-l-primary/20 hover:border-l-primary group-active:opacity-50">
@@ -192,6 +235,109 @@ const PipelineCard = ({ item, columnStatus, onDragStart, onDragEnd }) => {
         </CardContent>
       </Card>
     </div>
+
+      <Dialog open={isChatOpen} onOpenChange={setIsChatOpen}>
+        <DialogContent className="sm:max-w-[500px] h-[80vh] flex flex-col p-0 gap-0">
+          <DialogHeader className="p-4 border-b border-border/40 bg-muted/30">
+            <DialogTitle className="text-base flex items-center justify-between">
+              <div className="flex flex-col">
+                <span>{item.nome || 'Lead sem nome'}</span>
+                <span className="text-xs font-normal text-muted-foreground">{item.delegacia} • {item.telefone}</span>
+              </div>
+              <Badge variant="outline" className={cn(
+                "text-[10px] uppercase",
+                isIALocked 
+                  ? "border-purple-400/50 text-purple-400" 
+                  : "border-primary/50 text-primary"
+              )}>
+                {isIALocked ? '🤖 IA' : currentStatus.replace('_', ' ')}
+              </Badge>
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-background/50 flex flex-col">
+            {chatLoading ? (
+              <div className="flex-1 flex items-center justify-center">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground opacity-50" />
+              </div>
+            ) : messages.length === 0 ? (
+              <div className="flex-1 flex items-center justify-center">
+                 <span className="text-sm text-muted-foreground italic opacity-70">Nenhuma mensagem registrada ainda.</span>
+              </div>
+            ) : (
+                messages.map((h) => {
+                  const isAdmin = h.origem === 'admin';
+                  return (
+                    <div key={h.id} className={`flex flex-col gap-1 ${isAdmin ? 'items-end' : 'items-start'}`}>
+                      <span className="text-[10px] text-muted-foreground mx-1">
+                        {isAdmin ? 'Você (Admin)' : 'Lead'} • {new Date(h.created_at).toLocaleDateString()} {new Date(h.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      </span>
+                      <div className={`text-sm py-2 px-3 rounded-2xl max-w-[85%] shadow-sm ${
+                        isAdmin 
+                          ? 'bg-primary text-primary-foreground rounded-tr-sm' 
+                          : 'bg-muted text-foreground rounded-tl-sm border border-border/50'
+                      } ${h.status === 'enviando' ? 'opacity-60' : ''}`}>
+                        {h.mensagem}
+                      </div>
+                    </div>
+                  );
+                })
+            )}
+          </div>
+
+          {/* Rodapé do Chat - Comportamento condicional */}
+          <div className="p-4 bg-background border-t border-border/40 flex flex-col gap-3">
+            {isIALocked ? (
+              /* Banner de IA ativa + Botão de Intervenção */
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-2 bg-purple-500/10 text-purple-300 border border-purple-500/20 rounded-lg px-3 py-2.5">
+                  <Bot size={16} className="shrink-0" />
+                  <span className="text-xs font-medium">A IA está conduzindo este atendimento. Para intervir, assuma o controle abaixo.</span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAssumir}
+                  disabled={isAssuming}
+                  className="w-full border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/10 hover:text-cyan-300 gap-2"
+                >
+                  {isAssuming ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <UserCheck size={14} />
+                  )}
+                  Assumir Atendimento Humano
+                </Button>
+              </div>
+            ) : (
+              /* Campo de digitação normal */
+              <>
+                <Textarea 
+                  placeholder="Digite a mensagem para o Lead..."
+                  value={resposta}
+                  onChange={(e) => setResposta(e.target.value)}
+                  className="min-h-[80px] resize-none focus-visible:ring-1"
+                />
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] text-muted-foreground italic max-w-[60%] leading-tight">
+                    A mensagem será enviada oficialmente pelo WhatsApp da IntimAI (via Node.js).
+                  </span>
+                  <Button 
+                    variant="default" 
+                    size="sm" 
+                    onClick={handleSend}
+                    disabled={!resposta.trim() || isSending}
+                    className="bg-green-600 hover:bg-green-700 text-white min-w-[100px]"
+                  >
+                    {isSending ? <Loader2 size={14} className="animate-spin" /> : <><Send size={14} className="mr-2" /> Enviar API</>}
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
@@ -411,6 +557,7 @@ const PipelinePage = () => {
                 dragSourceStatus={dragSourceStatus}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
+                updateStatus={updateStatus}
               />
               <KanbanColumn
                 title="Conversando"
@@ -423,6 +570,7 @@ const PipelinePage = () => {
                 dragSourceStatus={dragSourceStatus}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
+                updateStatus={updateStatus}
               />
               <KanbanColumn
                 title="Em Atendimento"
@@ -434,6 +582,7 @@ const PipelinePage = () => {
                 dragSourceStatus={dragSourceStatus}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
+                updateStatus={updateStatus}
               />
               <KanbanColumn
                 title="Qualificado"
@@ -446,6 +595,7 @@ const PipelinePage = () => {
                 dragSourceStatus={dragSourceStatus}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
+                updateStatus={updateStatus}
               />
               <KanbanColumn
                 title="Não Qualificado"
@@ -457,6 +607,7 @@ const PipelinePage = () => {
                 dragSourceStatus={dragSourceStatus}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
+                updateStatus={updateStatus}
               />
               <KanbanColumn
                 title="Proposta Enviada"
@@ -468,6 +619,7 @@ const PipelinePage = () => {
                 dragSourceStatus={dragSourceStatus}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
+                updateStatus={updateStatus}
               />
               <KanbanColumn
                 title="Fechado"
@@ -480,6 +632,7 @@ const PipelinePage = () => {
                 dragSourceStatus={dragSourceStatus}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
+                updateStatus={updateStatus}
               />
               <KanbanColumn
                 title="Ativo"
@@ -491,6 +644,7 @@ const PipelinePage = () => {
                 dragSourceStatus={dragSourceStatus}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
+                updateStatus={updateStatus}
               />
               <KanbanColumn
                 title="Suspenso"
@@ -502,6 +656,7 @@ const PipelinePage = () => {
                 dragSourceStatus={dragSourceStatus}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
+                updateStatus={updateStatus}
               />
               <KanbanColumn
                 title="Inativo"
@@ -513,6 +668,7 @@ const PipelinePage = () => {
                 dragSourceStatus={dragSourceStatus}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
+                updateStatus={updateStatus}
               />
             </div>
           </div>

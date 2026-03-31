@@ -150,13 +150,40 @@ const PropostasPage = () => {
             }
 
             const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Proposta_${formData.delegacia.replace(/\s+/g, '_')}.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
+            const safeFileName = `Proposta_${formData.delegacia.replace(/\s+/g, '_')}.pdf`;
+            
+            // Escolha de local para salvar o PDF ou Download direto (Fallback)
+            let saveSuccessful = false;
+
+            if (window.showSaveFilePicker) {
+                try {
+                    const handle = await window.showSaveFilePicker({
+                        suggestedName: safeFileName,
+                        types: [{ description: 'Arquivo PDF', accept: { 'application/pdf': ['.pdf'] } }],
+                    });
+                    const writable = await handle.createWritable();
+                    await writable.write(blob);
+                    await writable.close();
+                    saveSuccessful = true;
+                } catch (err) {
+                    if (err.name === 'AbortError') {
+                        toast({ title: 'Operação Cancelada', description: 'O salvamento da proposta foi cancelado pelo usuário.' });
+                        return; // Aborta para não salvar no banco algo que foi cancelado no arquivo local
+                    }
+                    console.error("FilePicker API falhou, usando fallback:", err);
+                }
+            }
+
+            if (!saveSuccessful) {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = safeFileName;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                a.remove();
+            }
 
             // Upload PDF to Supabase Storage and Update Lead
             if (selectedLeadId && formData.delegacia) {

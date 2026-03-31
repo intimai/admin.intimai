@@ -16,9 +16,8 @@ import {
   TrendingUp,
   TrendingDown,
   BarChart3,
-  MessageSquare,
   Zap,
-  Activity,
+  Bot,
   ShieldCheck,
 } from 'lucide-react';
 
@@ -29,9 +28,9 @@ export const MENU_CONFIG = [
     id: 'central_controle',
     icon: ShieldCheck,
     items: [
-      { slug: 'conexoes', path: '/conexoes', label: 'Conexões (API)', icon: Zap },
-      { slug: 'monitoramento-ia', path: '/monitoramento-ia', label: 'Monitoramento IA', icon: Activity },
       { slug: 'auditoria', path: '/auditoria', label: 'Governança & LGPD', icon: ShieldCheck },
+      { slug: 'conexoes', path: '/conexoes', label: 'Conexões (API)', icon: Zap },
+      { slug: 'monitoramento-ia', path: '/monitoramento-ia', label: 'Monitoramento IA', icon: Bot },
     ],
   },
   {
@@ -41,7 +40,6 @@ export const MENU_CONFIG = [
     icon: Briefcase,
     items: [
       { slug: 'pipeline', path: '/pipeline', label: 'Pipeline', icon: Target },
-      { slug: 'chat', path: '/chat', label: 'Chat', icon: MessageSquare },
       { slug: 'suporte', path: '/suporte', label: 'Suporte', icon: Headphones },
     ],
   },
@@ -64,7 +62,7 @@ export const MENU_CONFIG = [
     items: [
       { slug: 'propostas', path: '/propostas', label: 'Propostas', icon: FileText },
       { slug: 'contratos', path: '/contratos', label: 'Contratos', icon: Gavel },
-      { slug: 'nfe', path: '/nfe', label: 'Notas Fiscais (NF-e)', icon: Receipt },
+      { slug: 'nfe', path: '/nfe', label: 'Notas Fiscais', icon: Receipt },
     ],
   },
   {

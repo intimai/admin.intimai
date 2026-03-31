@@ -17,6 +17,7 @@ import PropostasPage from './pages/PropostasPage';
 import ContratosPage from './pages/ContratosPage';
 import AuditoriaPage from './pages/AuditoriaPage';
 import MonitoramentoIAPage from './pages/MonitoramentoIAPage';
+import NFePage from './pages/NFePage';
 import AdminLayout from './components/layout/AdminLayout';
 import AdminProtectedRoute from './components/layout/AdminProtectedRoute';
 import { AdminAuthProvider } from './contexts/AdminAuthContext';
@@ -79,7 +80,7 @@ function App() {
               } />
               <Route path="nfe" element={
                 <AdminProtectedRoute menuSlug="nfe">
-                  <EmDesenvolvimentoPage title="NF-e" />
+                  <NFePage />
                 </AdminProtectedRoute>
               } />
               <Route path="delegacias" element={

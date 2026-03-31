@@ -211,24 +211,24 @@ const UserCard = ({ user, onEdit, onDelete }) => {
             </div>
 
             {/* Ações */}
-            <div className="flex flex-row md:flex-col items-center justify-end gap-2 border-t md:border-t-0 md:border-l border-border/50 pt-4 md:pt-4 md:pl-4 mt-2 md:mt-0 shrink-0">
+            <div className="flex items-center gap-1.5 border-t md:border-t-0 md:border-l border-border/50 pt-4 md:pt-4 md:pl-4 mt-2 md:mt-0 shrink-0">
               <Button
                 variant="outline"
-                size="sm"
-                className="w-full md:w-full gap-2 h-8 text-xs bg-background/50 hover:bg-background"
+                size="icon"
+                className="h-8 w-8 bg-background/50 hover:bg-background"
                 onClick={(e) => { e.stopPropagation(); onEdit(user); }}
+                title="Editar Perfil"
               >
-                <Edit size={12} />
-                Editar Perfil
+                <Edit size={14} />
               </Button>
               <Button
                 variant="ghost"
-                size="sm"
-                className="w-full md:w-full gap-2 h-8 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                 onClick={(e) => { e.stopPropagation(); onDelete(user); }}
+                title="Excluir Conta"
               >
-                <Trash2 size={12} />
-                Excluir Conta
+                <Trash2 size={14} />
               </Button>
             </div>
           </CardContent>

@@ -22,11 +22,16 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Pagination } from '@/components/ui/Pagination';
+import { useToast } from '@/components/ui/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 const AuditoriaPage = () => {
     const [activeTab, setActiveTab] = useState('logs'); // 'logs' ou 'lgpd'
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
+    const { toast } = useToast();
+    const [isExporting, setIsExporting] = useState(false);
+    const [selectedLgpdRequest, setSelectedLgpdRequest] = useState(null);
     
     // Estados para Audit Logs
     const [auditLogs, setAuditLogs] = useState([]);
@@ -86,6 +91,103 @@ const AuditoriaPage = () => {
             console.error('Erro ao buscar solicitações LGPD:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const exportToCSV = async () => {
+        setIsExporting(true);
+        try {
+            let dataToExport = [];
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            let defaultFilename = '';
+
+            if (activeTab === 'logs') {
+                defaultFilename = `auditoria_logs_${timestamp}.csv`;
+                let query = supabase.from('audit_logs').select('*');
+                if (search) query = query.or(`userNome.ilike.%${search}%,userEmail.ilike.%${search}%,delegaciaNome.ilike.%${search}%`);
+                
+                const { data, error } = await query.order('createdAt', { ascending: false }).limit(5000);
+                if (error) throw error;
+                
+                dataToExport = data.map(log => ({
+                    'Data/Hora': new Date(log.createdAt).toLocaleString('pt-BR'),
+                    'Usuário': log.userNome || 'Sistema',
+                    'Email': log.userEmail || '-',
+                    'Delegacia': log.delegaciaNome || '-',
+                    'Ação': log.actionType,
+                    'Tipo de Recurso': log.resourceType,
+                    'ID Recurso': log.resourceId || '-',
+                    'IP': log.ipAddress || '-',
+                    'Dispositivo': log.userAgent || '-'
+                }));
+            } else {
+                defaultFilename = `requisicoes_lgpd_${timestamp}.csv`;
+                let query = supabase.from('lgpd_requests').select('*');
+                if (search) query = query.or(`nome.ilike.%${search}%,documento.ilike.%${search}%`);
+                
+                const { data, error } = await query.order('created_at', { ascending: false }).limit(5000);
+                if (error) throw error;
+                
+                dataToExport = data.map(req => ({
+                    'Data da Solicitação': new Date(req.created_at).toLocaleString('pt-BR'),
+                    'Titular': req.nome || '-',
+                    'Documento': req.documento || '-',
+                    'Tipo de Solicitação': req.tipo_solicitacao || '-',
+                    'Status': req.status || '-',
+                    'Protocolo': req.id || '-',
+                    'Detalhes Adicionais': req.comentario || '-'
+                }));
+            }
+
+            if (dataToExport.length === 0) {
+                toast({ title: "Aviso", description: "Não há dados para exportar com os filtros atuais.", variant: "destructive" });
+                return;
+            }
+
+            // Converter para CSV string
+            const headers = Object.keys(dataToExport[0]).join(';');
+            const rows = dataToExport.map(row => 
+                Object.values(row).map(val => `"${String(val || '').replace(/"/g, '""')}"`).join(';')
+            ).join('\n');
+            const csvContent = `${headers}\n${rows}`;
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' }); // \uFEFF força UTF-8 com BOM no Excel
+
+            // Usar a File System Access API caso seja suportada no browser (Chrome/Edge/Safari desktop moderno)
+            if (window.showSaveFilePicker) {
+                try {
+                    const handle = await window.showSaveFilePicker({
+                        suggestedName: defaultFilename,
+                        types: [{ description: 'Arquivo CSV', accept: { 'text/csv': ['.csv'] } }],
+                    });
+                    const writable = await handle.createWritable();
+                    await writable.write(blob);
+                    await writable.close();
+                    
+                    toast({ title: "Sucesso!", description: "Arquivo salvo com sucesso no diretório escolhido." });
+                    return; // Sai se deu certo
+                } catch (err) {
+                    if (err.name === 'AbortError') return; // Usuário cancelou
+                    console.error("FilePicker API falhou, caindo para modo tradicional:", err);
+                }
+            }
+
+            // Fallback: Modo tradicional (baixa com o nome sugerido direto nos Downloads)
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = defaultFilename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            toast({ title: "Download Iniciado", description: "O arquivo CSV foi salvo." });
+
+        } catch (error) {
+            console.error('Erro na exportação:', error);
+            toast({ title: "Erro na Exportação", description: "Não foi possível gerar seu arquivo. Tente novamente.", variant: "destructive" });
+        } finally {
+            setIsExporting(false);
         }
     };
 
@@ -149,9 +251,9 @@ const AuditoriaPage = () => {
                                 className="pl-10 bg-background/50 border-border/60 focus:border-primary/50"
                             />
                         </div>
-                        <Button variant="outline" className="gap-2 border-border/60">
-                            <Download size={18} />
-                            Exportar Relatório
+                        <Button variant="outline" className="gap-2 border-border/60" onClick={exportToCSV} disabled={isExporting}>
+                            {isExporting ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
+                            {isExporting ? "Gerando Relatório..." : "Exportar Relatório"}
                         </Button>
                     </div>
 
@@ -265,7 +367,7 @@ const AuditoriaPage = () => {
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
-                                                    <Button size="sm" variant="ghost" className="h-8 px-2 group-hover:bg-primary/20 group-hover:text-primary">
+                                                    <Button size="sm" variant="ghost" className="h-8 px-2 group-hover:bg-primary/20 group-hover:text-primary" onClick={() => setSelectedLgpdRequest(req)}>
                                                         <Eye size={16} />
                                                     </Button>
                                                 </td>
@@ -339,9 +441,77 @@ const AuditoriaPage = () => {
                 </CardContent>
             </Card>
 
+            {/* Modal de Detalhes da Solicitação LGPD */}
+            <Dialog open={!!selectedLgpdRequest} onOpenChange={(open) => !open && setSelectedLgpdRequest(null)}>
+                <DialogContent className="sm:max-w-[600px] border-border/60 bg-card/95 backdrop-blur-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2 text-xl">
+                            <Lock className="text-primary" size={24} /> 
+                            Detalhes da Solicitação LGPD
+                        </DialogTitle>
+                        <DialogDescription>
+                            Visualizando dados sensíveis conforme Lei 13.709/2018. Protocolo de acesso registrado.
+                        </DialogDescription>
+                    </DialogHeader>
+                    
+                    {selectedLgpdRequest && (
+                        <div className="space-y-6 pt-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <div className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Titular dos Dados</div>
+                                    <div className="text-sm font-medium">{selectedLgpdRequest.nome || '-'}</div>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Documento</div>
+                                    <div className="text-sm font-mono bg-muted/30 p-1.5 w-fit rounded border border-border/40">{selectedLgpdRequest.documento || '-'}</div>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Tipo de Solicitação</div>
+                                    <Badge variant="outline" className="text-primary border-primary/20">{selectedLgpdRequest.tipo_solicitacao || '-'}</Badge>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Status Atual</div>
+                                    <Badge variant={selectedLgpdRequest.status === 'pendente' ? 'outline' : 'default'} className="uppercase">
+                                        {selectedLgpdRequest.status || '-'}
+                                    </Badge>
+                                </div>
+                                <div className="space-y-1 col-span-2">
+                                    <div className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Comentário/Justificativa</div>
+                                    <div className="text-sm p-3 bg-muted/20 border border-border/40 rounded-lg min-h-[60px]">
+                                        {selectedLgpdRequest.comentario || 'Nenhum comentário fornecido pelo titular.'}
+                                    </div>
+                                </div>
+                                <div className="space-y-1 col-span-2 flex items-center justify-between">
+                                    <div>
+                                        <div className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Criado em</div>
+                                        <div className="text-sm">
+                                            {new Date(selectedLgpdRequest.created_at).toLocaleString('pt-BR')}
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Protocolo</div>
+                                        <div className="text-xs font-mono opacity-60">
+                                            {selectedLgpdRequest.id}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex justify-end gap-3 pt-4 border-t border-border/60">
+                                <Button variant="outline" onClick={() => setSelectedLgpdRequest(null)}>
+                                    Fechar Janela
+                                </Button>
+                                {/* Exemplo de botão no futuro caso atenda o chamado por aqui */}
+                                <Button variant="default" className="gap-2">
+                                    <ShieldCheck size={16} />
+                                    Atender Solicitação
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
 
         </div>
-
     );
 };
 

@@ -38,7 +38,7 @@ export const useUsers = () => {
         try {
             let query = supabase
                 .from('usuarios')
-                .select('*')
+                .select('*, delegacias:delegaciaId(nome)')
                 .order('nome', { ascending: true });
 
             if (delegaciaFilterId && delegaciaFilterId !== 'todas') {
@@ -51,7 +51,13 @@ export const useUsers = () => {
                 throw error;
             }
 
-            setUsers(data || []);
+            // Resolve o nome da delegacia via JOIN para garantir exibição correta
+            const usersWithDelegacia = (data || []).map(u => ({
+                ...u,
+                delegacia: u.delegacias?.nome || u.delegacia || ''
+            }));
+
+            setUsers(usersWithDelegacia);
         } catch (error) {
             console.error('[useUsers] Erro ao buscar usuários:', error);
             toast({

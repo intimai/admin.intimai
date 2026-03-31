@@ -1,0 +1,76 @@
+/* Define custom properties for the calendar component inside .rdp-root */
+.rdp-root {
+  width: 100%;
+  --rdp-cell-size: 40px; /* Default size */
+  --rdp-accent-color: #8B5CF6;
+  --rdp-background-color: var(--background);
+  --rdp-color: hsl(var(--foreground));
+  --rdp-button-color: hsl(var(--foreground));
+  margin: 0 auto; /* Centraliza */
+}
+
+/* Responsividade para telas muito pequenas */
+@media (max-width: 380px) {
+  .rdp-root {
+    --rdp-cell-size: 32px !important;
+    --rdp-caption-font-size: 0.9rem !important;
+  }
+  
+  .rdp-caption_label {
+    font-size: 0.9rem !important;
+  }
+  
+  .rdp-head_cell {
+    font-size: 0.75rem !important;
+    font-weight: normal;
+  }
+
+  /* Reduz padding lateral da navegação do mês */
+  .rdp-caption {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+}
+
+/* Suporte extremo para telas < 340px (iPhone SE 1st gen, Galaxy Fold fechado) */
+@media (max-width: 340px) {
+    .rdp-root {
+        --rdp-cell-size: 28px !important;
+    }
+    .rdp-head_cell {
+        font-size: 0.7rem !important;
+    }
+}
+
+.rdp-day_today:not(.rdp-day_selected) {
+  font-weight: bold;
+}
+
+/* Style for the caption label */
+.rdp-caption_label {
+  font-weight: bold;
+  color: var(--rdp-color);
+}
+
+/* Style for days with scheduled events */
+.day-scheduled {
+    position: relative;
+}
+
+/* Dot indicator for scheduled days */
+.day-scheduled::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: theme('colors.chart.agendadas');
+}
+
+/* Remove hover effect resizing */
+.rdp-day:hover {
+  background-color: var(--rdp-background-color); 
+}

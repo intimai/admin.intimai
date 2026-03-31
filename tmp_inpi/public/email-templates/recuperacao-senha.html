@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperação de Senha - IntimAI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #1a1a1a;
+            background-color: #f8fafc;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            background: #1a1a1a;
+            padding: 15px 30px;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+        
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #667eea, #764ba2, transparent);
+            opacity: 0.6;
+        }
+        
+        .logo {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .logo img {
+            width: 150px;
+            height: 150px;
+            object-fit: contain;
+            padding: 0;
+            margin: 0;
+            display: block;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ffffff, #e0e7ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        
+        .content {
+            padding: 40px 30px;
+            background: #1a1a1a;
+            color: white;
+        }
+        
+        .greeting {
+            font-size: 20px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 20px;
+        }
+        
+        .message {
+            font-size: 16px;
+            color: #e5e7eb;
+            margin-bottom: 30px;
+            line-height: 1.7;
+        }
+        
+        .cta-container {
+            text-align: center;
+            margin: 40px 0;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 32px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 14px 0 rgba(102, 126, 234, 0.4);
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px 0 rgba(102, 126, 234, 0.6);
+        }
+        
+        .warning {
+            background: #1a1a1a;
+            border: 1px solid #404040;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        
+        .warning h3 {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .warning h3::before {
+            content: "⚠️";
+            margin-right: 10px;
+            font-size: 20px;
+        }
+        
+        .warning ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .warning li {
+            color: #e5e7eb;
+            font-size: 15px;
+            margin: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .warning li::before {
+            content: "•";
+            color: #f59e0b;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        
+        .security-tips {
+            background: #1a1a1a;
+            border: 1px solid #404040;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        
+        .security-tips h3 {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .security-tips h3::before {
+            content: "🔒";
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        
+        .security-tips ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .security-tips li {
+            color: #e5e7eb;
+            font-size: 15px;
+            margin: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .security-tips li::before {
+            content: "✓";
+            color: #0ea5e9;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        
+        .footer {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .footer .logo-text {
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .footer .logo-text img {
+            width: 96px;
+            height: 96px;
+            object-fit: contain;
+        }
+        
+        .footer p {
+            font-size: 14px;
+            margin: 5px 0;
+            color: white;
+        }
+        
+        .footer .powered-by {
+            color: #e0e7ff;
+            font-size: 12px;
+            margin-top: 15px;
+        }
+        
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e5e7eb, transparent);
+            margin: 30px 0;
+        }
+        
+        .expiry-notice {
+            background: #fef2f2;
+            border: 1px solid #fca5a5;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .expiry-notice p {
+            color: #dc2626;
+            font-weight: 600;
+            font-size: 15px;
+        }
+        
+        @media (max-width: 600px) {
+            .email-container {
+                margin: 0;
+                border-radius: 0;
+            }
+            
+            .header, .content, .footer {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .cta-button {
+                padding: 14px 28px;
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <!-- Logo será carregada via URL pública -->
+                <img src="https://i.postimg.cc/ncksr6Lm/logo.png" alt="IntimAI Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <span style="display: none;">IntimAI</span>
+            </div>
+            <h1 style="font-size: 28px; font-weight: 700; margin-bottom: 10px; color: #667eea;">Recuperação de Senha</h1>
+            <p>Sistema de Gestão de Intimações</p>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            <div class="greeting">
+                Olá, {{ .Email }}! 🔐
+            </div>
+            
+            <div class="message">
+                <p>Recebemos uma solicitação para redefinir a senha da sua conta no <strong>IntimAI</strong>.</p>
+                <p>Se você fez esta solicitação, clique no botão abaixo para criar uma nova senha segura:</p>
+            </div>
+            
+            <!-- CTA Button -->
+            <div class="cta-container">
+                <a href="{{ .ConfirmationURL }}" class="cta-button">
+                    🔑 Redefinir Minha Senha
+                </a>
+            </div>
+            
+            <!-- Expiry Notice -->
+            <div class="expiry-notice">
+                <p>⏰ Este link expira em 24 horas por motivos de segurança</p>
+            </div>
+            
+            <!-- Warning -->
+            <div class="warning">
+                <h3>Importante - Segurança</h3>
+                <ul>
+                    <li>Se você <strong>NÃO</strong> solicitou esta recuperação, ignore este email</li>
+                    <li>Nunca compartilhe este link com outras pessoas</li>
+                    <li>O link é único e só pode ser usado uma vez</li>
+                    <li>Após 24 horas, você precisará solicitar um novo link</li>
+                </ul>
+            </div>
+            
+            <!-- Security Tips -->
+            <div class="security-tips">
+                <h3>Dicas para uma Senha Segura</h3>
+                <ul>
+                    <li>Use pelo menos 8 caracteres</li>
+                    <li>Combine letras maiúsculas e minúsculas</li>
+                    <li>Inclua números e símbolos especiais</li>
+                    <li>Evite informações pessoais óbvias</li>
+                    <li>Não reutilize senhas de outros serviços</li>
+                    <li>Considere usar um gerenciador de senhas</li>
+                </ul>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="message">
+                <p><strong>💬 Precisa de ajuda?</strong> Se tiver dúvidas ou problemas, utilize o sistema de suporte integrado no IntimAI.</p>
+                <p><strong>🔄 Não conseguiu acessar?</strong> Se o link não funcionar, solicite uma nova recuperação de senha.</p>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <div class="logo-text">
+                <img src="https://i.postimg.cc/ncksr6Lm/logo.png" alt="IntimAI Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <span style="display: none;">IntimAI</span>
+            </div>
+            <p>© 2025 IntimAI - Sistema de Gestão de Intimações</p>
+            <p>Desenvolvido para Policiais Civis</p>
+            <div class="powered-by">Powered by Aurios AI</div>
+            <p style="margin-top: 15px; font-size: 12px; color: #e0e7ff;">
+                Este é um email automático. Por favor, não responda a esta mensagem.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

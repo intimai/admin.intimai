@@ -26,6 +26,7 @@ import { useToast } from '@/components/ui/use-toast';
 const MonitoramentoIAPage = () => {
     const [activeTab, setActiveTab] = useState('timeouts'); // 'timeouts' ou 'errors'
     const [loading, setLoading] = useState(true);
+    const [lastUpdate, setLastUpdate] = useState(null);
     const { toast } = useToast();
     
     // Estados para Gargalos (Timeouts)
@@ -49,8 +50,14 @@ const MonitoramentoIAPage = () => {
             })
             .subscribe();
 
+        // Setup Auto-refresh para gargalos (timeouts) a cada 60 segundos (60000ms)
+        const intervalId = setInterval(() => {
+            fetchTimeouts(); // Buscamos apenas os Timeouts (silenciosamente sem o skeleton loading)
+        }, 60000);
+
         return () => {
             supabase.removeChannel(channel);
+            clearInterval(intervalId); // Limpa o timer se fechar a tela
         };
     }, []);
 
@@ -100,6 +107,7 @@ const MonitoramentoIAPage = () => {
             }
 
             setTimeouts(timeoutResults.sort((a, b) => b.delay - a.delay));
+            setLastUpdate(new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
         } catch (error) {
             console.error('Erro ao buscar timeouts:', error);
         }
@@ -171,9 +179,15 @@ const MonitoramentoIAPage = () => {
                                 <div className="text-xs text-emerald-600 font-medium uppercase tracking-wider">IA Engine Online</div>
                             </CardContent>
                         </Card>
-                        <Button variant="outline" onClick={fetchData} className="h-full gap-2 border-border/60 hover:bg-muted/50 transition-all">
-                            <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
-                            Atualizar Dados
+                        <Button variant="outline" onClick={fetchData} className="flex flex-col h-full gap-1 border-border/60 hover:bg-muted/50 transition-all py-3">
+                            <div className="flex items-center gap-2 font-bold">
+                                <RefreshCw size={16} className={loading ? "animate-spin text-primary" : ""} />
+                                Forçar Verificação
+                            </div>
+                            <div className="text-[10px] text-muted-foreground bg-muted/50 px-2 py-0.5 rounded flex items-center gap-1 font-mono">
+                                <Activity size={10} className="text-emerald-500 animate-pulse" />
+                                Monitorando: {lastUpdate || '...'}
+                            </div>
                         </Button>
                     </div>
 

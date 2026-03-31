@@ -19,10 +19,15 @@ const AdminLayout = () => {
   const { logoSrc } = useTheme();
   const { user, logout, isSuperAdmin, hasMenuAccess } = useAdminAuth();
 
-  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    const saved = localStorage.getItem(SIDEBAR_KEY);
+    return saved !== null ? JSON.parse(saved) : true;
+  });
 
   const toggleSidebar = () => {
-    setIsCollapsed((prev) => !prev);
+    const newState = !isCollapsed;
+    setIsCollapsed(newState);
+    localStorage.setItem(SIDEBAR_KEY, JSON.stringify(newState));
   };
 
   const isActive = (path) =>

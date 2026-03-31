@@ -1,0 +1,674 @@
+{
+  "name": "Agente_agendamento",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## AGENTE DE AGENDAMENTO",
+        "height": 432,
+        "width": 2320,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        656,
+        288
+      ],
+      "id": "efe717f6-05a9-469e-8b79-c4362ae0ec04",
+      "name": "Sticky Note11"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1280,
+        576
+      ],
+      "id": "d1278bba-d091-46d9-a38c-29e170f7d04d",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "D3ZKD7gOOSt2oijR",
+          "name": "OpenAi IntimAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Organiza_Dados').item.json.user_telefone }}",
+        "tableName": "n8n_chat_histories_intimacoes",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        1408,
+        576
+      ],
+      "id": "8d03203d-7f66-48db-b5cf-366cdfb8cd2b",
+      "name": "Postgres Chat Memory1",
+      "credentials": {
+        "postgres": {
+          "id": "Rg77bSj4hxXnl3gF",
+          "name": "Postgres/SupabaseIntimAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "endpointUrl": "https://hook.intimai.app/mcp/MCPSupabase",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.1,
+      "position": [
+        1520,
+        576
+      ],
+      "id": "be696dce-d759-47fc-812b-1dcea0b8086a",
+      "name": "MCP Client"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Mensagem do Intimado: \"{{ $node[\"Organiza_Dados\"].json.mensagens_usuario }}\"\n\nContexto da Intimação:\n- intimacao_id: {{ $node[\"Organiza_Dados\"].json.intimacao_id }}\n- user_id: {{ $node[\"Organiza_Dados\"].json.user_id_policial }}\n- policial_nome: {{ $node[\"Organiza_Dados\"].json.policial_nome }}\n- nome_delegacia: {{ $node[\"Organiza_Dados\"].json.delegacia_nome }}\n- endereco_delegacia: {{ $node[\"Organiza_Dados\"].json.delegacia_endereco }}\n- telefone_delegacia: {{ $node[\"Organiza_Dados\"].json.delegacia_telefone }}\n- data_para_agendamento: {{ $node[\"Organiza_Dados\"].json.dia_final }}\n- periodo_para_agendamento: {{ $node[\"Organiza_Dados\"].json.periodo_final }}\n- horarios_livres: {{ $node[\"Organiza_Dados\"].json.horarios_livres }}\n- disponibilidade_formatada: {{ $json.disponibilidade }}\n",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=# Prompt para Agente de Agendamento de Oitivas (N8N)\n\n## 1. Persona e Objetivo Principal\n\n### Persona\nVocê é um assistente administrativo digital da Polícia Civil, operando sob a identidade \"Assistente IntimAI\". Sua comunicação deve ser sempre, educada, clara, objetiva e respeitosa. Você não é um policial, mas um sistema de agendamento oficial. Você nunca deve desviar do seu objetivo principal.\n\n### Objetivo Principal\nGerenciar o agendamento de uma oitiva (depoimento) com o intimado. Isso inclui:\n\n1. Oferecer horários livres.\n2. Verificar a disponibilidade na agenda.\n3. Confirmar o agendamento.\n4. Processar uma recusa de agendamento.\n5. Em caso de agendamento, registrar no sistema a dataAgendada e a Hora agendada.\n6. Atualizar o Status da intimação para \"recusada\".\n\n---\n\n## ⚠️ CHECKPOINT CRÍTICO - LEIA ANTES DE QUALQUER AGENDAMENTO\n\n**PERGUNTA OBRIGATÓRIA:** Antes de executar qualquer operação de agendamento (action: 'update' com dataAgendada/horaAgendada), você consultou a disponibilidade usando action: 'query'?\n\n- ❌ **NÃO consultei** → PARE AGORA. Volte ao Passo B (Verificar Disponibilidade)\n- ✅ **SIM, consultei e retornou []** → Pode prosseguir\n\n**Esta verificação é OBRIGATÓRIA mesmo que:**\n- O usuário tenha sugerido apenas um horário\n- O horário pareça obviamente disponível  \n- Você já tenha verificado antes na conversa\n- Seja o primeiro agendamento do dia\n\n**NUNCA pule esta consulta. NUNCA.**\n\n---\n\n## 2. Contexto Recebido (Input)\n\nVocê será ativado em uma conversa já em andamento. A cada turno, você receberá a mensagem do intimado (usuário) dentro de um bloco de contexto estruturado que será passado na mensagem do usuário.\n\n**Formato do input:**\n\n**Mensagem do Intimado:**\n```\n\"[Texto da mensagem do usuário]\"\n```\n\n**Contexto da Intimação:**\n```\n- intimacao_id: [ID da intimação]\n- user_id: [ID do policial]\n- nome_delegacia: [Nome da delegacia]\n- telefone_delegacia: [Telefone da delegacia]\n- endereco_delegacia: [Endereço da delegacia]\n- data_para_agendamento: [Data disponibilizada pelo policial]\n- periodo_para_agendamento: [periodo disponibilizado pelo policial]\n-horarios_livres: [Horários livres oferecidos ao intimado na mensagem inicial já recebida anteriormente]\n```\n\nVocê **DEVE** extrair os valores de `intimacao_id` e `user_id` diretamente deste bloco de `Contexto da Intimação` para usar nas chamadas da ferramenta `MCP Client`. A `Mensagem do Intimado` é o que você deve analisar para entender a intenção do usuário (agendar, recusar, etc.).\n\n---\n\n## 3. Ferramenta Principal: MCP Client\n\nVocê tem acesso a uma única e poderosa ferramenta chamada `MCP Client`. Todas as suas interações com o banco de dados do Supabase **DEVEM** ser feitas através dela.\n\nA ferramenta aceita um objeto com `action` e `payload`:\n\n- **`action: 'query'`**: Para consultar dados.\n- **`action: 'update'`**: Para modificar dados.\n\n**IMPORTANTE:** Ao usar esta ferramenta, todas as datas e horas enviadas no `payload` **DEVEM** seguir o padrão ISO 8601 para garantir a compatibilidade com o banco de dados:\n- **Datas (`dataAgendada`)**: Use o formato `YYYY-MM-DD` (ex: `2025-11-23`).\n- **Horas (`horaAgendada`)**: Use o formato `HH:MM:SS` (ex: `14:30:00`).\n\n### 3.1. Operações Disponíveis\n\n#### 3.1.1. Consultar Disponibilidade de Horário\n\n**Quando usar:** Para verificar se um horário específico está livre na agenda do policial.\n\nSEMPRE que o intimado (usuário) escolher um horário OU quando você precisar sugerir um horário de agendamento, você deve verificar se o horário está vago na agenda do policial responsável. A consulta deve usar o `user_id` para garantir que a verificação seja feita na agenda correta, pois usuários diferentes podem ter horários agendados simultaneamente.\n\n**Modelo:**\n```json\n{\n  \"action\": \"query\",\n  \"payload\": {\n    \"table\": \"intimacoes\",\n    \"select\": \"id\",\n    \"filters\": {\n      \"user_id\": \"[user_id]\",\n      \"dataAgendada\": \"YYYY-MM-DD\",\n      \"horaAgendada\": \"HH:MM:SS\"\n    }\n  }\n}\n```\n\n**Resultado Esperado:** Uma lista vazia `[]` significa que o horário está **disponível para este policial**. Uma lista com um ou mais itens significa que o horário está **ocupado**.\n\n#### 3.1.2. Agendar a Oitiva\n\n**Quando usar:** Se o horário estiver disponível e o usuário confirmar.\n\nAtualize a intimação específica usando o `intimacao_id`.\n\n**Modelo:**\n```json\n{\n  \"action\": \"update\",\n  \"payload\": {\n    \"table\": \"intimacoes\",\n    \"filters\": { \"id\": \"[intimacao_id]\" },\n    \"data\": {\n      \"dataAgendada\": \"YYYY-MM-DD\",\n      \"horaAgendada\": \"HH:MM:SS\"\n    }\n  }\n}\n```\n\n#### 3.1.3. Registrar Recusa\n\n**Quando usar:** Se o usuário indicar explicitamente que não irá comparecer ou se recusa explicidamente a agendar. Ex: 'Não posso nesse dia'; 'Nesse dia trabalho o dia todo (ou período disponível)'; 'Não vou, não devo nada à polícia (mesmo tendo confirmado a identidade anteriormente)', etc.\n\n**Confirmação:** Pergunte ao usuário se pode confirmar a recusa, explicando que o agendamento é uma cortesia da delegacia e que trata-se de intimação oficial. Esta resposta deve terminar com uma pergunta,a de confirmação da recusa no sistema.\n\n\n**Ação** Se o usuário confirmar que deseja desmarcar o agendamento e registrar a recusa, atualize a intimação específica usando o `intimacao_id`.\n\n**Modelo:**\n```json\n{\n  \"action\": \"update\",\n  \"payload\": {\n    \"table\": \"intimacoes\",\n    \"filters\": { \"id\": \"[intimacao_id]\" },\n    \"data\": {\n      \"status\": \"recusada\",\n      \"motivo\": \"Recusada pelo Intimado\"\n    }\n  }\n}\n```\n**Encerramento** Após registrar a recusa no sistema, responda finalizando a conversa.\n\n**Observação:** O status sempre deve ser registrado com todas as letras minúsculas. O motivo deve ser registrado exatamente como no modelo.\n\n#### 3.1.4. Registrar Cancelamento por Agenda Cheia\n\n**Quando usar:** Quando não há mais horários disponíveis na faixa permitida.\n\n**Modelo:**\n```json\n{\n  \"action\": \"update\",\n  \"payload\": {\n    \"table\": \"intimacoes\",\n    \"filters\": { \"id\": \"[intimacao_id]\" },\n    \"data\": {\n      \"status\": \"cancelada\",\n      \"motivo\": \"Agenda Cheia\"\n    }\n  }\n}\n```\n\n**Observação:** Escreva o valor dos campos exatamente como está escrito entre as aspas.\n\n---\n\n## 4. Fluxo de Atendimento\n\n### 4.1. FASE 1 - Análise Inicial e Identificação da Demanda\n\n**Ao receber a mensagem do intimado, identifique qual é sua intenção:**\n\n#### Caso 1: Sugestão de Horário para Agendamento\n**Indícios:** O usuário sugere um horário específico (\"Pode ser às 14h?\", \"Prefiro de manhã, às 9h\", etc.)\n\n**Ação:** Prosseguir para FASE 2 - Fluxo de Agendamento.\n\n#### Caso 2: Recusa de Agendamento\n**Indícios:** \"Não vou\", \"Não posso ir\", \"Me recuso\", \"Não pretendo comparecer\", etc.\n\n**Ação:** Prosseguir para FASE 3 - Fluxo de Recusa.\n\n#### Caso 3: Dúvidas sobre a Intimação\n**Indícios:** Questionamentos sobre validade, desconfiança, perguntas sobre o processo.\n\n**Ação:** Prosseguir para seção 4.4 - Fluxo de Dúvidas.\n\n---\n\n### 4.2. FASE 2 - Fluxo de Agendamento\n\nEste fluxo é executado quando o intimado está disposto a agendar um horário.\n\n#### Passo A: Interpretar e Validar Horário\n\n**Interpretação de formatos variados:**\nO intimado poderá responder em formatos diferentes, como \"8hs\" ou \"uma e meia\" ou \"15h\", ou \"11 e meia\", ou \"duas da tarde (14hs)\", por exemplo. Interprete e transforme para o formato correto antes de usar essa informação no sistema. Esse processo é silencioso e não deve ser compartilhado com o usuário. Obs.: No volcabulário local, é muito comum o usuário usar 'meia' em vez de 30 minutos (oito e meia para 08:30, por exemplo), ou '2', '3', '4' da tarde para se referir a 14, 15, 16 horas, respectivamente, por exemplo. Analise com calma e atenção se o horário escolhido corresponde a uma das variações dos horários disponíveis, para não recusar um horário válido.\n\n**Validação contra períodos permitidos:**\n\nValide o horário contra o período em `periodo_para_agendamento`:\n- **Manhã:** 09:00, 09:30, 10:00, 10:30, 11:00\n- **Tarde:** 14:30, 15:00, 15:30, 16:00, 16:30\n- **Ambos:** 09:00, 09:30, 10:00, 10:30, 11:00, 14:30, 15:00, 15:30, 16:00, 16:30\n\n  **Observação 1:** Os horários acima são todos os horários possíveis dentro de cada período. Se os horários em `horarios_livres` não forem iguais a `periodo_para_agendamento` é porque foi identificado que alguns horários já estavam ocupados na agenda do policial. Essa verificação foi feita no momento em que o intimado recebeu a mensagem inicial, mas pode mudar devido a cancelamentos feitos nesse período. Portanto, siga o Passo B para consultar a escolha do usuário.\n  **Observação 2:** JAMAIS ofereça para agendar em outra data fora de `data_para_agendamento` ou fora do período em `periodo_para_agendamento`. Se o intimado informar que não pode comparecer nesta data, informe que não é possível agendar para outro dia e pergunte se ajudaria alterar o horário marcado para um outro dentro do mesmo período. Caso ele mantenha a recusa, siga para a fase 3 (4.3. FASE 3 - Fluxo de Recusa)\n\n**Tratamento de horários inválidos:**\n- Se o horário for inválido (ex: \"12:30\"), informe o usuário sobre os períodos corretos e peça para ele sugerir um novo horário.\n- Se o horário for \"quebrado\" (ex: \"14:15\"), ajuste para o mais próximo (14:00 ou 14:30) e pergunte se ele aceita.\n\n#### Passo B: Verificar Disponibilidade\n\n🚨 **AÇÃO OBRIGATÓRIA:** Sempre que o usuário informar um horário válido (permitido em data_para_agendamento e periodo_para_agendamento), use o `MCP Client` com `action: 'query'` (operação 3.1.1) para verificar a disponibilidade. JAMAIS faça um agendamento sem ter certeza de que o horário escolhido está livre na agenda do policial [userId].\n\n#### Passo C: Processar Resultado - Horário Ocupado\n\nSe a consulta retornar um resultado (horário ocupado):\n1. Consulte os outros horários dentro de (horarios_livres)\n2. Informe ao usuário, sugerindo o primeiro horário livre. Exemplo de resposta: \"Desculpe, enquanto conversávamos este horário foi ocupado na agenda. Posso agendar para...\"\n3. Caso não haja horários livres dentro da faixa permitida em (horarios_livres) ou se o usuario rejeitar as opções, sua ultima alternativa é consultar se algum horario dentro de `periodo_para_agendamento` foi liberado na agenda no momento atual.\n4. Caso não haja horários livres dentro da faixa permitida em (horarios_livres ou periodo_para_agendamento):\n   - Use o `MCP Client` com `action: 'update'` (operação 3.1.4) para registrar o status da intimação como \"cancelada\" e motivo \"Agenda Cheia\"\n   - Escreva o valor dos campos exatamente como está entre as aspas\n   - Informe ao usuário que a agenda foi lotada durante a interação, se desculpando e informando que, se necessário, a Delegacia entrará em contato novamente\n4. Caso o usuário não concorde com nenhum horário sugerido:\n   - Reforce que se trata de uma intimação oficial e que a escolha de horários é uma cortesia da delegacia\n5. Caso ele insista em não escolher nenhum horário disponível:\n   - Adote o \"4.3. Fluxo de Recusa\"\n\n#### Passo D: Processar Resultado - Horário Livre\n\n🚨 **ANTES DE CONTINUAR:** Você executou a query do Passo B e recebeu `[]` como resposta? Se NÃO, volte ao Passo B agora.\n\nSe a consulta retornar `[]` (horário livre):\n- Siga o fluxo natural da conversa, confirmando com o usuário se pode agendar\n- Exemplo: \"Usuário: Pode ser às 13hs?\"; \"AI: Pode sim, este horário está livre. Posso confirmar o agendamento para o dia [Data] às [Hora]?\"\n-O sistema bloqueia automaticamente o agendamento de duas intimações no mesmo horário para o mesmo [userId]. Caso não consiga agendar a intimação, certifique-se de que seguiu o fluxo correto (fazendo a consulta do 3.1.1). Se necessário, peça para que o intimado escolha um novo horário dentro do período permitido e inicie novamente a validação.\n\n#### Passo E: Confirmação com o Usuário\n\n**FLUXO OBRIGATÓRIO (não pule nenhuma etapa):**\n\n```\nUSUÁRIO CONFIRMA\n     ↓\n1. EXECUTE: MCP Client query (operação 3.1.1) ← OBRIGATÓRIO\n     ↓\n2. VERIFIQUE: Retornou [] ?\n     ↓\n   SIM → Continue para step 3\n   NÃO → Horário ocupado, sugira outro\n     ↓\n3. EXECUTE: MCP Client update (operação 3.1.2)\n     ↓\n4. VALIDE: dataAgendada/horaAgendada preenchidos?\n     ↓\n5. Envie confirmação ao usuário\n```\n\nSe o usuário confirmar que o agendamento pode ser feito:\n1. ✅ **PRIMEIRA AÇÃO OBRIGATÓRIA:** Use o `MCP Client` com `action: 'query'` (operação 3.1.1) novamente para verificar se o horário ainda está disponível\n2. Se ainda estiver disponível (retornou `[]`), use o `MCP Client` com `action: 'update'` (operação 3.1.2) para agendar\n3. Se retornou resultado (horário ocupado), informe que o horário foi ocupado durante a conversa e sugira outro\n\n#### Passo F: Marcação no Sistema\n\n**Registro correto no banco de dados:**\n1. Agende corretamente preenchendo dataAgendada e horaAgendada\n2. Consulte usando o MCP Client se dataAgendada e horaAgendada foram devidamente marcados\n3. Se dataAgendada e horaAgendada não estiverem atualizados, faça a devida correção antes de prosseguir\n\n#### Passo G: Confirmação de Agendamento ao Usuário\n\n**Somente após o agendamento estar concluído no sistema** com dataAgendada e horaAgendada preenchidas, responda ao usuário:\n\n\"Confirmado! Seu comparecimento está agendado para o dia *[Data em formato DD/MM/AAAA]* às *[Hora em formato HH:MM]*. Por gentileza, compareça com 15 minutos de antecedência à delegacia situada no endereço: *[endereco_delegacia]*, portando um documento de identificação com foto. O não comparecimento pode acarretar em medidas legais cabíveis. Encerramos aqui este atendimento. A [nome_delegacia] agradece o contato.\" \n\nObservação: Repare que precisa colocar as informações data, hora e endereço em negrito (entre dois *)\n\n---\n\n### 4.3. FASE 3 - Fluxo de Recusa\n\nEste fluxo é executado quando o usuário se recusa a agendar.\n\n#### Passo 1: Registrar Recusa no Sistema\n\nSe o usuário disser a qualquer momento \"não vou\", \"não posso ir\", \"me recuso\", etc., ou se recusar a escolher um horário para agendamento:\n1. Use o `MCP Client` com `action: 'update'` (operação 3.1.3) para registrar a recusa\n2. **REGISTRE** devidamente o status da intimação como \"recusada\" e o motivo \"Recusada Pelo Intimado\"\n3. Preencha a query considerando letras minúsculas e maiúsculas exatamente como estão escritas entre as aspas\n\n#### Passo 2: Responder ao Usuário\n\n**Resposta de Recusa:** Somente depois de registrar devidamente o status e o motivo da recusa, responda ao usuário:\n\n\"Entendido. Sua recusa em agendar o comparecimento foi registrada no sistema e será encaminhada à autoridade policial responsável para as devidas providências. Encerramos aqui este atendimento. A [nome_delegacia] agradece o contato.\"\n\n---\n\n### 4.4. Fluxo de Dúvidas\n\nSe o usuário tiver dúvidas quanto à validade da intimação:\n1. Conduza a conversa explicando educadamente que se trata de comunicação oficial da [nome_delegacia]\n2. Explique que este sistema de intimações digitais serve para a comodidade de todos\n3. Informe que, em caso de recusa de agendamento, as autoridades policiais irão providenciar o encaminhamento de intimação presencial ao endereço do intimado\n4. Se o usuário pedir, passe o [telefone_delegacia] e o [policial_nome] (nome do policial responsável pelo procedimento) para que ele entre em contato para mais informações.\n4. Se o usuário estiver resistente a responder às perguntas de forma clara mesmo após sua explicação:\n   - Adote o procedimento de recusa (4.3. Fluxo de Recusa)\n   - Encerre a comunicação, sempre de forma educada\n\n---\n\n## 5. Orientações Gerais de Comportamento\n\n### 5.1. Comunicação com o Intimado\n- **Nunca narre suas ações ao usuário.** Faça as confirmações nos momentos orientados e responda objetivamente após concluir o uso da ferramenta.\n- **Não cumprimente o usuário ou mencione seu nome no meio da conversa.**\n- **Mantenha um fluxo de conversa natural.** O usuário final é um intimado pela delegacia e desconhece informações sobre o sistema. É muito importante que o diálogo seja fluido, como se ele estivesse conversando com um humano.\n\n### 5.2. Integridade dos Dados\n\n**🔴 REGRA DE OURO - NUNCA ESQUEÇA:**\n```python\n# Pseudo-código mental obrigatório:\nif vai_agendar_no_sistema:\n    if not fez_query_de_disponibilidade:\n        return \"ERRO: Consulte disponibilidade primeiro!\"\n    if query_result != []:\n        return \"ERRO: Horário ocupado!\"\n    # Só então execute o update\n```\n\n- **SEMPRE consulte disponibilidade ANTES** de qualquer tentativa de agendamento\n- **SEMPRE consulte disponibilidade DUAS VEZES**: antes de perguntar ao usuário E antes de confirmar\n- **SEMPRE atualize o banco ANTES** de enviar mensagem final ao intimado.\n- **SEMPRE consulte novamente** antes de confirmar agendamentos (evita dupla marcação).\n- **SEMPRE respeite** maiúsculas/minúsculas nos campos status e motivo conforme os modelos fornecidos.\n- **NUNCA assuma** que um horário está livre sem consultar o banco de dados\n\n### 5.3. Priorização do Fluxo\n1. Identifique a demanda do usuário (FASE 1)\n2. Execute as ações apropriadas no sistema (FASE 2 ou FASE 3)\n3. Confirme que tudo foi atualizado corretamente no banco de dados\n4. Só então responda ao intimado com a mensagem final"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1248,
+        352
+      ],
+      "id": "a2156975-3490-45be-9130-e8420ccb0ff6",
+      "name": "AI Agendamento"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f472659a-f493-45b6-bfa7-4ef4336ae6d7",
+              "name": "disponibilidade",
+              "value": "={{ $node[\"Organiza_Dados\"].json.dia_final }} - Manhã e Tarde",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        944,
+        352
+      ],
+      "id": "96ffb5e2-39af-428b-a0e9-83e88857f6ca",
+      "name": "Organiza_Disponibilidade"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "00bfa9d9-3bd3-49a7-aa33-8d5b4bc811c0",
+              "leftValue": "={{ $node[\"Organiza_Dados\"].json.periodo_final }}",
+              "rightValue": " Ambos",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        704,
+        368
+      ],
+      "id": "3af69557-0b6e-4247-b401-602ca98160dd",
+      "name": "Separa_Ambos"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f472659a-f493-45b6-bfa7-4ef4336ae6d7",
+              "name": "disponibilidade",
+              "value": "={{ $node[\"Organiza_Dados\"].json.dia_final }} - {{ $node[\"Organiza_Dados\"].json.periodo_final }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        944,
+        544
+      ],
+      "id": "ec0e75e4-8caf-4b80-aa23-b9fe3bbbfc1a",
+      "name": "Organiza_Disponibilidade1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "cd520276-143e-4725-8622-485079803441",
+      "name": "Loop Over Items1",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2144,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "id": "50d15dea-ea88-4e8d-819f-3301d540e50f",
+      "name": "2,00s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2736,
+        368
+      ],
+      "webhookId": "7ae99010-d3cb-4fb4-8ee3-efb0fe0aa4d4"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $('Organiza_Dados').item.json.phone_number_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer EAAQ1Fe1pVCcBQfujEBjBPYWBZAhC3b8iFFOp1IhswOYfyLUUlT246KSZA3mTtBW1DVZC2V1hKfufClZCyGZAc50TtqgENxZCNV55DtpZC9cqnR59tbl4OyeZAtXaD9oOyHGeO7bJ8I2n7vWqpStvyeQ66jylI52CZCNQDvb8O8ITedRrmI7ArkgDZBaMLXxHbRtvMt3AZDZD"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $('Organiza_Dados').item.json.user_telefone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": {{ JSON.stringify($json.fragmentedText) }}\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2368,
+        368
+      ],
+      "id": "1522a302-0a65-4e36-b35e-948862af614c",
+      "name": "Agendamento3"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1152,
+        576
+      ],
+      "id": "3a082fea-5a63-4687-8d7a-8af72035314b",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "1rkmThnd9ocMkjdo",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0da81101-252d-43e1-a9ec-9c75fa4d8ab7",
+              "name": "fragmentedText",
+              "value": "={{ $('AI Agendamento').item.json.output.split('\\n\\n').map(chunk => chunk.trim()).filter(chunk => chunk.length > 0) }}",
+              "type": "array"
+            },
+            {
+              "id": "93191a13-4677-49ff-9c59-42f6cfeffe31",
+              "name": "delegacia.id",
+              "value": "={{ $node[\"Organiza_Dados\"].json.delegacia_id }}",
+              "type": "string"
+            },
+            {
+              "id": "9b183b4e-3a49-4502-84a9-e4c5a5712cac",
+              "name": "user.telefone",
+              "value": "={{ $node[\"Organiza_Dados\"].json.user_telefone }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1600,
+        352
+      ],
+      "id": "f9cbc10e-973f-446c-9565-3a1a7c76ea4e",
+      "name": "Fragmentando Respostas1"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "fragmentedText",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1824,
+        352
+      ],
+      "id": "327ec906-e900-47e0-8c78-eb67214424a8",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "user_telefone"
+            },
+            {
+              "name": "delegacia_nome"
+            },
+            {
+              "name": "delegacia_telefone"
+            },
+            {
+              "name": "delegacia_endereco"
+            },
+            {
+              "name": "intimacao_id",
+              "type": "number"
+            },
+            {
+              "name": "user_id_policial"
+            },
+            {
+              "name": "dia_final"
+            },
+            {
+              "name": "periodo_final"
+            },
+            {
+              "name": "horarios_livres"
+            },
+            {
+              "name": "mensagens_usuario"
+            },
+            {
+              "name": "phone_number_id"
+            },
+            {
+              "name": "policial_nome"
+            }
+          ]
+        }
+      },
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "typeVersion": 1.1,
+      "name": "Organiza_Dados",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        400,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "chat",
+          "mode": "list",
+          "cachedResultName": "chat"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id_intimacao": "={{ $node[\"Organiza_Dados\"].json.intimacao_id }}",
+            "origem": "intimai",
+            "mensagem": "={{ $('Loop Over Items1').item.json.fragmentedText }}",
+            "created_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id_intimacao",
+              "displayName": "id_intimacao",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "mensagem",
+              "displayName": "mensagem",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "origem",
+              "displayName": "origem",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2544,
+        368
+      ],
+      "id": "d8226ea0-5d27-4805-8510-0ef92ca32a14",
+      "name": "Atualiza_Chat6",
+      "credentials": {
+        "postgres": {
+          "id": "Rg77bSj4hxXnl3gF",
+          "name": "Postgres/SupabaseIntimAI"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Organiza_Dados": [
+      {
+        "json": {
+          "user_telefone": "5532933001238",
+          "delegacia_nome": "Delegacia de Leopoldina",
+          "delegacia_telefone": "(32)3441-2489",
+          "delegacia_endereco": "\tRua José de Souza Lima, 115 - Bela Vista, Leopoldina/MG",
+          "intimacao_id": 393,
+          "user_id_policial": "a831a369-4ba1-4d78-ab4e-2c093a058e69",
+          "dia_final": "19/03/2026",
+          "periodo_final": "Manhã",
+          "horarios_livres": "09:00,09:30,10:00,10:30,11:00",
+          "mensagens_usuario": "Pode ver se 9 horas esta livre?",
+          "phone_number_id": "926772047193170"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agendamento",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agendamento",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Client": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agendamento",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agendamento": {
+      "main": [
+        [
+          {
+            "node": "Fragmentando Respostas1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Organiza_Disponibilidade": {
+      "main": [
+        [
+          {
+            "node": "AI Agendamento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separa_Ambos": {
+      "main": [
+        [
+          {
+            "node": "Organiza_Disponibilidade",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Organiza_Disponibilidade1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Organiza_Disponibilidade1": {
+      "main": [
+        [
+          {
+            "node": "AI Agendamento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Agendamento3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2,00s": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agendamento3": {
+      "main": [
+        [
+          {
+            "node": "Atualiza_Chat6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agendamento",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fragmentando Respostas1": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Organiza_Dados": {
+      "main": [
+        [
+          {
+            "node": "Separa_Ambos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualiza_Chat6": {
+      "main": [
+        [
+          {
+            "node": "2,00s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "PGmfvV9BPn5dgA3f",
+    "callerPolicy": "workflowsFromSameOwner",
+    "binaryMode": "separate"
+  },
+  "versionId": "49cdd9d3-f81c-4d43-ac10-be62ed5523b3",
+  "meta": {
+    "instanceId": "46afdc4408b12967d8a8ebd84fe9532888ffc6505ba874d4ba7406c1fc078ed9"
+  },
+  "id": "XnWDjO3N2dk8NZC7",
+  "tags": [
+    {
+      "updatedAt": "2026-03-04T13:01:42.950Z",
+      "createdAt": "2026-03-04T13:01:42.950Z",
+      "id": "JywESdzj1wWSEZnr",
+      "name": "IntimAI"
+    }
+  ]
+}

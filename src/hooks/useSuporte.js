@@ -151,12 +151,63 @@ export const useSuporte = () => {
     fetchItems();
   }, [fetchItems]);
 
+  const adicionarMensagemChat = async (id, novaMensagem, marcarComoResolvido = false) => {
+    try {
+      const itemAtual = items.find(i => i.id === id);
+      if (!itemAtual) return false;
+
+      const arrayHistorico = itemAtual.historico_conversas || [];
+      const novoHistorico = [...arrayHistorico, novaMensagem];
+
+      // Otimistic update
+      setItems(prev => prev.map(item =>
+        item.id === id 
+          ? { 
+              ...item, 
+              historico_conversas: novoHistorico,
+              ...(marcarComoResolvido ? { status: 'resolvido', resposta_admin: novaMensagem.texto } : {})
+            } 
+          : item
+      ));
+
+      const payload = { historico_conversas: novoHistorico };
+      if (marcarComoResolvido) {
+        payload.status = 'resolvido';
+        payload.resposta_admin = novaMensagem.texto;
+      }
+
+      const { error } = await supabase
+        .from('suporte')
+        .update(payload)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Mensagem salva",
+        description: marcarComoResolvido ? "Ticket respondido e resolvido." : "Resposta adicionada com sucesso.",
+      });
+      return true;
+    } catch (err) {
+      console.error('Erro ao adicionar mensagem:', err);
+      // Revert optimistic update
+      fetchItems();
+      toast({
+        title: "Erro ao enviar",
+        description: "Não foi possível enviar a mensagem.",
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
+
   return {
     items,
     loading,
     error,
     updateStatus,
     updatePriority,
+    adicionarMensagemChat,
     refresh: fetchItems
   };
 };

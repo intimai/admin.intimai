@@ -1,0 +1,705 @@
+{
+  "name": "Filas_IntimAI",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bdb13ce2-bc64-4098-9f03-64f6a5ac1ce1",
+              "name": "intimadoNome",
+              "value": "={{ $('Webhook_Nova').item.json.body.data.intimadoNome }}",
+              "type": "string"
+            },
+            {
+              "id": "983147ba-2125-4db8-a5c3-02d463e699a9",
+              "name": "intimadoTelefone",
+              "value": "={{ $('Webhook_Nova').item.json.body.data.telefone }}",
+              "type": "string"
+            },
+            {
+              "id": "2b10c961-f733-4fd6-bedf-200ee2f11fb5",
+              "name": "intimadoDocumento",
+              "value": "={{ $('Webhook_Nova').item.json.body.data.documento }}",
+              "type": "string"
+            },
+            {
+              "id": "9338ea19-88d6-4371-a308-92549e6ae734",
+              "name": "procedimentoTipo",
+              "value": "={{ $('Webhook_Nova').item.json.body.data.tipoProcedimento }}",
+              "type": "string"
+            },
+            {
+              "id": "6aa34c69-7e99-4366-a58f-5165abf00cea",
+              "name": "procedimentoNumero",
+              "value": "={{ $('Webhook_Nova').item.json.body.data.numeroProcedimento }}",
+              "type": "string"
+            },
+            {
+              "id": "08a8240f-bb81-431a-b753-7fb6a1619cea",
+              "name": "intimacaoId",
+              "value": "={{ $('Webhook_Nova').item.json.body.data.id }}",
+              "type": "string"
+            },
+            {
+              "id": "025fed11-01ce-48f3-94e0-f1f79b38f78b",
+              "name": "intimacaoAgendarPara",
+              "value": "={{ $('Webhook_Nova').item.json.body.data.primeiraDisponibilidade }}",
+              "type": "string"
+            },
+            {
+              "id": "3b837a66-3dbc-4a92-8801-6037d796215b",
+              "name": "oficialId",
+              "value": "={{ $('Webhook_Nova').item.json.body.user.userId }}",
+              "type": "string"
+            },
+            {
+              "id": "c4e557d9-874d-4709-ace5-9375295cc0c4",
+              "name": "oficialNome",
+              "value": "={{ $('Webhook_Nova').item.json.body.user.nome }}",
+              "type": "string"
+            },
+            {
+              "id": "db26b426-6889-4f41-9c0e-d3e5a915beac",
+              "name": "oficialDelegadoResponsavel",
+              "value": "={{ $('Webhook_Nova').item.json.body.user.delegadoResponsavel }}",
+              "type": "string"
+            },
+            {
+              "id": "5a7d0b02-35ce-434c-bfa9-adc4186c2155",
+              "name": "oficialDelegaciaId",
+              "value": "={{ $('Webhook_Nova').item.json.body.user.delegaciaId }}",
+              "type": "string"
+            },
+            {
+              "id": "b831ce0b-cd39-4d24-9f4e-8160ec7994dc",
+              "name": "oficialDelegaciaNome",
+              "value": "={{ $('Consulta_Delegacia').item.json.nome }}",
+              "type": "string"
+            },
+            {
+              "id": "7ab9bd79-d260-4cb4-beb5-2ab10fe9e5e2",
+              "name": "oficialDelegaciaEndereco",
+              "value": "={{ $('Consulta_Delegacia').item.json.endereco }}",
+              "type": "string"
+            },
+            {
+              "id": "7fcb2004-6405-4663-8be3-357cf5724dd5",
+              "name": "oficialDelegaciaTelefone",
+              "value": "={{ $('Consulta_Delegacia').item.json.telefone }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        16,
+        -464
+      ],
+      "id": "8248dbcf-b846-4192-90b4-e26e85a3fb17",
+      "name": "Prepara_Mensagem"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "criada",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -368,
+        -464
+      ],
+      "id": "38fc6b68-9aab-477c-8b3c-2a385e5ffd02",
+      "name": "Webhook_Nova",
+      "webhookId": "2d9ee3c8-ece8-4902-97d9-63aa3a7fbf33"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "reativada",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -368,
+        -144
+      ],
+      "id": "04b8ddf1-d768-4aa7-9110-1a6cbfb418a2",
+      "name": "Webhook_Reativa",
+      "webhookId": "2d9ee3c8-ece8-4902-97d9-63aa3a7fbf33"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "cancelada",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -368,
+        160
+      ],
+      "id": "331f1358-206a-4d98-a04b-27f37a471f6b",
+      "name": "Webhook_Cancela",
+      "webhookId": "2d9ee3c8-ece8-4902-97d9-63aa3a7fbf33"
+    },
+    {
+      "parameters": {
+        "content": "## NOVA INTIMAÇÃO",
+        "height": 256,
+        "width": 880,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        -544
+      ],
+      "id": "cecbbb9d-089c-4079-86ce-7d24dc9b8186",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## REATIVA INTIMAÇÃO",
+        "height": 288,
+        "width": 880,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        -256
+      ],
+      "id": "2effd930-f1b5-407f-b097-621445e1b994",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## CANCELA INTIMAÇÃO",
+        "height": 304,
+        "width": 880,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        64
+      ],
+      "id": "0621e989-68d8-4cc4-bf79-a24ecc6ba2a9",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "queue": "Entrega",
+        "options": {
+          "arguments": {
+            "argument": [
+              {
+                "key": "x-queue-type",
+                "value": "quorum"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.rabbitmq",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        -144
+      ],
+      "id": "408f3e0f-bde7-4752-8b29-7c0b20dcfb7d",
+      "name": "Envia_Fila_Reativadas",
+      "credentials": {
+        "rabbitmq": {
+          "id": "VmsPUm3bg6V4LqJD",
+          "name": "RabbitMQ IntimAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "queue": "emCancelamento",
+        "options": {
+          "arguments": {
+            "argument": [
+              {
+                "key": "x-queue-type",
+                "value": "quorum"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.rabbitmq",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        160
+      ],
+      "id": "8a748c8d-2faa-447c-854f-5d674e0aff50",
+      "name": "Envia_Fila_Canceladas",
+      "credentials": {
+        "rabbitmq": {
+          "id": "VmsPUm3bg6V4LqJD",
+          "name": "RabbitMQ IntimAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "delegacias",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "delegaciaId",
+              "keyValue": "={{ $json.body.user.delegaciaId }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -176,
+        -464
+      ],
+      "id": "8ae5ba35-850b-448e-9feb-5dcfd6ca7537",
+      "name": "Consulta_Delegacia",
+      "credentials": {
+        "supabaseApi": {
+          "id": "iiTDGF3ajTrJc29X",
+          "name": "SupabaseIntimAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "queue": "Entrega",
+        "options": {
+          "arguments": {
+            "argument": [
+              {
+                "key": "x-queue-type",
+                "value": "quorum"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.rabbitmq",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        -464
+      ],
+      "id": "07e9ea34-afcb-4bb1-bb42-4c2b68c78d06",
+      "name": "Envia_Fila_Criadas",
+      "credentials": {
+        "rabbitmq": {
+          "id": "VmsPUm3bg6V4LqJD",
+          "name": "RabbitMQ IntimAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "delegacias",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "delegaciaId",
+              "keyValue": "={{ $json.body.user.delegaciaId }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -176,
+        -144
+      ],
+      "id": "13d4b6d5-c6ff-4e37-b42d-a38939211aac",
+      "name": "Consulta_Delegacia1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "iiTDGF3ajTrJc29X",
+          "name": "SupabaseIntimAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "delegacias",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "delegaciaId",
+              "keyValue": "={{ $json.body.user.delegaciaId }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -176,
+        160
+      ],
+      "id": "a50e9450-8838-4b63-ae46-b840f82dba5a",
+      "name": "Consulta_Delegacia2",
+      "credentials": {
+        "supabaseApi": {
+          "id": "iiTDGF3ajTrJc29X",
+          "name": "SupabaseIntimAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bdb13ce2-bc64-4098-9f03-64f6a5ac1ce1",
+              "name": "intimadoNome",
+              "value": "={{ $('Webhook_Reativa').item.json.body.data.intimadoNome }}",
+              "type": "string"
+            },
+            {
+              "id": "983147ba-2125-4db8-a5c3-02d463e699a9",
+              "name": "intimadoTelefone",
+              "value": "={{ $('Webhook_Reativa').item.json.body.data.telefone }}",
+              "type": "string"
+            },
+            {
+              "id": "2b10c961-f733-4fd6-bedf-200ee2f11fb5",
+              "name": "intimadoDocumento",
+              "value": "={{ $('Webhook_Reativa').item.json.body.data.documento }}",
+              "type": "string"
+            },
+            {
+              "id": "9338ea19-88d6-4371-a308-92549e6ae734",
+              "name": "procedimentoTipo",
+              "value": "={{ $('Webhook_Reativa').item.json.body.data.tipoProcedimento }}",
+              "type": "string"
+            },
+            {
+              "id": "6aa34c69-7e99-4366-a58f-5165abf00cea",
+              "name": "procedimentoNumero",
+              "value": "={{ $('Webhook_Reativa').item.json.body.data.numeroProcedimento }}",
+              "type": "string"
+            },
+            {
+              "id": "08a8240f-bb81-431a-b753-7fb6a1619cea",
+              "name": "intimacaoId",
+              "value": "={{ $('Webhook_Reativa').item.json.body.data.id }}",
+              "type": "string"
+            },
+            {
+              "id": "025fed11-01ce-48f3-94e0-f1f79b38f78b",
+              "name": "intimacaoAgendarPara",
+              "value": "={{ $('Webhook_Reativa').item.json.body.data.primeiraDisponibilidade }}",
+              "type": "string"
+            },
+            {
+              "id": "3b837a66-3dbc-4a92-8801-6037d796215b",
+              "name": "oficialId",
+              "value": "={{ $('Webhook_Reativa').item.json.body.user.userId }}",
+              "type": "string"
+            },
+            {
+              "id": "c4e557d9-874d-4709-ace5-9375295cc0c4",
+              "name": "oficialNome",
+              "value": "={{ $('Webhook_Reativa').item.json.body.user.nome }}",
+              "type": "string"
+            },
+            {
+              "id": "db26b426-6889-4f41-9c0e-d3e5a915beac",
+              "name": "oficialDelegadoResponsavel",
+              "value": "={{ $('Webhook_Reativa').item.json.body.user.delegadoResponsavel }}",
+              "type": "string"
+            },
+            {
+              "id": "5a7d0b02-35ce-434c-bfa9-adc4186c2155",
+              "name": "oficialDelegaciaId",
+              "value": "={{ $('Webhook_Reativa').item.json.body.user.delegaciaId }}",
+              "type": "string"
+            },
+            {
+              "id": "b831ce0b-cd39-4d24-9f4e-8160ec7994dc",
+              "name": "oficialDelegaciaNome",
+              "value": "={{ $('Consulta_Delegacia1').item.json.nome }}",
+              "type": "string"
+            },
+            {
+              "id": "7ab9bd79-d260-4cb4-beb5-2ab10fe9e5e2",
+              "name": "oficialDelegaciaEndereco",
+              "value": "={{ $('Consulta_Delegacia1').item.json.endereco }}",
+              "type": "string"
+            },
+            {
+              "id": "7fcb2004-6405-4663-8be3-357cf5724dd5",
+              "name": "oficialDelegaciaTelefone",
+              "value": "={{ $('Consulta_Delegacia1').item.json.telefone }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        16,
+        -144
+      ],
+      "id": "28524287-8fe1-46fc-b500-acb5872dd53a",
+      "name": "Prepara_Mensagem1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bdb13ce2-bc64-4098-9f03-64f6a5ac1ce1",
+              "name": "intimadoNome",
+              "value": "={{ $('Webhook_Cancela').item.json.body.data.intimadoNome }}",
+              "type": "string"
+            },
+            {
+              "id": "983147ba-2125-4db8-a5c3-02d463e699a9",
+              "name": "intimadoTelefone",
+              "value": "={{ $('Webhook_Cancela').item.json.body.data.telefone }}",
+              "type": "string"
+            },
+            {
+              "id": "2b10c961-f733-4fd6-bedf-200ee2f11fb5",
+              "name": "intimadoDocumento",
+              "value": "={{ $('Webhook_Cancela').item.json.body.data.documento }}",
+              "type": "string"
+            },
+            {
+              "id": "9338ea19-88d6-4371-a308-92549e6ae734",
+              "name": "procedimentoTipo",
+              "value": "={{ $('Webhook_Cancela').item.json.body.data.tipoProcedimento }}",
+              "type": "string"
+            },
+            {
+              "id": "6aa34c69-7e99-4366-a58f-5165abf00cea",
+              "name": "procedimentoNumero",
+              "value": "={{ $('Webhook_Cancela').item.json.body.data.numeroProcedimento }}",
+              "type": "string"
+            },
+            {
+              "id": "08a8240f-bb81-431a-b753-7fb6a1619cea",
+              "name": "intimacaoId",
+              "value": "={{ $('Webhook_Cancela').item.json.body.data.id }}",
+              "type": "string"
+            },
+            {
+              "id": "025fed11-01ce-48f3-94e0-f1f79b38f78b",
+              "name": "intimacaoAgendarPara",
+              "value": "={{ $('Webhook_Cancela').item.json.body.data.primeiraDisponibilidade }}",
+              "type": "string"
+            },
+            {
+              "id": "3b837a66-3dbc-4a92-8801-6037d796215b",
+              "name": "oficialId",
+              "value": "={{ $('Webhook_Cancela').item.json.body.user.userId }}",
+              "type": "string"
+            },
+            {
+              "id": "c4e557d9-874d-4709-ace5-9375295cc0c4",
+              "name": "oficialNome",
+              "value": "={{ $('Webhook_Cancela').item.json.body.user.nome }}",
+              "type": "string"
+            },
+            {
+              "id": "db26b426-6889-4f41-9c0e-d3e5a915beac",
+              "name": "oficialDelegadoResponsavel",
+              "value": "={{ $('Webhook_Cancela').item.json.body.user.delegadoResponsavel }}",
+              "type": "string"
+            },
+            {
+              "id": "5a7d0b02-35ce-434c-bfa9-adc4186c2155",
+              "name": "oficialDelegaciaId",
+              "value": "={{ $('Webhook_Cancela').item.json.body.user.delegaciaId }}",
+              "type": "string"
+            },
+            {
+              "id": "b831ce0b-cd39-4d24-9f4e-8160ec7994dc",
+              "name": "oficialDelegaciaNome",
+              "value": "={{ $('Consulta_Delegacia2').item.json.nome }}",
+              "type": "string"
+            },
+            {
+              "id": "7ab9bd79-d260-4cb4-beb5-2ab10fe9e5e2",
+              "name": "oficialDelegaciaEndereco",
+              "value": "={{ $('Consulta_Delegacia2').item.json.endereco }}",
+              "type": "string"
+            },
+            {
+              "id": "7fcb2004-6405-4663-8be3-357cf5724dd5",
+              "name": "oficialDelegaciaTelefone",
+              "value": "={{ $('Consulta_Delegacia2').item.json.telefone }}",
+              "type": "string"
+            },
+            {
+              "id": "c8576f43-2871-4097-97e7-b76bd69e2621",
+              "name": "criadoEm",
+              "value": "={{ $('Webhook_Cancela').item.json.body.data.criadoEm }}",
+              "type": "string"
+            },
+            {
+              "id": "85621f3c-aca5-48ab-914e-ac10fecc1859",
+              "name": "criadoEm",
+              "value": "={{ $('Webhook_Cancela').item.json.body.data.criadoEm }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        16,
+        160
+      ],
+      "id": "b5d5f72f-d3f3-4c3e-974c-46b7d37f71af",
+      "name": "Prepara_Mensagem2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Prepara_Mensagem": {
+      "main": [
+        [
+          {
+            "node": "Envia_Fila_Criadas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook_Nova": {
+      "main": [
+        [
+          {
+            "node": "Consulta_Delegacia",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook_Reativa": {
+      "main": [
+        [
+          {
+            "node": "Consulta_Delegacia1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook_Cancela": {
+      "main": [
+        [
+          {
+            "node": "Consulta_Delegacia2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consulta_Delegacia": {
+      "main": [
+        [
+          {
+            "node": "Prepara_Mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consulta_Delegacia1": {
+      "main": [
+        [
+          {
+            "node": "Prepara_Mensagem1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consulta_Delegacia2": {
+      "main": [
+        [
+          {
+            "node": "Prepara_Mensagem2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepara_Mensagem1": {
+      "main": [
+        [
+          {
+            "node": "Envia_Fila_Reativadas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepara_Mensagem2": {
+      "main": [
+        [
+          {
+            "node": "Envia_Fila_Canceladas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "PGmfvV9BPn5dgA3f",
+    "callerPolicy": "workflowsFromSameOwner",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "0b56fa5c-a14c-4bfa-8184-b0b65ae4127e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "46afdc4408b12967d8a8ebd84fe9532888ffc6505ba874d4ba7406c1fc078ed9"
+  },
+  "id": "aXadcG1TipCa8cbQ",
+  "tags": []
+}

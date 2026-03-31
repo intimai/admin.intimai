@@ -15,56 +15,48 @@ function buildContratoHTML(fields, corpoHTML, logoBase64) {
     const f = fields;
     const today = new Date().toLocaleDateString('pt-BR');
 
-    return `<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<style>
+    return `<style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body {
+  .contract-preview {
     font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
     font-size: 13px; line-height: 1.7; color: #1a1a2e;
     -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    text-align: left;
+  }
+  .contract-preview * {
+    box-sizing: border-box;
   }
   .page-wrapper { max-width: 210mm; margin: 0 auto; padding: 0; }
 
   /* ── HEADER ── */
   .contract-header {
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-    color: #fff; padding: 36px 40px 28px; border-radius: 0 0 20px 20px;
-    margin-bottom: 28px; position: relative; overflow: hidden;
-    break-after: avoid;
-    page-break-after: avoid;
+    color: #fff; padding: 24px 40px 20px; border-radius: 0 0 20px 20px;
+    margin-bottom: 20px; position: relative; overflow: hidden;
+    display: block;
   }
   .contract-header::after {
     content: ''; position: absolute; top: -40%; right: -10%; width: 300px; height: 300px;
     background: radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%);
     border-radius: 50%;
   }
-  .header-logo { height: 36px; margin-bottom: 18px; position: relative; z-index: 1; }
+  .header-logo { height: 32px; margin-bottom: 14px; position: relative; z-index: 1; }
   .header-title {
-    font-size: 22px; font-weight: 800; letter-spacing: -.5px;
+    font-size: 20px; font-weight: 800; letter-spacing: -.5px;
     background: linear-gradient(135deg, #fff 0%, #a78bfa 100%);
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
     position: relative; z-index: 1;
   }
-  .header-subtitle { font-size: 11px; color: #9ca3af; margin-top: 4px; position: relative; z-index: 1; }
+  .header-subtitle { font-size: 10px; color: #9ca3af; margin-top: 2px; position: relative; z-index: 1; }
   .header-badge {
-    display: inline-block; background: rgba(139,92,246,0.2); padding: 4px 14px;
+    display: inline-block; background: rgba(139,92,246,0.2); padding: 3px 12px;
     border-radius: 8px; border: 1px solid rgba(139,92,246,0.3);
-    font-weight: 700; color: #a78bfa; font-size: 11px; margin-top: 12px;
+    font-weight: 700; color: #a78bfa; font-size: 10px; margin-top: 10px;
     position: relative; z-index: 1;
   }
 
-  /* Primeira section — mantém junto com o header */
-  .first-section {
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
-
   /* ── SECTIONS ── */
-  .section { margin-bottom: 22px; page-break-inside: avoid; }
+  .section { margin-bottom: 20px; }
   .section-title {
     font-size: 14px; font-weight: 800; color: #1a1a2e;
     border-bottom: 2px solid #8b5cf6; padding-bottom: 6px; margin-bottom: 14px;
@@ -110,8 +102,7 @@ function buildContratoHTML(fields, corpoHTML, logoBase64) {
     text-align: center; font-size: 9px; color: #999;
   }
 </style>
-</head>
-<body>
+<div class="contract-preview">
 <div class="page-wrapper">
 
   <!-- ═══ HEADER ═══ -->
@@ -246,8 +237,7 @@ function buildContratoHTML(fields, corpoHTML, logoBase64) {
   </div>
 
 </div>
-</body>
-</html>`;
+</div>`;
 }
 
 // ─── Converte markdown simples para HTML ─────────────────────────
@@ -537,15 +527,38 @@ const ContratosPage = () => {
 
             const blob = await response.blob();
 
-            // Download
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = safeFileName;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            a.remove();
+            // Escolha de local para salvar o PDF ou Download direto (Fallback)
+            let saveSuccessful = false;
+            
+            if (window.showSaveFilePicker) {
+                try {
+                    const handle = await window.showSaveFilePicker({
+                        suggestedName: safeFileName,
+                        types: [{ description: 'Arquivo PDF', accept: { 'application/pdf': ['.pdf'] } }],
+                    });
+                    const writable = await handle.createWritable();
+                    await writable.write(blob);
+                    await writable.close();
+                    saveSuccessful = true;
+                } catch (err) {
+                    if (err.name === 'AbortError') {
+                        toast({ title: 'Operação Cancelada', description: 'O salvamento do contrato foi cancelado pelo usuário.' });
+                        return; // Aborta sem gerar registros fantasma no banco
+                    }
+                    console.error("FilePicker API falhou, usando fallback estrutural:", err);
+                }
+            }
+
+            if (!saveSuccessful) {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = safeFileName;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                a.remove();
+            }
 
             // Upload PDF para Supabase Storage
             if (selectedLeadId && fields.NOME_CONTRATANTE) {

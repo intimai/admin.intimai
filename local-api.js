@@ -2,6 +2,7 @@ import express from 'express';
 import handlerPdf from './api/generate-pdf.js';
 import handlerContrato from './api/generate-contrato.js';
 import handlerPreview from './api/preview-proposta.js';
+import handlerWhatsappLead from './api/send-whatsapp-lead.js';
 import bodyParser from 'body-parser';
 
 const app = express();
@@ -34,6 +35,16 @@ app.post('/api/preview-proposta', async (req, res) => {
         await handlerPreview(req, res);
     } catch (e) {
         console.error('[API Local] Erro no Preview:', e);
+        res.status(500).send(e.message);
+    }
+});
+
+app.post('/api/send-whatsapp-lead', async (req, res) => {
+    console.log('[API Local] Disparando WhatsApp Meta Oficial...');
+    try {
+        await handlerWhatsappLead(req, res);
+    } catch (e) {
+        console.error('[API Local] Erro Fatal no Envio ZAP:', e);
         res.status(500).send(e.message);
     }
 });

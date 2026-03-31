@@ -1,0 +1,3324 @@
+{
+  "name": "RESPOSTAS_AUTOMATICAS",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "user.telefone"
+            },
+            {
+              "name": "delegacia.phone_number_id"
+            },
+            {
+              "name": "delegacia.nome"
+            },
+            {
+              "name": "delegacia.telefone"
+            },
+            {
+              "name": "user.nome"
+            },
+            {
+              "name": "user.message"
+            }
+          ]
+        }
+      },
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        208,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## CANCELADA PELO OFICIAL",
+        "height": 224,
+        "width": 608,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2880,
+        16
+      ],
+      "id": "001a3404-429f-4945-9a99-915e1d7fd87f",
+      "name": "Sticky Note16"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  id,\n  telefone_hmac,\n  status,\n  \"criadoEm\",\n  \"dataAgendada\",\n  \"horaAgendada\",\n  \"intimadoNome\",\n  \"documento\",\n  \"numeroProcedimento\",\n  \"primeiraDisponibilidade\",\n  \"userId\",\n  \"motivo\",\n  \"cancelamentoEmAndamento\",\n  'recusada' AS caminho\nFROM intimacoes\nWHERE id = ($1)::integer\nLIMIT 1;",
+        "options": {
+          "queryReplacement": "==={{ Number($json.id_intimacao) }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1904,
+        -336
+      ],
+      "id": "8a1bbe89-62ec-4873-b048-5fa24d486e19",
+      "name": "Consulta_Intimacao_Recusada",
+      "alwaysOutputData": false,
+      "retryOnFail": false,
+      "credentials": {
+        "postgres": {
+          "id": "Rg77bSj4hxXnl3gF",
+          "name": "Postgres/SupabaseIntimAI"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "content": "## IDENTIDADE NÃO CONFIRMADA",
+        "height": 208,
+        "width": 592,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2896,
+        -512
+      ],
+      "id": "163190bc-e253-4ac2-84d8-6ffa31b0a1dd",
+      "name": "Sticky Note20"
+    },
+    {
+      "parameters": {
+        "content": "## RECUSADA PELO INTIMADO",
+        "height": 224,
+        "width": 592,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2896,
+        -288
+      ],
+      "id": "ecce441f-20fd-46f2-9b56-7ff42dc8beb8",
+      "name": "Sticky Note21"
+    },
+    {
+      "parameters": {
+        "content": "## AGENDA CHEIA",
+        "height": 224,
+        "width": 608,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2880,
+        256
+      ],
+      "id": "425572ac-d303-443d-b1c7-5803237afdba",
+      "name": "Sticky Note22"
+    },
+    {
+      "parameters": {
+        "content": "## MENSAGEM OUTSIDER",
+        "height": 256,
+        "width": 1504,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1808,
+        1104
+      ],
+      "id": "cdb4e879-1f01-4809-bb8a-4b93aae15a77",
+      "name": "Sticky Note23"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  id,\n  telefone_hmac,\n  status,\n  \"criadoEm\",\n  \"dataAgendada\",\n  \"horaAgendada\",\n  \"intimadoNome\",\n  \"documento\",\n  \"numeroProcedimento\",\n  \"primeiraDisponibilidade\",\n  \"userId\",\n  \"motivo\",\n  \"cancelamentoEmAndamento\",\n  'cancelada' AS caminho\nFROM intimacoes\nWHERE id = ($1)::integer\nLIMIT 1;",
+        "options": {
+          "queryReplacement": "=={{ Number($json.id_intimacao) }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1872,
+        320
+      ],
+      "id": "917d462a-aa11-4cde-baac-238adc94d4db",
+      "name": "Consulta_Intimacao_Cancelada",
+      "alwaysOutputData": false,
+      "retryOnFail": false,
+      "credentials": {
+        "postgres": {
+          "id": "Rg77bSj4hxXnl3gF",
+          "name": "Postgres/SupabaseIntimAI"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Normaliza_Motivo_Recusada').item.json.motivo_normalizado }}",
+                    "rightValue": "identidade nao confirmada",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "8aa00e15-0919-4c56-b7af-9bd73be35586"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Identidade Não Confirmada"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "1fcd5a76-f32f-47a8-ab9e-32bdcb966be7",
+                    "leftValue": "={{ $('Normaliza_Motivo_Recusada').item.json.motivo_normalizado }}",
+                    "rightValue": "recusada pelo intimado",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Recusada Pelo Intimado"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        2640,
+        -336
+      ],
+      "id": "9bae4c38-a2d5-49bb-88ee-4fdbf3ce1414",
+      "name": "Separa_Motivo_Recusada"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Normaliza_Motivo_Cancelada').item.json.motivo_normalizado }}",
+                    "rightValue": "cancelada pelo oficial",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "8aa00e15-0919-4c56-b7af-9bd73be35586"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Cancelada Pelo Oficial"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "1fcd5a76-f32f-47a8-ab9e-32bdcb966be7",
+                    "leftValue": "={{ $('Normaliza_Motivo_Cancelada').item.json.motivo_normalizado }}",
+                    "rightValue": "agenda cheia",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Agenda Cheia"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "20177def-8821-437c-be41-4492d5b2274a",
+                    "leftValue": "={{ $json.motivo_normalizado }}",
+                    "rightValue": "agendamento nao concluido",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Agendamento não Concluído"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        2672,
+        304
+      ],
+      "id": "7644cd18-601c-4152-b3a0-841b093751cd",
+      "name": "Separa_Motivo_Cancelada"
+    },
+    {
+      "parameters": {
+        "content": "## ENVIA AUSENTE",
+        "height": 272,
+        "width": 1504,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1808,
+        800
+      ],
+      "id": "dac0d7cf-a916-45ff-a474-3b6fbabd095c",
+      "name": "Sticky Note24"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://tvdkmuivivvummvqznjh.supabase.co/functions/v1/consulta_duplicada",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$credentials.apiKey}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"telefone\": \"{{$('Organiza_Dados').item.json.user.telefone}}\",\n  \"status_para_verificar\": [\n    \"recusada\",\n    \"cancelada\",\n    \"ausente\"\n  ]\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        640,
+        336
+      ],
+      "id": "b511a20b-39c9-4b46-a948-48ffa5bbba77",
+      "name": "Consulta_Intimacao_Edge1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "qRaWSTXBOUGdBLQW",
+          "name": "Encripton_Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// O HTTP Request devolve algo assim:\n// item.json.data = \"{\\\"existe_intimacao\\\":false,...}\"\n\nreturn items.map(item => {\n  let parsed = {};\n  try {\n    parsed = JSON.parse(item.json.data);\n  } catch (e) {\n    parsed = { error: \"JSON inválido\", raw: item.json.data };\n  }\n  return { json: parsed };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        864,
+        336
+      ],
+      "id": "64050f73-c5b0-40bc-ac6c-6e28a704e5ea",
+      "name": "Parse_Consulta_Edge1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "45b6fa96-ce8e-4cdf-a2ec-6c3bf11bba62",
+                    "leftValue": "={{ $('Tem_Intimacao?').item.json.status_existente }}",
+                    "rightValue": "recusada",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Recusada"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "f0d25fd5-3661-457a-b600-62300edc5480",
+                    "leftValue": "={{ $('Tem_Intimacao?').item.json.status_existente }}",
+                    "rightValue": "cancelada",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Cancelada"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "148c309a-fb8a-4122-92ac-b2261b9a61e5",
+                    "leftValue": "={{ $('Tem_Intimacao?').item.json.status_existente }}",
+                    "rightValue": "ausente",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Ausente"
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        1536,
+        304
+      ],
+      "id": "29f8efc0-3244-4508-adb5-4e93baf5cd05",
+      "name": "Separa_Status"
+    },
+    {
+      "parameters": {
+        "content": "##  RECUSADAS",
+        "height": 528,
+        "width": 2240,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1808,
+        -560
+      ],
+      "id": "251a185a-8e4c-47c9-af17-622cee3e684f",
+      "name": "Sticky Note25"
+    },
+    {
+      "parameters": {
+        "content": "## ENVIA CANCELADA",
+        "height": 768,
+        "width": 2240,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1808,
+        0
+      ],
+      "id": "d927d201-a1ff-4fa2-bca5-e75976a9fa2a",
+      "name": "Sticky Note26"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  id,\n  telefone_hmac,\n  status,\n  \"criadoEm\",\n  \"dataAgendada\",\n  \"horaAgendada\",\n  \"intimadoNome\",\n  \"documento\",\n  \"numeroProcedimento\",\n  \"primeiraDisponibilidade\",\n  \"userId\",\n  \"motivo\",\n  \"cancelamentoEmAndamento\",\n  'ausente' AS caminho\nFROM intimacoes\nWHERE id = ($1)::integer\nLIMIT 1;",
+        "options": {
+          "queryReplacement": "==={{ Number($json.id_intimacao) }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1872,
+        880
+      ],
+      "id": "bdab608b-03d0-48f0-9045-09eda7e30354",
+      "name": "Consulta_Intimacao_Ausente",
+      "alwaysOutputData": false,
+      "retryOnFail": false,
+      "credentials": {
+        "postgres": {
+          "id": "Rg77bSj4hxXnl3gF",
+          "name": "Postgres/SupabaseIntimAI"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "function normalizarTexto(texto) {\n  return texto\n    ? texto\n        .normalize(\"NFD\") // separa letras e acentos\n        .replace(/[\\u0300-\\u036f]/g, \"\") // remove os acentos\n        .trim()\n        .toLowerCase()\n    : \"\";\n}\n\nreturn items.map(item => {\n  const motivo = item.json.motivo || \"\";\n  item.json.motivo_normalizado = normalizarTexto(motivo);\n  return item;\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2112,
+        -336
+      ],
+      "id": "3611a9e0-7e62-40c0-b129-0272c3585154",
+      "name": "Normaliza_Motivo_Recusada"
+    },
+    {
+      "parameters": {
+        "jsCode": "function normalizarTexto(texto) {\n  return texto\n    ? texto\n        .normalize(\"NFD\") // separa letras e acentos\n        .replace(/[\\u0300-\\u036f]/g, \"\") // remove os acentos\n        .trim()\n        .toLowerCase()\n    : \"\";\n}\n\nreturn items.map(item => {\n  const motivo = item.json.motivo || \"\";\n  item.json.motivo_normalizado = normalizarTexto(motivo);\n  return item;\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2080,
+        320
+      ],
+      "id": "f3f3de2c-596d-4f6a-bda5-e6b0037375e5",
+      "name": "Normaliza_Motivo_Cancelada"
+    },
+    {
+      "parameters": {
+        "content": "## AGENDAMENTO NÃO CONCLUÍDO",
+        "height": 240,
+        "width": 608,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2880,
+        496
+      ],
+      "id": "b4c9d6eb-30fa-46f3-9036-6e32e056c046",
+      "name": "Sticky Note27"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $('Organiza_Dados').item.json.delegacia.phone_number_id}}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer EAAQ1Fe1pVCcBQfujEBjBPYWBZAhC3b8iFFOp1IhswOYfyLUUlT246KSZA3mTtBW1DVZC2V1hKfufClZCyGZAc50TtqgENxZCNV55DtpZC9cqnR59tbl4OyeZAtXaD9oOyHGeO7bJ8I2n7vWqpStvyeQ66jylI52CZCNQDvb8O8ITedRrmI7ArkgDZBaMLXxHbRtvMt3AZDZD"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $('Organiza_Dados').item.json.user.telefone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"Desculpe, sua comunicação anterior já não está mais ativa.\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2928,
+        -448
+      ],
+      "id": "4da0948f-66a6-4aa1-9934-0616567edb74",
+      "name": "Outsider_Recusada"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $('Organiza_Dados').item.json.delegacia.phone_number_id}}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer EAAQ1Fe1pVCcBQfujEBjBPYWBZAhC3b8iFFOp1IhswOYfyLUUlT246KSZA3mTtBW1DVZC2V1hKfufClZCyGZAc50TtqgENxZCNV55DtpZC9cqnR59tbl4OyeZAtXaD9oOyHGeO7bJ8I2n7vWqpStvyeQ66jylI52CZCNQDvb8O8ITedRrmI7ArkgDZBaMLXxHbRtvMt3AZDZD"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $('Organiza_Dados').item.json.user.telefone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"A última intimação foi interrompida pois não houve a confirmação de identidade necessária para o agendamento da oitiva.\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3120,
+        -448
+      ],
+      "id": "acf47829-680c-4e95-a281-e237c1d03ef5",
+      "name": "Outsider_Recusada1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $('Organiza_Dados').item.json.delegacia.phone_number_id}}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer EAAQ1Fe1pVCcBQfujEBjBPYWBZAhC3b8iFFOp1IhswOYfyLUUlT246KSZA3mTtBW1DVZC2V1hKfufClZCyGZAc50TtqgENxZCNV55DtpZC9cqnR59tbl4OyeZAtXaD9oOyHGeO7bJ8I2n7vWqpStvyeQ66jylI52CZCNQDvb8O8ITedRrmI7ArkgDZBaMLXxHbRtvMt3AZDZD"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $('Organiza_Dados').item.json.user.telefone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"Em caso de dúvidas ou para saber mais detalhes, ligue para o telefone {{ $('Organiza_Dados').item.json.delegacia.telefone }} (falar com oficial *{{ $('Organiza_Responsaveis1').item.json.oficial.nome }}*). Agradecemos o contato.\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3312,
+        -448
+      ],
+      "id": "88bb47ee-aebd-43bc-b669-ebe5b2e0b494",
+      "name": "Outsider_Recusada2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $('Organiza_Dados').item.json.delegacia.phone_number_id}}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer EAAQ1Fe1pVCcBQfujEBjBPYWBZAhC3b8iFFOp1IhswOYfyLUUlT246KSZA3mTtBW1DVZC2V1hKfufClZCyGZAc50TtqgENxZCNV55DtpZC9cqnR59tbl4OyeZAtXaD9oOyHGeO7bJ8I2n7vWqpStvyeQ66jylI52CZCNQDvb8O8ITedRrmI7ArkgDZBaMLXxHbRtvMt3AZDZD"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $('Organiza_Dados').item.json.user.telefone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"Desculpe, sua comunicação anterior já não está mais ativa.\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2928,
+        -208
+      ],
+      "id": "30ac48ef-0f31-4968-b402-40967bc8dec2",
+      "name": "Outsider_Recusada3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $('Organiza_Dados').item.json.delegacia.phone_number_id}}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer EAAQ1Fe1pVCcBQfujEBjBPYWBZAhC3b8iFFOp1IhswOYfyLUUlT246KSZA3mTtBW1DVZC2V1hKfufClZCyGZAc50TtqgENxZCNV55DtpZC9cqnR59tbl4OyeZAtXaD9oOyHGeO7bJ8I2n7vWqpStvyeQ66jylI52CZCNQDvb8O8ITedRrmI7ArkgDZBaMLXxHbRtvMt3AZDZD"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $('Organiza_Dados').item.json.user.telefone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"A última intimação foi interrompida pois houve recusa de comparecimento ou agendamento da oitiva.\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3120,
+        -208
+      ],
+      "id": "e529abad-0b42-4109-892a-f0bc710d5093",
+      "name": "Outsider_Recusada4"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $('Organiza_Dados').item.json.delegacia.phone_number_id}}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer EAAQ1Fe1pVCcBQfujEBjBPYWBZAhC3b8iFFOp1IhswOYfyLUUlT246KSZA3mTtBW1DVZC2V1hKfufClZCyGZAc50TtqgENxZCNV55DtpZC9cqnR59tbl4OyeZAtXaD9oOyHGeO7bJ8I2n7vWqpStvyeQ66jylI52CZCNQDvb8O8ITedRrmI7ArkgDZBaMLXxHbRtvMt3AZDZD"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $('Organiza_Dados').item.json.user.telefone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"Em caso de dúvidas ou para saber mais detalhes, ligue para o telefone {{ $('Organiza_Dados').item.json.delegacia.telefone }} (falar com oficial *{{ $('Organiza_Responsaveis1').item.json.oficial.nome }}*). Agradecemos o contato.\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3312,
+        -208
+      ],
+      "id": "3809a7cc-0b77-46a7-ae78-5ceb0d63cee2",
+      "name": "Outsider_Recusada5"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $('Organiza_Dados').item.json.delegacia.phone_number_id}}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer EAAQ1Fe1pVCcBQfujEBjBPYWBZAhC3b8iFFOp1IhswOYfyLUUlT246KSZA3mTtBW1DVZC2V1hKfufClZCyGZAc50TtqgENxZCNV55DtpZC9cqnR59tbl4OyeZAtXaD9oOyHGeO7bJ8I2n7vWqpStvyeQ66jylI52CZCNQDvb8O8ITedRrmI7ArkgDZBaMLXxHbRtvMt3AZDZD"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $('Organiza_Dados').item.json.user.telefone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"Desculpe, sua comunicação anterior já não está mais ativa.\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2928,
+        80
+      ],
+      "id": "a61562f3-9e4a-4690-bcd4-7d9d976ef4a7",
+      "name": "Outsider_Cancelada_pela_Delegacia"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $('Organiza_Dados').item.json.delegacia.phone_number_id}}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer EAAQ1Fe1pVCcBQfujEBjBPYWBZAhC3b8iFFOp1IhswOYfyLUUlT246KSZA3mTtBW1DVZC2V1hKfufClZCyGZAc50TtqgENxZCNV55DtpZC9cqnR59tbl4OyeZAtXaD9oOyHGeO7bJ8I2n7vWqpStvyeQ66jylI52CZCNQDvb8O8ITedRrmI7ArkgDZBaMLXxHbRtvMt3AZDZD"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $('Organiza_Dados').item.json.user.telefone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"A última intimação em seu nome foi cancelada pelo oficial responsável.\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3120,
+        80
+      ],
+      "id": "ff539a1a-fd7c-4f3e-b323-6eeccb79f071",
+      "name": "Outsider_Cancelada_pela_Delegacia1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $('Organiza_Dados').item.json.delegacia.phone_number_id}}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer EAAQ1Fe1pVCcBQfujEBjBPYWBZAhC3b8iFFOp1IhswOYfyLUUlT246KSZA3mTtBW1DVZC2V1hKfufClZCyGZAc50TtqgENxZCNV55DtpZC9cqnR59tbl4OyeZAtXaD9oOyHGeO7bJ8I2n7vWqpStvyeQ66jylI52CZCNQDvb8O8ITedRrmI7ArkgDZBaMLXxHbRtvMt3AZDZD"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $('Organiza_Dados').item.json.user.telefone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"Caso necessário, a Delegacia entrará em contato novamente com uma nova intimação. Agradecemos o contato.\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3312,
+        80
+      ],
+      "id": "bbd41a10-cc07-4a0a-8df4-a323afbe3d40",
+      "name": "Outsider_Cancelada_pela_Delegacia2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $('Organiza_Dados').item.json.delegacia.phone_number_id}}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer EAAQ1Fe1pVCcBQfujEBjBPYWBZAhC3b8iFFOp1IhswOYfyLUUlT246KSZA3mTtBW1DVZC2V1hKfufClZCyGZAc50TtqgENxZCNV55DtpZC9cqnR59tbl4OyeZAtXaD9oOyHGeO7bJ8I2n7vWqpStvyeQ66jylI52CZCNQDvb8O8ITedRrmI7ArkgDZBaMLXxHbRtvMt3AZDZD"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $('Organiza_Dados').item.json.user.telefone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"Desculpe, sua comunicação anterior já não está mais ativa.\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2928,
+        320
+      ],
+      "id": "337d5d69-50cb-48b7-a741-c38049df00b2",
+      "name": "Outsider_Cancelada_Agenda_Cheia3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $('Organiza_Dados').item.json.delegacia.phone_number_id}}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer EAAQ1Fe1pVCcBQfujEBjBPYWBZAhC3b8iFFOp1IhswOYfyLUUlT246KSZA3mTtBW1DVZC2V1hKfufClZCyGZAc50TtqgENxZCNV55DtpZC9cqnR59tbl4OyeZAtXaD9oOyHGeO7bJ8I2n7vWqpStvyeQ66jylI52CZCNQDvb8O8ITedRrmI7ArkgDZBaMLXxHbRtvMt3AZDZD"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $('Organiza_Dados').item.json.user.telefone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"A última intimação em seu nome foi cancelada, pois a agenda do oficial responsável foi preenchida antes do agendamento ser concluído.\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3120,
+        320
+      ],
+      "id": "89de2f42-8c36-456b-9b6d-02ebea40a5f4",
+      "name": "Outsider_Cancelada_Agenda_Cheia4"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $('Organiza_Dados').item.json.delegacia.phone_number_id}}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer EAAQ1Fe1pVCcBQfujEBjBPYWBZAhC3b8iFFOp1IhswOYfyLUUlT246KSZA3mTtBW1DVZC2V1hKfufClZCyGZAc50TtqgENxZCNV55DtpZC9cqnR59tbl4OyeZAtXaD9oOyHGeO7bJ8I2n7vWqpStvyeQ66jylI52CZCNQDvb8O8ITedRrmI7ArkgDZBaMLXxHbRtvMt3AZDZD"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $('Organiza_Dados').item.json.user.telefone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"Por favor, aguarde um novo contato da delegacia com nova intimação, ou ligue para o telefone {{ $('Organiza_Dados').item.json.delegacia.telefone }} para mais informações (falar com oficial *{{ $('Organiza_Responsaveis').item.json.oficial.nome }}*). Agradecemos o contato.\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3312,
+        320
+      ],
+      "id": "ec7798fb-6a6d-4e6d-8556-0e07f55dca72",
+      "name": "Outsider_Cancelada_Agenda_Cheia5"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $('Organiza_Dados').item.json.delegacia.phone_number_id}}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer EAAQ1Fe1pVCcBQfujEBjBPYWBZAhC3b8iFFOp1IhswOYfyLUUlT246KSZA3mTtBW1DVZC2V1hKfufClZCyGZAc50TtqgENxZCNV55DtpZC9cqnR59tbl4OyeZAtXaD9oOyHGeO7bJ8I2n7vWqpStvyeQ66jylI52CZCNQDvb8O8ITedRrmI7ArkgDZBaMLXxHbRtvMt3AZDZD"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $('Organiza_Dados').item.json.user.telefone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"Desculpe, sua comunicação anterior já não está mais ativa.\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2928,
+        576
+      ],
+      "id": "74280c6d-d542-4e87-a761-9d96427baa8e",
+      "name": "Outsider_Cancelada_Agendamento_Nao_Concluido"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $('Organiza_Dados').item.json.delegacia.phone_number_id}}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer EAAQ1Fe1pVCcBQfujEBjBPYWBZAhC3b8iFFOp1IhswOYfyLUUlT246KSZA3mTtBW1DVZC2V1hKfufClZCyGZAc50TtqgENxZCNV55DtpZC9cqnR59tbl4OyeZAtXaD9oOyHGeO7bJ8I2n7vWqpStvyeQ66jylI52CZCNQDvb8O8ITedRrmI7ArkgDZBaMLXxHbRtvMt3AZDZD"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $('Organiza_Dados').item.json.user.telefone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"A última intimação em seu nome foi cancelada, pois o agendamento não foi concluído a tempo (antes da data sugerida).\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3120,
+        576
+      ],
+      "id": "26dd8088-e5c2-4819-9935-04539e70e3e2",
+      "name": "Outsider_Cancelada_Agendamento_Nao_Concluido1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $('Organiza_Dados').item.json.delegacia.phone_number_id}}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer EAAQ1Fe1pVCcBQfujEBjBPYWBZAhC3b8iFFOp1IhswOYfyLUUlT246KSZA3mTtBW1DVZC2V1hKfufClZCyGZAc50TtqgENxZCNV55DtpZC9cqnR59tbl4OyeZAtXaD9oOyHGeO7bJ8I2n7vWqpStvyeQ66jylI52CZCNQDvb8O8ITedRrmI7ArkgDZBaMLXxHbRtvMt3AZDZD"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $('Organiza_Dados').item.json.user.telefone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"Por favor, aguarde um novo contato da delegacia com nova intimação, ou ligue para o telefone {{ $('Organiza_Dados').item.json.delegacia.telefone }} para mais informações (falar com oficial *{{ $('Organiza_Responsaveis').item.json.oficial.nome }}*). Agradecemos o contato.\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3312,
+        576
+      ],
+      "id": "3844a1e6-ff72-41a9-a995-b34f0aff2613",
+      "name": "Outsider_Cancelada_Agendamento_Nao_Concluido2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $('Organiza_Dados').item.json.delegacia.phone_number_id}}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer EAAQ1Fe1pVCcBQfujEBjBPYWBZAhC3b8iFFOp1IhswOYfyLUUlT246KSZA3mTtBW1DVZC2V1hKfufClZCyGZAc50TtqgENxZCNV55DtpZC9cqnR59tbl4OyeZAtXaD9oOyHGeO7bJ8I2n7vWqpStvyeQ66jylI52CZCNQDvb8O8ITedRrmI7ArkgDZBaMLXxHbRtvMt3AZDZD"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $('Organiza_Dados').item.json.user.telefone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"Desculpe, sua comunicação anterior já não está mais ativa.\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2448,
+        880
+      ],
+      "id": "8b41bec4-c06e-49cc-aa7d-43311a0783bb",
+      "name": "Outsider_Ausente3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $('Organiza_Dados').item.json.delegacia.phone_number_id}}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer EAAQ1Fe1pVCcBQfujEBjBPYWBZAhC3b8iFFOp1IhswOYfyLUUlT246KSZA3mTtBW1DVZC2V1hKfufClZCyGZAc50TtqgENxZCNV55DtpZC9cqnR59tbl4OyeZAtXaD9oOyHGeO7bJ8I2n7vWqpStvyeQ66jylI52CZCNQDvb8O8ITedRrmI7ArkgDZBaMLXxHbRtvMt3AZDZD"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $('Organiza_Dados').item.json.user.telefone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"Não houve comparecimento em sua última oitiva agendada. Caso necessário, a Delegacia entrará em contato novamente com uma nova intimação.\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2608,
+        880
+      ],
+      "id": "59d88594-42d4-4bff-8d5b-83062c01d84a",
+      "name": "Outsider_Ausente4"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $('Organiza_Dados').item.json.delegacia.phone_number_id}}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer EAAQ1Fe1pVCcBQfujEBjBPYWBZAhC3b8iFFOp1IhswOYfyLUUlT246KSZA3mTtBW1DVZC2V1hKfufClZCyGZAc50TtqgENxZCNV55DtpZC9cqnR59tbl4OyeZAtXaD9oOyHGeO7bJ8I2n7vWqpStvyeQ66jylI52CZCNQDvb8O8ITedRrmI7ArkgDZBaMLXxHbRtvMt3AZDZD"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $('Organiza_Dados').item.json.user.telefone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"Se tiver dúvidas ou para mais informações, ligue para o telefone {{ $('Organiza_Dados').item.json.delegacia.telefone }} (falar com oficial *{{ $('Organiza_Responsaveis2').item.json.oficial.nome }}*). Agradecemos o contato.\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2768,
+        880
+      ],
+      "id": "c9427eb9-d7c5-4f63-bc5c-1b673bfb0f63",
+      "name": "Outsider_Ausente5"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $('Organiza_Dados').item.json.delegacia.phone_number_id}}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer EAAQ1Fe1pVCcBQfujEBjBPYWBZAhC3b8iFFOp1IhswOYfyLUUlT246KSZA3mTtBW1DVZC2V1hKfufClZCyGZAc50TtqgENxZCNV55DtpZC9cqnR59tbl4OyeZAtXaD9oOyHGeO7bJ8I2n7vWqpStvyeQ66jylI52CZCNQDvb8O8ITedRrmI7ArkgDZBaMLXxHbRtvMt3AZDZD"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $('Organiza_Dados').item.json.user.telefone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"Olá! Este whatsapp é exclusivo para intimações em andamento iniciadas pela {{ $('Organiza_Dados').item.json.delegacia.nome }}.\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1872,
+        1200
+      ],
+      "id": "7fd0f274-f97a-4551-bf91-76a8990caffd",
+      "name": "Outsider3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $('Organiza_Dados').item.json.delegacia.phone_number_id}}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer EAAQ1Fe1pVCcBQfujEBjBPYWBZAhC3b8iFFOp1IhswOYfyLUUlT246KSZA3mTtBW1DVZC2V1hKfufClZCyGZAc50TtqgENxZCNV55DtpZC9cqnR59tbl4OyeZAtXaD9oOyHGeO7bJ8I2n7vWqpStvyeQ66jylI52CZCNQDvb8O8ITedRrmI7ArkgDZBaMLXxHbRtvMt3AZDZD"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $('Organiza_Dados').item.json.user.telefone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"Vejo que não há intimações atuais para o seu contato.\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2080,
+        1200
+      ],
+      "id": "abba65b4-d8ad-47a7-b1ce-b18611af7753",
+      "name": "Outsider4"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $('Organiza_Dados').item.json.delegacia.phone_number_id}}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer EAAQ1Fe1pVCcBQfujEBjBPYWBZAhC3b8iFFOp1IhswOYfyLUUlT246KSZA3mTtBW1DVZC2V1hKfufClZCyGZAc50TtqgENxZCNV55DtpZC9cqnR59tbl4OyeZAtXaD9oOyHGeO7bJ8I2n7vWqpStvyeQ66jylI52CZCNQDvb8O8ITedRrmI7ArkgDZBaMLXxHbRtvMt3AZDZD"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $('Organiza_Dados').item.json.user.telefone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"Para mais informações, ligue para o telefone {{ $('Organiza_Dados').item.json.delegacia.telefone }}\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2272,
+        1200
+      ],
+      "id": "9ac3e069-3423-4bb7-a1d7-e15a4e77b390",
+      "name": "Outsider5"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "04c989a0-7b26-4ea5-9519-d6957f2ff0ad",
+              "name": "delegacia.phone_number_id",
+              "value": "={{ $json['delegacia.phone_number_id'] }}",
+              "type": "string"
+            },
+            {
+              "id": "83719e6e-76d1-4ba6-bd0e-74da52eb4e4f",
+              "name": "delegacia.nome",
+              "value": "={{ $json['delegacia.nome'] }}",
+              "type": "string"
+            },
+            {
+              "id": "f22e8bca-26b4-4c96-9aba-6255d8ad8323",
+              "name": "delegacia.telefone",
+              "value": "={{ $json['delegacia.telefone'] }}",
+              "type": "string"
+            },
+            {
+              "id": "bcfacb46-6498-44b8-ab4c-4ba0c736ced3",
+              "name": "user.telefone",
+              "value": "={{ $json['user.telefone'] }}",
+              "type": "string"
+            },
+            {
+              "id": "acae71af-c80e-4566-aa56-4ffc64492e96",
+              "name": "user.nome",
+              "value": "={{ $json['user.nome'] }}",
+              "type": "string"
+            },
+            {
+              "id": "2c1ca144-db75-4acf-9801-09ff8d27ced3",
+              "name": "user.message",
+              "value": "={{ $json['user.message'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "075b3b72-720d-404c-9d5f-5f1e44327cf2",
+      "name": "Organiza_Dados",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        432,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "n8n_chat_histories_intimacoes",
+          "mode": "list",
+          "cachedResultName": "n8n_chat_histories_intimacoes"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "message": "={\n  \"type\": \"ai\",\n  \"content\": \"Desculpe, sua comunicação anterior já não está mais ativa. A última intimação foi interrompida pois não houve a confirmação de identidade necessária para o agendamento da oitiva. Em caso de dúvidas ou para saber mais detalhes, ligue para o telefone {{ $('Organiza_Dados').item.json.delegacia.telefone }} (falar com oficial *{{ $('Organiza_Responsaveis1').item.json.oficial.nome }}*). Agradecemos o contato.\",\n  \"additional_kwargs\": {\n    \"contexto\": {\n      \"tipo\": \"identidade_nao_confirmada\",\n      \"intimacao_id\": \"{{ $('Consulta_Intimacao_Recusada').item.json.id }}\"\n    }\n  },\n  \"response_metadata\": {}\n}",
+            "session_id": "={{ $('Organiza_Dados').item.json.user.telefone }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3584,
+        -448
+      ],
+      "id": "d645a8aa-ad9b-42e2-b2ea-c1be30cc87b4",
+      "name": "Atualiza_chatMemory1",
+      "credentials": {
+        "postgres": {
+          "id": "Rg77bSj4hxXnl3gF",
+          "name": "Postgres/SupabaseIntimAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "n8n_chat_histories_intimacoes",
+          "mode": "list",
+          "cachedResultName": "n8n_chat_histories_intimacoes"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "message": "={\n  \"type\": \"ai\",\n  \"content\": \"Desculpe, sua comunicação anterior já não está mais ativa. A última intimação foi interrompida pois houve recusa de comparecimento ou agendamento da oitiva. Em caso de dúvidas ou para saber mais detalhes, ligue para o telefone {{ $('Organiza_Dados').item.json.delegacia.telefone }} (falar com oficial *{{ $('Organiza_Responsaveis1').item.json.oficial.nome }}*). Agradecemos o contato.\",\n  \"additional_kwargs\": {\n    \"contexto\": {\n      \"tipo\": \"recusada_pelo_intimado\",\n      \"intimacao_id\": \"{{ $('Consulta_Intimacao_Recusada').item.json.id }}\"\n    }\n  },\n  \"response_metadata\": {}\n}",
+            "session_id": "={{ $('Organiza_Dados').item.json.user.telefone }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3584,
+        -208
+      ],
+      "id": "93036ae4-a653-429a-95ec-719f29dc6d7f",
+      "name": "Atualiza_chatMemory2",
+      "credentials": {
+        "postgres": {
+          "id": "Rg77bSj4hxXnl3gF",
+          "name": "Postgres/SupabaseIntimAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "chat",
+          "mode": "list",
+          "cachedResultName": "chat"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id_intimacao": "={{ $('Consulta_Intimacao_Recusada').item.json.id }}",
+            "origem": "intimai",
+            "mensagem": "=Desculpe, sua comunicação anterior já não está mais ativa. A última intimação foi interrompida pois não houve a confirmação de identidade necessária para o agendamento da oitiva. Em caso de dúvidas ou para saber mais detalhes, ligue para o telefone {{ $('Organiza_Dados').item.json.delegacia.telefone }} (falar com oficial *{{ $('Organiza_Responsaveis1').item.json.oficial.nome }}*). Agradecemos o contato.",
+            "created_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id_intimacao",
+              "displayName": "id_intimacao",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "mensagem",
+              "displayName": "mensagem",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "origem",
+              "displayName": "origem",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3792,
+        -448
+      ],
+      "id": "27b2a717-9816-493a-bd11-02f9bb081d84",
+      "name": "Atualiza_Chat",
+      "credentials": {
+        "postgres": {
+          "id": "Rg77bSj4hxXnl3gF",
+          "name": "Postgres/SupabaseIntimAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "chat",
+          "mode": "list",
+          "cachedResultName": "chat"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id_intimacao": "={{ $('Consulta_Intimacao_Recusada').item.json.id }}",
+            "origem": "intimai",
+            "mensagem": "=Desculpe, sua comunicação anterior já não está mais ativa. A última intimação foi interrompida pois houve recusa de comparecimento ou agendamento da oitiva. Em caso de dúvidas ou para saber mais detalhes, ligue para o telefone {{ $('Organiza_Dados').item.json.delegacia.telefone }} (falar com oficial *{{ $('Organiza_Responsaveis1').item.json.oficial.nome }}*). Agradecemos o contato.",
+            "created_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id_intimacao",
+              "displayName": "id_intimacao",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "mensagem",
+              "displayName": "mensagem",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "origem",
+              "displayName": "origem",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3792,
+        -208
+      ],
+      "id": "951a8fb6-5b5f-4b76-877a-99ff00d1d72f",
+      "name": "Atualiza_Chat1",
+      "credentials": {
+        "postgres": {
+          "id": "Rg77bSj4hxXnl3gF",
+          "name": "Postgres/SupabaseIntimAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "n8n_chat_histories_intimacoes",
+          "mode": "list",
+          "cachedResultName": "n8n_chat_histories_intimacoes"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "message": "={\n  \"type\": \"ai\",\n  \"content\": \"Desculpe, sua comunicação anterior já não está mais ativa. A última intimação em seu nome foi cancelada pelo oficial responsável. Caso necessário, a Delegacia entrará em contato novamente com uma nova intimação. Agradecemos o contato.\",\n  \"additional_kwargs\": {\n    \"contexto\": {\n      \"tipo\": \"cancelada_pelo_oficial\",\n      \"intimacao_id\": \"{{ $('Consulta_Intimacao_Cancelada').item.json.id }}\"\n    }\n  },\n  \"response_metadata\": {}\n}",
+            "session_id": "={{ $('Organiza_Dados').item.json.user.telefone }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3584,
+        80
+      ],
+      "id": "4b80ed13-3417-4a38-b759-93ed60abd057",
+      "name": "Atualiza_chatMemory",
+      "credentials": {
+        "postgres": {
+          "id": "Rg77bSj4hxXnl3gF",
+          "name": "Postgres/SupabaseIntimAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "chat",
+          "mode": "list",
+          "cachedResultName": "chat"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id_intimacao": "={{ $('Consulta_Intimacao_Cancelada').item.json.id }}",
+            "origem": "intimai",
+            "mensagem": "=Desculpe, sua comunicação anterior já não está mais ativa. A última intimação em seu nome foi cancelada pelo oficial responsável. Caso necessário, a Delegacia entrará em contato novamente com uma nova intimação. Agradecemos o contato.",
+            "created_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id_intimacao",
+              "displayName": "id_intimacao",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "mensagem",
+              "displayName": "mensagem",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "origem",
+              "displayName": "origem",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3792,
+        80
+      ],
+      "id": "a429f201-8d4c-49b1-9d79-0ec85b5cc1ad",
+      "name": "Atualiza_Chat2",
+      "credentials": {
+        "postgres": {
+          "id": "Rg77bSj4hxXnl3gF",
+          "name": "Postgres/SupabaseIntimAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "n8n_chat_histories_intimacoes",
+          "mode": "list",
+          "cachedResultName": "n8n_chat_histories_intimacoes"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "message": "={\n  \"type\": \"ai\",\n  \"content\": \"Desculpe, sua comunicação anterior já não está mais ativa. Não houve comparecimento em sua última oitiva agendada. Caso necessário, a Delegacia entrará em contato novamente com uma nova intimação. Se tiver dúvidas ou para mais informações, ligue para o telefone {{ $('Organiza_Dados').item.json.delegacia.telefone }} (falar com oficial *{{ $('Organiza_Responsaveis2').item.json.oficial.nome }}*). Agradecemos o contato.\",\n  \"additional_kwargs\": {\n    \"contexto\": {\n      \"tipo\": \"outsider_ausente\",\n      \"intimacao_id\": \"{{ $('Consulta_Intimacao_Ausente').item.json.id }}\"\n    }\n  },\n  \"response_metadata\": {}\n}",
+            "session_id": "={{ $('Organiza_Dados').item.json.user.telefone }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2944,
+        880
+      ],
+      "id": "d1e438bc-fff1-4352-a644-61c3843c2155",
+      "name": "Atualiza_chatMemory5",
+      "credentials": {
+        "postgres": {
+          "id": "Rg77bSj4hxXnl3gF",
+          "name": "Postgres/SupabaseIntimAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "chat",
+          "mode": "list",
+          "cachedResultName": "chat"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id_intimacao": "={{ $('Consulta_Intimacao_Ausente').item.json.id }}",
+            "origem": "intimai",
+            "mensagem": "=Desculpe, sua comunicação anterior já não está mais ativa. Não houve comparecimento em sua última oitiva agendada. Caso necessário, a Delegacia entrará em contato novamente com uma nova intimação. Se tiver dúvidas ou para mais informações, ligue para o telefone {{ $('Organiza_Dados').item.json.delegacia.telefone }} (falar com oficial *{{ $('Organiza_Responsaveis2').item.json.oficial.nome }}*). Agradecemos o contato.",
+            "created_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id_intimacao",
+              "displayName": "id_intimacao",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "mensagem",
+              "displayName": "mensagem",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "origem",
+              "displayName": "origem",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3120,
+        880
+      ],
+      "id": "4ccf8a70-d470-4756-a0d3-fa89113efd84",
+      "name": "Atualiza_Chat5",
+      "credentials": {
+        "postgres": {
+          "id": "Rg77bSj4hxXnl3gF",
+          "name": "Postgres/SupabaseIntimAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "n8n_chat_histories_intimacoes",
+          "mode": "list",
+          "cachedResultName": "n8n_chat_histories_intimacoes"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "message": "={\n  \"type\": \"ai\",\n  \"content\": \"Olá! Este whatsapp é exclusivo para intimações em andamento iniciadas pela {{ $('Organiza_Dados').item.json.delegacia.nome }}. Vejo que não há intimações atuais para o seu contato. Para mais informações, ligue para o telefone {{ $('Organiza_Dados').item.json.delegacia.telefone }}\",\n  \"additional_kwargs\": {\n    \"contexto\": {\n      \"tipo\": \"outsider\"\n    }\n  },\n  \"response_metadata\": {}\n}",
+            "session_id": "={{ $('Organiza_Dados').item.json.user.telefone }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2944,
+        1200
+      ],
+      "id": "419463cf-f11e-42ac-b454-e4b87d275135",
+      "name": "Atualiza_chatMemory6",
+      "credentials": {
+        "postgres": {
+          "id": "Rg77bSj4hxXnl3gF",
+          "name": "Postgres/SupabaseIntimAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "n8n_chat_histories_intimacoes",
+          "mode": "list",
+          "cachedResultName": "n8n_chat_histories_intimacoes"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "message": "={\n  \"type\": \"ai\",\n  \"content\": \"Desculpe, sua comunicação anterior já não está mais ativa. A última intimação em seu nome foi cancelada, pois a agenda do oficial responsável foi preenchida antes do agendamento ser concluído. Por favor, aguarde um novo contato da delegacia com nova intimação, ou ligue para o telefone {{ $('Organiza_Dados').item.json.delegacia.telefone }} para mais informações (falar com oficial *{{ $('Organiza_Responsaveis').item.json.oficial.nome }}*). Agradecemos o contato.\",\n  \"additional_kwargs\": {\n    \"contexto\": {\n      \"tipo\": \"agenda_cheia\",\n      \"intimacao_id\": \"{{ $('Consulta_Intimacao_Cancelada').item.json.id }}\"\n    }\n  },\n  \"response_metadata\": {}\n}",
+            "session_id": "={{ $('Organiza_Dados').item.json.user.telefone }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3584,
+        320
+      ],
+      "id": "7856f442-308b-457b-b476-c09f516318b2",
+      "name": "Atualiza_chatMemory3",
+      "credentials": {
+        "postgres": {
+          "id": "Rg77bSj4hxXnl3gF",
+          "name": "Postgres/SupabaseIntimAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "chat",
+          "mode": "list",
+          "cachedResultName": "chat"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id_intimacao": "={{ $('Consulta_Intimacao_Cancelada').item.json.id }}",
+            "origem": "intimai",
+            "mensagem": "=Desculpe, sua comunicação anterior já não está mais ativa. A última intimação em seu nome foi cancelada, pois a agenda do oficial responsável foi preenchida antes do agendamento ser concluído. Por favor, aguarde um novo contato da delegacia com nova intimação, ou ligue para o telefone {{ $('Organiza_Dados').item.json.delegacia.telefone }} para mais informações (falar com oficial *{{ $('Organiza_Responsaveis').item.json.oficial.nome }}*). Agradecemos o contato.",
+            "created_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id_intimacao",
+              "displayName": "id_intimacao",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "mensagem",
+              "displayName": "mensagem",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "origem",
+              "displayName": "origem",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3792,
+        320
+      ],
+      "id": "4f8414ca-858b-4871-8199-df7edfd43fb3",
+      "name": "Atualiza_Chat3",
+      "credentials": {
+        "postgres": {
+          "id": "Rg77bSj4hxXnl3gF",
+          "name": "Postgres/SupabaseIntimAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "n8n_chat_histories_intimacoes",
+          "mode": "list",
+          "cachedResultName": "n8n_chat_histories_intimacoes"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "message": "={\n  \"type\": \"ai\",\n  \"content\": \"Desculpe, sua comunicação anterior já não está mais ativa. A última intimação em seu nome foi cancelada, pois o agendamento não foi concluído a tempo (antes da data sugerida). Por favor, aguarde um novo contato da delegacia com nova intimação, ou ligue para o telefone {{ $('Organiza_Dados').item.json.delegacia.telefone }} para mais informações (falar com oficial *{{ $('Organiza_Responsaveis').item.json.oficial.nome }}*). Agradecemos o contato.\",\n  \"additional_kwargs\": {\n    \"contexto\": {\n      \"tipo\": \"agendamento_nao_concluido\",\n      \"intimacao_id\": \"{{ $('Consulta_Intimacao_Cancelada').item.json.id }}\"\n    }\n  },\n  \"response_metadata\": {}\n}",
+            "session_id": "={{ $('Organiza_Dados').item.json.user.telefone }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3584,
+        576
+      ],
+      "id": "1e01897b-f163-4aa9-ab7d-a2df199039fe",
+      "name": "Atualiza_chatMemory4",
+      "credentials": {
+        "postgres": {
+          "id": "Rg77bSj4hxXnl3gF",
+          "name": "Postgres/SupabaseIntimAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "chat",
+          "mode": "list",
+          "cachedResultName": "chat"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "origem": "intimai",
+            "mensagem": "=Desculpe, sua comunicação anterior já não está mais ativa. A última intimação em seu nome foi cancelada, pois o agendamento não foi concluído a tempo (antes da data sugerida). Por favor, aguarde um novo contato da delegacia com nova intimação, ou ligue para o telefone {{ $('Organiza_Dados').item.json.delegacia.telefone }} para mais informações (falar com oficial *{{ $('Organiza_Responsaveis').item.json.oficial.nome }}*). Agradecemos o contato.",
+            "created_at": "={{ $now.toISO() }}",
+            "id_intimacao": "={{ $('Consulta_Intimacao_Cancelada').item.json.id }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id_intimacao",
+              "displayName": "id_intimacao",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "mensagem",
+              "displayName": "mensagem",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "origem",
+              "displayName": "origem",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3792,
+        576
+      ],
+      "id": "297e996a-dade-4f97-a4a7-046c6e1d82a0",
+      "name": "Atualiza_Chat4",
+      "credentials": {
+        "postgres": {
+          "id": "Rg77bSj4hxXnl3gF",
+          "name": "Postgres/SupabaseIntimAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2e8c60a9-e13c-4683-acd9-70f000da2bff",
+              "name": "oficial.nome",
+              "value": "={{ $json.nome }}",
+              "type": "string"
+            },
+            {
+              "id": "457430d1-7a02-4862-ab66-a1e4aba0cbfb",
+              "name": "delegado.nome",
+              "value": "={{ $json.delegadoResponsavel }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2464,
+        -336
+      ],
+      "id": "c8e6e0c1-dd02-488b-be06-f80723f8f32d",
+      "name": "Organiza_Responsaveis1"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "usuarios",
+          "mode": "list",
+          "cachedResultName": "usuarios"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "userId",
+              "value": "={{ $('Consulta_Intimacao_Recusada').item.json.userId}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2288,
+        -336
+      ],
+      "id": "a6215cb3-b0c0-4cef-9624-8f69c939f6ed",
+      "name": "Consulta_Responsaveis",
+      "credentials": {
+        "postgres": {
+          "id": "Rg77bSj4hxXnl3gF",
+          "name": "Postgres/SupabaseIntimAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2e8c60a9-e13c-4683-acd9-70f000da2bff",
+              "name": "oficial.nome",
+              "value": "={{ $json.nome }}",
+              "type": "string"
+            },
+            {
+              "id": "457430d1-7a02-4862-ab66-a1e4aba0cbfb",
+              "name": "delegado.nome",
+              "value": "={{ $json.delegadoResponsavel }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2480,
+        320
+      ],
+      "id": "ba104d83-f423-408e-af2f-3eec1d3d5715",
+      "name": "Organiza_Responsaveis"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "usuarios",
+          "mode": "list",
+          "cachedResultName": "usuarios"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "userId",
+              "value": "={{ $('Consulta_Intimacao_Status').item.json.userId}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2288,
+        320
+      ],
+      "id": "3df1cc26-f37b-4c17-b663-9e6ab8ce344b",
+      "name": "Consulta_Responsaveis1",
+      "credentials": {
+        "postgres": {
+          "id": "Rg77bSj4hxXnl3gF",
+          "name": "Postgres/SupabaseIntimAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c922d8e1-4c25-414c-b98d-a3f5650103c6",
+              "leftValue": "={{ $('Parse_Consulta_Edge1').item.json.existe_intimacao }}",
+              "rightValue": "=true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1088,
+        336
+      ],
+      "id": "619d41af-e580-4f4d-9d2a-cb7662fdd6af",
+      "name": "Tem_Intimacao?",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2e8c60a9-e13c-4683-acd9-70f000da2bff",
+              "name": "oficial.nome",
+              "value": "={{ $json.nome }}",
+              "type": "string"
+            },
+            {
+              "id": "457430d1-7a02-4862-ab66-a1e4aba0cbfb",
+              "name": "delegado.nome",
+              "value": "={{ $json.delegadoResponsavel }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2272,
+        880
+      ],
+      "id": "5d276bcf-f7f3-4b8f-83ff-09eeee5f674b",
+      "name": "Organiza_Responsaveis2"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "usuarios",
+          "mode": "list",
+          "cachedResultName": "usuarios"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "userId",
+              "value": "={{ $('Consulta_Intimacao_Ausente').item.json.userId}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2064,
+        880
+      ],
+      "id": "4b928b6b-c1ee-4949-a220-c93029d7d281",
+      "name": "Consulta_Responsaveis2",
+      "credentials": {
+        "postgres": {
+          "id": "Rg77bSj4hxXnl3gF",
+          "name": "Postgres/SupabaseIntimAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "chat",
+          "mode": "list",
+          "cachedResultName": "chat"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id_intimacao": "={{ $('Parse_Consulta_Edge1').item.json.id_intimacao }}",
+            "origem": "intimado",
+            "mensagem": "={{ $('Organiza_Dados').item.json.user.message }}",
+            "created_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id_intimacao",
+              "displayName": "id_intimacao",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "mensagem",
+              "displayName": "mensagem",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "origem",
+              "displayName": "origem",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1344,
+        320
+      ],
+      "id": "0e4b4b86-cfae-456c-9055-106b0451a1c3",
+      "name": "Atualiza_Chat6",
+      "credentials": {
+        "postgres": {
+          "id": "Rg77bSj4hxXnl3gF",
+          "name": "Postgres/SupabaseIntimAI"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "user.telefone": "5532933001238",
+          "delegacia.phone_number_id": "926772047193170",
+          "delegacia.nome": "Delegacia de Leopoldina",
+          "delegacia.telefone": "(32)3441-2489",
+          "user.nome": "Lucas"
+        }
+      }
+    ],
+    "Atualiza_Chat": [
+      {
+        "json": {
+          "name": "First item",
+          "code": 1
+        }
+      },
+      {
+        "json": {
+          "name": "Second item",
+          "code": 2
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Organiza_Dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consulta_Intimacao_Recusada": {
+      "main": [
+        [
+          {
+            "node": "Normaliza_Motivo_Recusada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consulta_Intimacao_Cancelada": {
+      "main": [
+        [
+          {
+            "node": "Normaliza_Motivo_Cancelada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separa_Motivo_Recusada": {
+      "main": [
+        [
+          {
+            "node": "Outsider_Recusada",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Outsider_Recusada3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separa_Motivo_Cancelada": {
+      "main": [
+        [
+          {
+            "node": "Outsider_Cancelada_pela_Delegacia",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Outsider_Cancelada_Agenda_Cheia3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Outsider_Cancelada_Agendamento_Nao_Concluido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consulta_Intimacao_Edge1": {
+      "main": [
+        [
+          {
+            "node": "Parse_Consulta_Edge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse_Consulta_Edge1": {
+      "main": [
+        [
+          {
+            "node": "Tem_Intimacao?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separa_Status": {
+      "main": [
+        [
+          {
+            "node": "Consulta_Intimacao_Recusada",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Consulta_Intimacao_Cancelada",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Consulta_Intimacao_Ausente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consulta_Intimacao_Ausente": {
+      "main": [
+        [
+          {
+            "node": "Consulta_Responsaveis2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normaliza_Motivo_Recusada": {
+      "main": [
+        [
+          {
+            "node": "Consulta_Responsaveis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normaliza_Motivo_Cancelada": {
+      "main": [
+        [
+          {
+            "node": "Consulta_Responsaveis1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outsider_Recusada": {
+      "main": [
+        [
+          {
+            "node": "Outsider_Recusada1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outsider_Recusada1": {
+      "main": [
+        [
+          {
+            "node": "Outsider_Recusada2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outsider_Recusada3": {
+      "main": [
+        [
+          {
+            "node": "Outsider_Recusada4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outsider_Recusada4": {
+      "main": [
+        [
+          {
+            "node": "Outsider_Recusada5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outsider_Cancelada_pela_Delegacia": {
+      "main": [
+        [
+          {
+            "node": "Outsider_Cancelada_pela_Delegacia1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outsider_Cancelada_pela_Delegacia1": {
+      "main": [
+        [
+          {
+            "node": "Outsider_Cancelada_pela_Delegacia2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outsider_Cancelada_Agenda_Cheia3": {
+      "main": [
+        [
+          {
+            "node": "Outsider_Cancelada_Agenda_Cheia4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outsider_Cancelada_Agenda_Cheia4": {
+      "main": [
+        [
+          {
+            "node": "Outsider_Cancelada_Agenda_Cheia5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outsider_Cancelada_Agendamento_Nao_Concluido": {
+      "main": [
+        [
+          {
+            "node": "Outsider_Cancelada_Agendamento_Nao_Concluido1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outsider_Cancelada_Agendamento_Nao_Concluido1": {
+      "main": [
+        [
+          {
+            "node": "Outsider_Cancelada_Agendamento_Nao_Concluido2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outsider_Ausente3": {
+      "main": [
+        [
+          {
+            "node": "Outsider_Ausente4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outsider_Ausente4": {
+      "main": [
+        [
+          {
+            "node": "Outsider_Ausente5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outsider3": {
+      "main": [
+        [
+          {
+            "node": "Outsider4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outsider4": {
+      "main": [
+        [
+          {
+            "node": "Outsider5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Organiza_Dados": {
+      "main": [
+        [
+          {
+            "node": "Consulta_Intimacao_Edge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outsider_Recusada2": {
+      "main": [
+        [
+          {
+            "node": "Atualiza_chatMemory1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualiza_chatMemory1": {
+      "main": [
+        [
+          {
+            "node": "Atualiza_Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualiza_chatMemory2": {
+      "main": [
+        [
+          {
+            "node": "Atualiza_Chat1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outsider_Recusada5": {
+      "main": [
+        [
+          {
+            "node": "Atualiza_chatMemory2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualiza_chatMemory": {
+      "main": [
+        [
+          {
+            "node": "Atualiza_Chat2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualiza_chatMemory5": {
+      "main": [
+        [
+          {
+            "node": "Atualiza_Chat5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualiza_chatMemory6": {
+      "main": [
+        []
+      ]
+    },
+    "Outsider_Cancelada_pela_Delegacia2": {
+      "main": [
+        [
+          {
+            "node": "Atualiza_chatMemory",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualiza_chatMemory3": {
+      "main": [
+        [
+          {
+            "node": "Atualiza_Chat3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualiza_chatMemory4": {
+      "main": [
+        [
+          {
+            "node": "Atualiza_Chat4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outsider_Cancelada_Agenda_Cheia5": {
+      "main": [
+        [
+          {
+            "node": "Atualiza_chatMemory3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outsider_Cancelada_Agendamento_Nao_Concluido2": {
+      "main": [
+        [
+          {
+            "node": "Atualiza_chatMemory4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outsider_Ausente5": {
+      "main": [
+        [
+          {
+            "node": "Atualiza_chatMemory5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outsider5": {
+      "main": [
+        [
+          {
+            "node": "Atualiza_chatMemory6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consulta_Responsaveis": {
+      "main": [
+        [
+          {
+            "node": "Organiza_Responsaveis1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Organiza_Responsaveis1": {
+      "main": [
+        [
+          {
+            "node": "Separa_Motivo_Recusada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consulta_Responsaveis1": {
+      "main": [
+        [
+          {
+            "node": "Organiza_Responsaveis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Organiza_Responsaveis": {
+      "main": [
+        [
+          {
+            "node": "Separa_Motivo_Cancelada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem_Intimacao?": {
+      "main": [
+        [
+          {
+            "node": "Atualiza_Chat6",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Outsider3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consulta_Responsaveis2": {
+      "main": [
+        [
+          {
+            "node": "Organiza_Responsaveis2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Organiza_Responsaveis2": {
+      "main": [
+        [
+          {
+            "node": "Outsider_Ausente3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualiza_Chat6": {
+      "main": [
+        [
+          {
+            "node": "Separa_Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "PGmfvV9BPn5dgA3f",
+    "callerPolicy": "workflowsFromSameOwner",
+    "binaryMode": "separate"
+  },
+  "versionId": "526a0388-490d-4732-9047-c167da0fd051",
+  "meta": {
+    "instanceId": "46afdc4408b12967d8a8ebd84fe9532888ffc6505ba874d4ba7406c1fc078ed9"
+  },
+  "id": "Ez0698J4DfP4AB3F",
+  "tags": [
+    {
+      "updatedAt": "2026-03-04T13:01:42.950Z",
+      "createdAt": "2026-03-04T13:01:42.950Z",
+      "id": "JywESdzj1wWSEZnr",
+      "name": "IntimAI"
+    }
+  ]
+}

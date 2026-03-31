@@ -3,7 +3,10 @@ import PageHeader from '@/components/ui/PageHeader';
 import { useSuporte } from '@/hooks/useSuporte';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Mail, GripVertical, Building2, MessageSquare, Tag } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Loader2, Mail, GripVertical, Building2, MessageSquare, Tag, Send, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -27,6 +30,7 @@ const KanbanColumn = ({
   dragSourceStatus,
   onDragStart,
   onDragEnd,
+  adicionarMensagemChat
 }) => {
   const [isOver, setIsOver] = useState(false);
 
@@ -104,6 +108,7 @@ const KanbanColumn = ({
               columnStatus={status}
               onDragStart={onDragStart}
               onDragEnd={onDragEnd}
+              adicionarMensagemChat={adicionarMensagemChat}
             />
           ))
         )}
@@ -112,8 +117,12 @@ const KanbanColumn = ({
   );
 };
 
-const SuporteCard = ({ item, columnStatus, onDragStart, onDragEnd }) => {
+const SuporteCard = ({ item, columnStatus, onDragStart, onDragEnd, adicionarMensagemChat }) => {
   const isLocked = ALLOWED_TRANSITIONS[columnStatus]?.length === 0;
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [resposta, setResposta] = useState('');
+
+  const historico = item.historico_conversas || [];
 
   const handleDragStart = (e) => {
     e.dataTransfer.setData('itemId', item.id);
@@ -124,6 +133,20 @@ const SuporteCard = ({ item, columnStatus, onDragStart, onDragEnd }) => {
 
   const handleDragEnd = () => {
     if (onDragEnd) onDragEnd();
+  };
+
+  const handleSend = async (resolver) => {
+    if (!resposta.trim()) return;
+    const msg = {
+      origem: 'admin',
+      texto: resposta,
+      data: new Date().toISOString()
+    };
+    const success = await adicionarMensagemChat(item.id, msg, resolver);
+    if (success) {
+      setResposta('');
+      if (resolver) setIsChatOpen(false);
+    }
   };
 
   // Recupera o nome da delegacia validando os possíveis mapeamentos ou preenchimentos
@@ -157,10 +180,12 @@ const SuporteCard = ({ item, columnStatus, onDragStart, onDragEnd }) => {
   const { assunto, corpo } = parseMensagem(item.mensagem);
 
   return (
+    <>
     <div
       draggable={true}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onClick={() => setIsChatOpen(true)}
       className={cn(
         'group cursor-grab active:cursor-grabbing'
       )}
@@ -220,11 +245,94 @@ const SuporteCard = ({ item, columnStatus, onDragStart, onDragEnd }) => {
         </CardContent>
       </Card>
     </div>
+
+    <Dialog open={isChatOpen} onOpenChange={setIsChatOpen}>
+      <DialogContent className="sm:max-w-[500px] h-[80vh] flex flex-col p-0 gap-0">
+        <DialogHeader className="p-4 border-b border-border/40 bg-muted/30">
+          <DialogTitle className="text-base flex items-center justify-between">
+            <div className="flex flex-col">
+              <span>{item.nome || 'Usuário sem nome'}</span>
+              <span className="text-xs font-normal text-muted-foreground">{delegaciaNome || item.email}</span>
+            </div>
+            <Badge variant="outline" className={columnStatus === 'em_atendimento' ? 'border-cyan-500/50 text-cyan-500' : ''}>
+              {columnStatus.replace('_', ' ')}
+            </Badge>
+          </DialogTitle>
+        </DialogHeader>
+        
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-background/50">
+          {/* Mensagem Inicial */}
+          <div className="flex flex-col gap-1 items-start">
+            <span className="text-[10px] text-muted-foreground ml-1">Usuário</span>
+            <div className="bg-muted text-foreground text-sm p-3 rounded-2xl rounded-tl-sm max-w-[85%] border border-border/50">
+              {assunto && <div className="font-bold text-xs mb-1 uppercase opacity-80">{assunto}</div>}
+              {corpo}
+            </div>
+          </div>
+          
+          {/* Histórico Adicional */}
+          {historico.map((h, i) => {
+            const isAdmin = h.origem === 'admin';
+            return (
+              <div key={i} className={`flex flex-col gap-1 ${isAdmin ? 'items-end' : 'items-start'}`}>
+                <span className="text-[10px] text-muted-foreground mx-1">
+                  {isAdmin ? 'Você (Admin)' : 'Usuário'} • {new Date(h.data).toLocaleDateString()} {new Date(h.data).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                </span>
+                <div className={`text-sm p-3 rounded-2xl max-w-[85%] shadow-sm ${
+                  isAdmin 
+                    ? 'bg-primary text-primary-foreground rounded-tr-sm' 
+                    : 'bg-muted text-foreground rounded-tl-sm border border-border/50'
+                }`}>
+                  {h.texto}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Input Area */}
+        <div className="p-4 bg-background border-t border-border/40 flex flex-col gap-3">
+          <Textarea 
+            placeholder="Digite a sua resposta..."
+            value={resposta}
+            onChange={(e) => setResposta(e.target.value)}
+            className="min-h-[80px] resize-none focus-visible:ring-1"
+          />
+          <div className="flex justify-between items-center">
+            <span className="text-xs text-muted-foreground italic max-w-[50%]">
+              O usuário verá sua resposta no aplicativo.
+            </span>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => handleSend(false)}
+                disabled={!resposta.trim()}
+              >
+                <Send size={14} className="mr-2" />
+                Responder
+              </Button>
+              <Button 
+                variant="default" 
+                size="sm" 
+                className="bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => handleSend(true)}
+                disabled={!resposta.trim()}
+              >
+                <CheckCircle2 size={14} className="mr-2" />
+                Resolver
+              </Button>
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 };
 
 const SuportePage = () => {
-  const { items, loading, updateStatus } = useSuporte();
+  const { items, loading, updateStatus, adicionarMensagemChat } = useSuporte();
   const { toast } = useToast();
   const [dragSourceStatus, setDragSourceStatus] = useState(null);
 
@@ -310,6 +418,7 @@ const SuportePage = () => {
                 dragSourceStatus={dragSourceStatus}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
+                adicionarMensagemChat={adicionarMensagemChat}
               />
               <KanbanColumn
                 title="Conversando"
@@ -322,6 +431,7 @@ const SuportePage = () => {
                 dragSourceStatus={dragSourceStatus}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
+                adicionarMensagemChat={adicionarMensagemChat}
               />
               <KanbanColumn
                 title="Em Atendimento"
@@ -333,6 +443,7 @@ const SuportePage = () => {
                 dragSourceStatus={dragSourceStatus}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
+                adicionarMensagemChat={adicionarMensagemChat}
               />
               <KanbanColumn
                 title="Resolvido"
@@ -344,6 +455,7 @@ const SuportePage = () => {
                 dragSourceStatus={dragSourceStatus}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
+                adicionarMensagemChat={adicionarMensagemChat}
               />
               <KanbanColumn
                 title="Avaliado"
@@ -355,6 +467,7 @@ const SuportePage = () => {
                 dragSourceStatus={dragSourceStatus}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
+                adicionarMensagemChat={adicionarMensagemChat}
               />
             </div>
           </div>
