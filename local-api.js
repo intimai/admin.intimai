@@ -89,6 +89,11 @@ app.post('/api/meta/verify_code', async (req, res) => {
     catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+app.post('/api/meta/reset_otp', async (req, res) => {
+    try { await resetOtpStatus(req, res); }
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 app.post('/api/meta/unlink', async (req, res) => {
     try { await unlinkPhoneNumber(req, res); }
     catch (e) { res.status(500).json({ error: e.message }); }

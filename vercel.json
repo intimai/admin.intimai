@@ -7,6 +7,10 @@
     },
     "rewrites": [
         {
+            "source": "/api/meta/:path*",
+            "destination": "/api/meta"
+        },
+        {
             "source": "/api/:path*",
             "destination": "/api/:path*"
         },
