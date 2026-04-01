@@ -19,17 +19,34 @@ export default async function handlerWhatsappLead(req, res) {
         return res.status(400).json({ error: 'Preencha telefone, mensagem e lead_id.' });
     }
 
-    // Pega os segredos do ambiente (com fallback de aviso se não achar)
-    const META_TOKEN = process.env.VITE_META_TOKEN || process.env.META_TOKEN;
-    const PHONE_ID = process.env.VITE_META_PHONE_ID || process.env.META_PHONE_ID;
-    
-    // Serviço do Supabase para injetar no banco
+    // Serviço do Supabase para consultar o banco
     const supabaseUrl = process.env.VITE_SUPABASE_URL;
     const supabaseKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+    const supabase = (supabaseUrl && supabaseKey) ? createClient(supabaseUrl, supabaseKey) : null;
+
+    let META_TOKEN = process.env.VITE_META_TOKEN || process.env.META_TOKEN;
+    let PHONE_ID = process.env.VITE_META_PHONE_ID || process.env.META_PHONE_ID;
+
+    // Busca Dinâmica da Nova Arquitetura
+    if (supabase) {
+        // 1. Pega o Token Mestre do admin_settings
+        const { data: config } = await supabase.from('admin_settings').select('meta_api_token').eq('key', 'config_meta').maybeSingle();
+        if (config?.meta_api_token) META_TOKEN = config.meta_api_token;
+
+        // 2. Pega o Phone ID do Remetente Oficial "Comercial"
+        const { data: remetente } = await supabase
+            .from('meta_phones_status')
+            .select('phone_id')
+            .ilike('custom_name', '%comercial%')
+            .limit(1)
+            .maybeSingle();
+            
+        if (remetente?.phone_id) PHONE_ID = remetente.phone_id;
+    }
 
     if (!META_TOKEN || !PHONE_ID) {
-        console.error('[WhatsApp API] Falta carregar TOKEN ou PHONE_ID no seu servidor Node.');
-        return res.status(500).json({ error: 'Faltam credenciais da Meta no servidor Admin.' });
+        console.error('[WhatsApp API] Falta carregar TOKEN ou PHONE_ID no seu servidor Node ou Banco.');
+        return res.status(500).json({ error: 'Faltam credenciais da Meta. Configure o Hub ou o .env' });
     }
 
     // --- Parte 1: Transformar o número para o padrão DDI WhatsApp
@@ -67,8 +84,7 @@ export default async function handlerWhatsappLead(req, res) {
         }
 
         // --- Parte 3: Sucesso no Disparo - Grava no Banco de Dados
-        if (supabaseUrl && supabaseKey) {
-            const supabase = createClient(supabaseUrl, supabaseKey);
+        if (supabase) {
             const { error: dbError } = await supabase.from('chat_admin').insert([
                 {
                     lead_id: lead_id,

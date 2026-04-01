@@ -3,6 +3,20 @@ import handlerPdf from './api/generate-pdf.js';
 import handlerContrato from './api/generate-contrato.js';
 import handlerPreview from './api/preview-proposta.js';
 import handlerWhatsappLead from './api/send-whatsapp-lead.js';
+import {
+    listPhoneNumbers,
+    addPhoneNumber,
+    getPhoneStatus,
+    requestVerificationCode,
+    verifyCode,
+    resetOtpStatus,
+    unlinkPhoneNumber,
+    updatePhoneName,
+    getBusinessProfile,
+    updateBusinessProfile,
+    listWabas,
+    createWaba
+} from './api/meta-connections.js';
 import bodyParser from 'body-parser';
 
 const app = express();
@@ -47,6 +61,62 @@ app.post('/api/send-whatsapp-lead', async (req, res) => {
         console.error('[API Local] Erro Fatal no Envio ZAP:', e);
         res.status(500).send(e.message);
     }
+});
+
+// ─── Rotas Meta Connections ───────────────────────────────────────────────────
+app.get('/api/meta/phone_numbers', async (req, res) => {
+    try { await listPhoneNumbers(req, res); }
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/meta/phone_numbers', async (req, res) => {
+    try { await addPhoneNumber(req, res); }
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/meta/status/:phone_id', async (req, res) => {
+    try { await getPhoneStatus(req, res); }
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/meta/request_code', async (req, res) => {
+    try { await requestVerificationCode(req, res); }
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/meta/verify_code', async (req, res) => {
+    try { await verifyCode(req, res); }
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/meta/unlink', async (req, res) => {
+    try { await unlinkPhoneNumber(req, res); }
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/meta/update_name/:phone_id', async (req, res) => {
+    try { await updatePhoneName(req, res); }
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/meta/profile/:phone_id', async (req, res) => {
+    try { await getBusinessProfile(req, res); }
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/meta/update_business_profile/:phone_id', async (req, res) => {
+    try { await updateBusinessProfile(req, res); }
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/meta/wabas', async (req, res) => {
+    try { await listWabas(req, res); }
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/meta/wabas', async (req, res) => {
+    try { await createWaba(req, res); }
+    catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 const PORT = 3001;

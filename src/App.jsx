@@ -18,6 +18,7 @@ import ContratosPage from './pages/ContratosPage';
 import AuditoriaPage from './pages/AuditoriaPage';
 import MonitoramentoIAPage from './pages/MonitoramentoIAPage';
 import NFePage from './pages/NFePage';
+import ConexoesPage from './pages/ConexoesPage';
 import AdminLayout from './components/layout/AdminLayout';
 import AdminProtectedRoute from './components/layout/AdminProtectedRoute';
 import { AdminAuthProvider } from './contexts/AdminAuthContext';
@@ -44,7 +45,7 @@ function App() {
               
               <Route path="conexoes" element={
                 <AdminProtectedRoute menuSlug="conexoes">
-                  <EmDesenvolvimentoPage title="Conexões e Integrações (Meta)" />
+                  <ConexoesPage />
                 </AdminProtectedRoute>
               } />
               <Route path="monitoramento-ia" element={

@@ -410,7 +410,7 @@ const ContratosPage = () => {
             try {
                 setTemplateLoading(true);
                 const { data: setting } = await supabase
-                    .from('app_settings')
+                    .from('admin_settings')
                     .select('value')
                     .eq('key', 'contrato_template_path')
                     .maybeSingle();
@@ -485,7 +485,7 @@ const ContratosPage = () => {
             if (uploadError) throw uploadError;
 
             const { error: settingError } = await supabase
-                .from('app_settings')
+                .from('admin_settings')
                 .upsert({ key: 'contrato_template_path', value: fileName, updated_at: new Date().toISOString() }, { onConflict: 'key' });
 
             if (settingError) throw settingError;
