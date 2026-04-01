@@ -18,7 +18,8 @@ import {
   Terminal,
   Play,
   Copy,
-  Loader2
+  Loader2,
+  ArrowRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
@@ -75,13 +76,17 @@ const MonitoramentoIAPage = () => {
             
             const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
             
-            // Buscamos as conversas ativas (não concluídas) na tabela intimações primeiro
-            const { data: activeIntimacoes } = await supabase
+            // Buscamos as conversas ativas (apenas 'entregue' e 'ativa') na tabela intimações primeiro
+            const { data: activeIntimacoes, error: intimacoesError } = await supabase
                 .from('intimacoes')
-                .select('id, delegacia_id, created_at')
-                .neq('status', 'concluida')
+                .select('id, delegaciaId, criadoEm')
+                .in('status', ['entregue', 'ativa'])
                 .limit(50);
 
+            if (intimacoesError) {
+                console.error("Erro ao buscar intimações:", intimacoesError);
+                return;
+            }
             if (!activeIntimacoes) return;
 
             const timeoutResults = [];
