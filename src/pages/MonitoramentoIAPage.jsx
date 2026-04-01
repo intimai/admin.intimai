@@ -64,16 +64,15 @@ const MonitoramentoIAPage = () => {
 
     const fetchData = async () => {
         setLoading(true);
-        await Promise.all([fetchTimeouts(), fetchErrors()]);
-        setLoading(false);
+        try {
+            await Promise.all([fetchTimeouts(), fetchErrors()]);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const fetchTimeouts = async () => {
         try {
-            // LÓGICA DE DETECÇÃO DE GARGALOS:
-            // 1. Buscamos todas as últimas mensagens enviadas (limitando às últimas 24h para performance)
-            // 2. Filtramos onde a ÚLTIMA mensagem foi do 'intimado' e tem mais de 15 minutos.
-            
             const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
             
             // Buscamos as conversas ativas (apenas 'entregue' e 'ativa') na tabela intimações primeiro
@@ -89,27 +88,27 @@ const MonitoramentoIAPage = () => {
             }
             if (!activeIntimacoes) return;
 
-            const timeoutResults = [];
-
-            // Para cada intimação ativa, pegamos a última mensagem do chat
-            // (Nota: Em produção escala absurda, isso deve vir de uma VIEW no Supabase)
-            for (const intim of activeIntimacoes) {
+            // Busca os chats em paralelo para altíssima performance (ao invés de travar linha a linha)
+            const chatPromises = activeIntimacoes.map(async (intim) => {
                 const { data: lastMsg } = await supabase
                     .from('chat')
                     .select('*')
                     .eq('id_intimacao', intim.id)
                     .order('created_at', { ascending: false })
                     .limit(1)
-                    .single();
+                    .maybeSingle();
 
                 if (lastMsg && lastMsg.origem === 'intimado' && new Date(lastMsg.created_at) < new Date(fifteenMinsAgo)) {
-                    timeoutResults.push({
+                    return {
                         ...lastMsg,
                         intimacao: intim,
                         delay: Math.floor((Date.now() - new Date(lastMsg.created_at).getTime()) / 60000)
-                    });
+                    };
                 }
-            }
+                return null;
+            });
+
+            const timeoutResults = (await Promise.all(chatPromises)).filter(item => item !== null);
 
             setTimeouts(timeoutResults.sort((a, b) => b.delay - a.delay));
             setLastUpdate(new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
@@ -184,13 +183,18 @@ const MonitoramentoIAPage = () => {
                                 <div className="text-xs text-emerald-600 font-medium uppercase tracking-wider">IA Engine Online</div>
                             </CardContent>
                         </Card>
-                        <Button variant="outline" onClick={fetchData} className="flex flex-col h-full gap-1 border-border/60 hover:bg-muted/50 transition-all py-3">
+                        <Button 
+                            variant="outline" 
+                            onClick={(e) => { e.preventDefault(); if (!loading) fetchData(); }} 
+                            disabled={loading}
+                            className="flex flex-col h-full gap-1 border-border/60 hover:bg-muted/50 transition-all py-3"
+                        >
                             <div className="flex items-center gap-2 font-bold">
                                 <RefreshCw size={16} className={loading ? "animate-spin text-primary" : ""} />
                                 Forçar Verificação
                             </div>
                             <div className="text-[10px] text-muted-foreground bg-muted/50 px-2 py-0.5 rounded flex items-center gap-1 font-mono">
-                                <Activity size={10} className="text-emerald-500 animate-pulse" />
+                                <Activity size={10} className={cn("text-emerald-500", !loading && "animate-pulse")} />
                                 Monitorando: {lastUpdate || '...'}
                             </div>
                         </Button>
