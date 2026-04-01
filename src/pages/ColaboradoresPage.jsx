@@ -333,18 +333,16 @@ const ColaboradoresPage = () => {
             <PageHeader
                 title="Colaboradores"
                 description="Gerencie os colaboradores da equipe e configure suas permissões de acesso ao painel administrativo."
+                action={
+                    <Button onClick={() => setIsCreateOpen(true)} className="h-10 px-6 shadow-md hover:shadow-primary/20">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Novo Colaborador
+                    </Button>
+                }
             />
 
             <Card className="bg-card/90 border-border/40 overflow-hidden shadow-xl backdrop-blur-md">
                 <CardContent className="p-6 space-y-8">
-                    {/* Ação Superior */}
-                    <div className="flex justify-end">
-                        <Button onClick={() => setIsCreateOpen(true)} className="h-10 px-6 shadow-md hover:shadow-primary/20">
-                            <Plus className="mr-2 h-4 w-4" />
-                            Novo Colaborador
-                        </Button>
-                    </div>
-
                     {loading ? (
                         <div className="flex justify-center py-20">
                             <Loader2 className="h-10 w-10 animate-spin text-primary opacity-50" />

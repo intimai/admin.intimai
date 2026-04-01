@@ -457,12 +457,9 @@ const PropostasPage = () => {
                                             {propostasFiltradas.map((proposta) => (
                                                 <tr key={proposta.id} className="border-b border-border/30 hover:bg-muted/20 transition-colors">
                                                     <td className="py-3 px-3">
-                                                        <div className="flex items-center gap-3">
-                                                            <Building2 size={16} className="text-primary/60 shrink-0" />
-                                                            <div className="flex flex-col">
-                                                                <span className="font-semibold text-foreground">{proposta.delegacia_nome}</span>
-                                                                <span className="text-[10px] text-muted-foreground uppercase opacity-70">ID #{proposta.id.slice(0, 8)}</span>
-                                                            </div>
+                                                        <div className="flex flex-col">
+                                                            <span className="font-semibold text-foreground">{proposta.delegacia_nome}</span>
+                                                            <span className="text-[10px] text-muted-foreground uppercase opacity-70">ID #{proposta.id.slice(0, 8)}</span>
                                                         </div>
                                                     </td>
                                                     <td className="py-3 px-3 font-mono text-foreground font-medium text-xs">

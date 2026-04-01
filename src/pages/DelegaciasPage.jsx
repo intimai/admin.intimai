@@ -453,6 +453,12 @@ const DelegaciasPage = () => {
       <PageHeader
         title="Delegacias"
         description="Gestão de delegacias parceiras e configurações técnicas do sistema."
+        action={
+          <Button onClick={() => setIsCreateModalOpen(true)} className="h-10 px-6 shrink-0 shadow-md hover:shadow-primary/20">
+            <Plus className="mr-2 h-4 w-4" />
+            Nova Delegacia
+          </Button>
+        }
       />
 
       <Card className="bg-card/90 border-border/40 overflow-hidden shadow-xl backdrop-blur-md">
@@ -483,11 +489,6 @@ const DelegaciasPage = () => {
                   </SelectContent>
                 </Select>
               </div>
-
-              <Button onClick={() => setIsCreateModalOpen(true)} className="h-10 px-6 shrink-0 shadow-md hover:shadow-primary/20">
-                <Plus className="mr-2 h-4 w-4" />
-                Nova Delegacia
-              </Button>
             </div>
           </div>
 

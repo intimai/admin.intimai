@@ -5,7 +5,7 @@ import {
   Headphones,
   Building2,
   Users,
-  Gavel,
+  PenLine,
   Receipt,
   UserCog,
   Briefcase,
@@ -61,7 +61,7 @@ export const MENU_CONFIG = [
     icon: Settings2,
     items: [
       { slug: 'propostas', path: '/propostas', label: 'Propostas', icon: FileText },
-      { slug: 'contratos', path: '/contratos', label: 'Contratos', icon: Gavel },
+      { slug: 'contratos', path: '/contratos', label: 'Contratos', icon: PenLine },
       { slug: 'nfe', path: '/nfe', label: 'Notas Fiscais', icon: Receipt },
     ],
   },

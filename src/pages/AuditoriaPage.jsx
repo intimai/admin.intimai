@@ -326,14 +326,10 @@ const AuditoriaPage = () => {
                                     auditLogs.length > 0 ? auditLogs.map((log) => (
                                         <tr key={log.id} className="border-b border-border/30 hover:bg-muted/20 transition-colors">
                                             <td className="py-3 px-3">
-                                                <div className="flex items-center gap-3">
-                                                    <User size={16} className="text-primary/60 shrink-0" />
-                                                    <div>
-                                                        <div className="font-semibold text-foreground truncate max-w-[200px]">{log.userNome}</div>
-                                                        <div className="text-[11px] text-muted-foreground flex items-center gap-1">
-                                                            <MapPin size={10} />
-                                                            {log.delegaciaNome}
-                                                        </div>
+                                                <div className="flex flex-col">
+                                                    <div className="font-semibold text-foreground truncate max-w-[200px]">{log.userNome}</div>
+                                                    <div className="text-[11px] text-muted-foreground">
+                                                        {log.delegaciaNome}
                                                     </div>
                                                 </div>
                                             </td>

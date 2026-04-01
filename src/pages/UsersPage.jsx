@@ -293,6 +293,12 @@ const UsersPage = () => {
       <PageHeader
         title="Usuários"
         description="Gestão de usuários vinculados às delegacias do sistema."
+        action={
+          <Button onClick={() => setIsCreateModalOpen(true)} className="h-10 px-6 shrink-0 shadow-md hover:shadow-primary/20">
+            <Plus className="mr-2 h-4 w-4" />
+            Novo Usuário
+          </Button>
+        }
       />
 
       <Card className="bg-card/90 border-border/40 overflow-hidden shadow-xl backdrop-blur-md">
@@ -323,10 +329,6 @@ const UsersPage = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={() => setIsCreateModalOpen(true)} className="h-10 px-6 shrink-0 ml-auto shadow-md hover:shadow-primary/20">
-                <Plus className="mr-2 h-4 w-4" />
-                Novo Usuário
-              </Button>
             </div>
           </div>
 
