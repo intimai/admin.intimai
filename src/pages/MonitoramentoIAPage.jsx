@@ -65,7 +65,14 @@ const MonitoramentoIAPage = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            await Promise.all([fetchTimeouts(), fetchErrors()]);
+            // Corrige o hang limitando a execução global a 10 segundos
+            const timer = new Promise((resolve) => setTimeout(resolve, 10000));
+            await Promise.race([
+                Promise.all([fetchTimeouts(), fetchErrors()]),
+                timer
+            ]);
+        } catch (error) {
+            console.error("Erro no fetchData:", error);
         } finally {
             setLoading(false);
         }
@@ -75,7 +82,6 @@ const MonitoramentoIAPage = () => {
         try {
             const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
             
-            // Buscamos as conversas ativas (apenas 'entregue' e 'ativa') na tabela intimações primeiro
             const { data: activeIntimacoes, error: intimacoesError } = await supabase
                 .from('intimacoes')
                 .select('id, delegaciaId, criadoEm')
@@ -86,24 +92,32 @@ const MonitoramentoIAPage = () => {
                 console.error("Erro ao buscar intimações:", intimacoesError);
                 return;
             }
-            if (!activeIntimacoes) return;
+            if (!activeIntimacoes || activeIntimacoes.length === 0) {
+                setTimeouts([]);
+                setLastUpdate(new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+                return;
+            }
 
-            // Busca os chats em paralelo para altíssima performance (ao invés de travar linha a linha)
+            // Batches emulados se forem muitos
             const chatPromises = activeIntimacoes.map(async (intim) => {
-                const { data: lastMsg } = await supabase
-                    .from('chat')
-                    .select('*')
-                    .eq('id_intimacao', intim.id)
-                    .order('created_at', { ascending: false })
-                    .limit(1)
-                    .maybeSingle();
+                try {
+                    const { data: lastMsg } = await supabase
+                        .from('chat')
+                        .select('*')
+                        .eq('id_intimacao', intim.id)
+                        .order('created_at', { ascending: false })
+                        .limit(1)
+                        .maybeSingle();
 
-                if (lastMsg && lastMsg.origem === 'intimado' && new Date(lastMsg.created_at) < new Date(fifteenMinsAgo)) {
-                    return {
-                        ...lastMsg,
-                        intimacao: intim,
-                        delay: Math.floor((Date.now() - new Date(lastMsg.created_at).getTime()) / 60000)
-                    };
+                    if (lastMsg && lastMsg.origem === 'intimado' && new Date(lastMsg.created_at) < new Date(fifteenMinsAgo)) {
+                        return {
+                            ...lastMsg,
+                            intimacao: intim,
+                            delay: Math.floor((Date.now() - new Date(lastMsg.created_at).getTime()) / 60000)
+                        };
+                    }
+                } catch (err) {
+                    console.error("Erro na busca de chat", err);
                 }
                 return null;
             });
@@ -113,7 +127,7 @@ const MonitoramentoIAPage = () => {
             setTimeouts(timeoutResults.sort((a, b) => b.delay - a.delay));
             setLastUpdate(new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
         } catch (error) {
-            console.error('Erro ao buscar timeouts:', error);
+            console.error('Erro geral ao buscar timeouts:', error);
         }
     };
 

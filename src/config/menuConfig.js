@@ -16,9 +16,9 @@ import {
   TrendingUp,
   TrendingDown,
   BarChart3,
-  Zap,
-  Bot,
   ShieldCheck,
+  Phone,
+  AlertTriangle,
 } from 'lucide-react';
 
 export const MENU_CONFIG = [
@@ -29,8 +29,8 @@ export const MENU_CONFIG = [
     icon: ShieldCheck,
     items: [
       { slug: 'auditoria', path: '/auditoria', label: 'Governança & LGPD', icon: ShieldCheck },
-      { slug: 'conexoes', path: '/conexoes', label: 'Conexões (API)', icon: Zap },
-      { slug: 'monitoramento-ia', path: '/monitoramento-ia', label: 'Monitoramento IA', icon: Bot },
+      { slug: 'conexoes', path: '/conexoes', label: 'Conexões', icon: Phone },
+      { slug: 'monitoramento-ia', path: '/monitoramento-ia', label: 'Monitoramento IA', icon: AlertTriangle },
     ],
   },
   {
@@ -71,11 +71,8 @@ export const MENU_CONFIG = [
     id: 'financeiro',
     icon: Wallet,
     items: [
-      { slug: 'contas-pagar', path: '/contas-pagar', label: 'Contas a Pagar', icon: CreditCard },
-      { slug: 'contas-receber', path: '/contas-receber', label: 'Contas a Receber', icon: Wallet },
-      { slug: 'receitas', path: '/receitas', label: 'Receitas', icon: TrendingUp },
-      { slug: 'despesas', path: '/despesas', label: 'Despesas', icon: TrendingDown },
-      { slug: 'relatorios-financeiros', path: '/relatorios-financeiros', label: 'Relatórios Financeiros', icon: BarChart3 },
+      { slug: 'faturas', path: '/faturas', label: 'Faturas (Receitas)', icon: TrendingUp },
+      { slug: 'despesas', path: '/despesas', label: 'Despesas (Custos)', icon: TrendingDown }
     ],
   },
 ];

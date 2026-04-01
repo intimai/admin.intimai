@@ -19,6 +19,8 @@ import AuditoriaPage from './pages/AuditoriaPage';
 import MonitoramentoIAPage from './pages/MonitoramentoIAPage';
 import NFePage from './pages/NFePage';
 import ConexoesPage from './pages/ConexoesPage';
+import FaturasPage from './pages/FaturasPage';
+import DespesasPage from './pages/DespesasPage';
 import AdminLayout from './components/layout/AdminLayout';
 import AdminProtectedRoute from './components/layout/AdminProtectedRoute';
 import { AdminAuthProvider } from './contexts/AdminAuthContext';
@@ -121,30 +123,15 @@ function App() {
                 </AdminProtectedRoute>
               } />
 
-              {/* Categoria: Financeiro (em desenvolvimento) */}
-              <Route path="contas-pagar" element={
-                <AdminProtectedRoute menuSlug="contas-pagar">
-                  <EmDesenvolvimentoPage title="Contas a Pagar" />
-                </AdminProtectedRoute>
-              } />
-              <Route path="contas-receber" element={
-                <AdminProtectedRoute menuSlug="contas-receber">
-                  <EmDesenvolvimentoPage title="Contas a Receber" />
-                </AdminProtectedRoute>
-              } />
-              <Route path="receitas" element={
-                <AdminProtectedRoute menuSlug="receitas">
-                  <EmDesenvolvimentoPage title="Receitas" />
+              {/* Módulo: Financeiro */}
+              <Route path="faturas" element={
+                <AdminProtectedRoute menuSlug="faturas">
+                  <FaturasPage />
                 </AdminProtectedRoute>
               } />
               <Route path="despesas" element={
                 <AdminProtectedRoute menuSlug="despesas">
-                  <EmDesenvolvimentoPage title="Despesas" />
-                </AdminProtectedRoute>
-              } />
-              <Route path="relatorios-financeiros" element={
-                <AdminProtectedRoute menuSlug="relatorios-financeiros">
-                  <EmDesenvolvimentoPage title="Relatórios Financeiros" />
+                  <DespesasPage />
                 </AdminProtectedRoute>
               } />
             </Route>
