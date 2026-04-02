@@ -70,9 +70,13 @@ export const usePropostas = () => {
         }
       }
 
-      // 2. Deletar do Banco
-      const { error } = await supabase.from('lead_propostas').delete().eq('id', proposta.id);
+      // 2. Deletar do Banco com verificação estrita (evita falso-positivo por bloqueio de RLS)
+      const { data, error } = await supabase.from('lead_propostas').delete().eq('id', proposta.id).select();
+      
       if (error) throw error;
+      if (!data || data.length === 0) {
+         throw new Error("Falha na exclusão: Permissão Negada (RLS). A proposta foi mantida no banco de dados.");
+      }
 
       setPropostas(prev => prev.filter(p => p.id !== proposta.id));
       toast({ title: "Proposta excluída", description: "Registro e arquivo removidos com sucesso." });
