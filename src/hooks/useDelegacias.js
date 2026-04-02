@@ -11,7 +11,6 @@ export const useDelegacias = () => {
   const { toast } = useToast();
 
   const fetchDelegacias = useCallback(async (searchTerm = '', status = '', retryCount = 0) => {
-    console.log('[useDelegacias] Iniciando busca...', { searchTerm, status, retryCount });
     try {
       setLoading(true);
       setError(null);
@@ -40,7 +39,6 @@ export const useDelegacias = () => {
         throw error;
       }
 
-      console.log('[useDelegacias] Busca concluída com sucesso', { count: data?.length });
       setDelegacias(data || []);
     } catch (err) {
       console.error('Erro ao buscar delegacias:', err);

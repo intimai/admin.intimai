@@ -52,12 +52,6 @@ export const useSuporte = () => {
                 item.delegaciaNomeMapeado = delegaciasMap[String(dId)];
               }
             });
-            console.log('[useSuporte] Amostra de item RAW COMPLETA:', JSON.stringify(suporteData[0]));
-            if (suporteData.length > 0) {
-              const dIds = suporteData.map(i => ({ id_ticket: i.id, id_del: i.delegaciaId }));
-              console.log('[useSuporte] Valores de delegaciaId nos tickets:', dIds);
-            }
-            console.log('[useSuporte] Exemplo Map (ID -> Nome):', Object.entries(delegaciasMap).slice(0, 3));
           }
         } catch (delErr) {
           console.warn('[useSuporte] Erro ao mapear nomes de delegacias:', delErr);

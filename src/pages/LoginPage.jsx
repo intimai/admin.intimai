@@ -22,12 +22,9 @@ const LoginPage = () => {
 
   const from = location.state?.from?.pathname || null;
 
-  // Redirecionamento automático se já logado
   useEffect(() => {
-    console.log('LoginPage useEffect - Status:', { authLoading, isAdmin, from });
     if (!authLoading && isAdmin) {
       const destination = from || getFirstAccessibleRoute();
-      console.log('Usuário já logado e é admin, redirecionando para:', destination);
       navigate(destination, { replace: true });
     }
   }, [authLoading, isAdmin, navigate, from, getFirstAccessibleRoute]);
@@ -46,7 +43,6 @@ const LoginPage = () => {
           description: error.message || "Verifique suas credenciais",
         });
       } else {
-        console.log('Login bem-sucedido, aguardando atualização do estado...');
         toast({
           title: "Login realizado",
           description: "Bem-vindo ao painel administrativo",
@@ -54,7 +50,6 @@ const LoginPage = () => {
 
         // Forçar navegação direta após um breve delay se o useEffect não pegar
         setTimeout(() => {
-          console.log('Tentando navegação forçada após login...');
           navigate(getFirstAccessibleRoute());
         }, 500);
       }

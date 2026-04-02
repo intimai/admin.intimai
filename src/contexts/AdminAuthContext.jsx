@@ -17,11 +17,8 @@ export const useAdminAuth = () => useContext(AdminAuthContext);
  */
 const fetchAdminProfile = async (authUser) => {
   if (!authUser?.email) {
-    console.log('[AuthCheck] Sem email no authUser');
     return null;
   }
-
-  console.log('[AuthCheck] Iniciando verificação para:', authUser.email);
 
   // 1. Checar super admin na tabela usuarios
   const { data: usuarioData, error: usuarioError } = await supabase
@@ -130,8 +127,6 @@ export const AdminAuthProvider = ({ children }) => {
     initSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('[Auth] Evento:', event);
-
       if (event === 'SIGNED_OUT') {
         clearState();
         return;
@@ -147,7 +142,6 @@ export const AdminAuthProvider = ({ children }) => {
         // Se o login() já está lidando com o profile, ignora aqui
         // para evitar race condition que reseta isAdmin
         if (loginInProgressRef.current) {
-          console.log('[Auth] SIGNED_IN ignorado — login() em andamento');
           return;
         }
         
@@ -157,7 +151,6 @@ export const AdminAuthProvider = ({ children }) => {
         // simultânea, pois isso enfileira a query exatamente enquanto o contexto muda de página,
         // gerando "hang" silencioso (trava) no client fetcher do Javascript.
         if (sessionUserRef.current?.id === session.user.id && isAdmin) {
-          console.log('[Auth] SIGNED_IN ignorado — perfil idêntico já carregado pelo login()');
           return;
         }
 

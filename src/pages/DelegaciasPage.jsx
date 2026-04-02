@@ -408,13 +408,10 @@ const DelegaciasPage = () => {
 
   // Debounce search
   useEffect(() => {
-    console.log('[DelegaciasPage] useEffect triggered', { searchTerm, statusFilter });
     const timer = setTimeout(() => {
-      console.log('[DelegaciasPage] Executing searchDelegacias', { searchTerm, statusFilter });
       searchDelegacias(searchTerm, statusFilter);
     }, 500);
     return () => {
-      console.log('[DelegaciasPage] Cleaning up timer', { searchTerm, statusFilter });
       clearTimeout(timer);
     }
   }, [searchTerm, statusFilter, searchDelegacias]);
