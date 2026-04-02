@@ -18,6 +18,7 @@ import {
     Target
 } from 'lucide-react';
 import { supabase } from '@/lib/customSupabaseClient';
+import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import { cn } from '@/lib/utils';
 import { Badge } from "@/components/ui/badge";
 import {
@@ -47,6 +48,7 @@ import { useToast } from "@/components/ui/use-toast";
 
 const DespesasPage = () => {
     const { toast } = useToast();
+    const { isAdmin, loading: authLoading } = useAdminAuth();
     const [loading, setLoading] = useState(true);
     const [despesas, setDespesas] = useState([]);
     const [delegacias, setDelegacias] = useState([]);
@@ -75,18 +77,40 @@ const DespesasPage = () => {
     });
 
     useEffect(() => {
-        fetchInitialData();
-    }, []);
+        if (isAdmin && !authLoading) {
+            fetchInitialData();
+        }
+    }, [isAdmin, authLoading]);
 
-    const fetchInitialData = async () => {
+    const fetchInitialData = async (retryCount = 0) => {
         setLoading(true);
         try {
-            const { data: delData } = await supabase
+            const { data: delData, error: delError } = await supabase
                 .from('delegacias')
                 .select('delegaciaId, nome')
                 .order('nome');
+            
+            if (delError) throw delError;
             setDelegacias(delData || []);
-            await fetchDespesas();
+            
+            const { data: despData, error: despError } = await supabase
+                .from('fat_despesas')
+                .select('*, delegacias:delegaciaIdReference("delegaciaId", nome)')
+                .order('data_vencimento', { ascending: false });
+
+            if (despError) throw despError;
+            setDespesas(despData || []);
+        } catch (error) {
+            console.error("Erro ao buscar dados iniciais (Despesas):", error);
+            // Se for erro de permissão (PGRST301/401) e for a primeira tentativa, tenta uma vez após breve delay
+            if (retryCount < 1 && (error.code === 'PGRST301' || error.status === 401)) {
+                console.warn('[DespesasPage] Falha de autorização, tentando novamente...');
+                await new Promise(resolve => setTimeout(resolve, 800));
+                return fetchInitialData(retryCount + 1);
+            }
+            if (retryCount > 0 || error.status !== 401) {
+                toast({ title: "Erro de Conexão", description: "Falha ao carregar os dados. Tente recarregar a página.", variant: "destructive" });
+            }
         } finally {
             setLoading(false);
         }
@@ -95,11 +119,14 @@ const DespesasPage = () => {
     const fetchDespesas = async () => {
         const { data, error } = await supabase
             .from('fat_despesas')
-            .select('*, delegacias:delegaciaIdReference(nome)')
+            .select('*, delegacias:delegaciaIdReference("delegaciaId", nome)')
             .order('data_vencimento', { ascending: false });
 
-        if (error) console.error("Erro ao buscar despesas:", error);
-        else setDespesas(data || []);
+        if (error) {
+            console.error("Erro ao buscar despesas silenciosamente:", error);
+        } else {
+            setDespesas(data || []);
+        }
     };
 
     const handleCreateDespesa = async () => {

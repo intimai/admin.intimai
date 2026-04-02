@@ -20,7 +20,6 @@ export const useNotasFiscais = () => {
   }, []);
 
   const fetchNotas = useCallback(async (filters = {}) => {
-    if (!isAdmin || authLoading) return;
     setLoading(true);
     try {
       let query = supabase
@@ -51,7 +50,7 @@ export const useNotasFiscais = () => {
     } finally {
       setLoading(false);
     }
-  }, [isAdmin, authLoading, toast]);
+  }, [toast]);
 
   const uploadNota = async ({ file, delegaciaId, numero_nf, valor, data_emissao, descricao }) => {
     setUploading(true);
@@ -142,11 +141,11 @@ export const useNotasFiscais = () => {
   };
 
   useEffect(() => {
-    if (isAdmin) {
+    if (isAdmin && !authLoading) {
       fetchDelegacias();
       fetchNotas();
     }
-  }, [isAdmin, fetchDelegacias, fetchNotas]);
+  }, [isAdmin, authLoading]);
 
   return { notas, delegacias, loading, uploading, fetchNotas, uploadNota, updateStatus, deleteNota };
 };

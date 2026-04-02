@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   LogOut,
@@ -16,6 +16,7 @@ const SIDEBAR_KEY = 'intimai_sidebar_collapsed';
 
 const AdminLayout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { logoSrc } = useTheme();
   const { user, logout, isSuperAdmin, hasMenuAccess } = useAdminAuth();
 
@@ -251,7 +252,10 @@ const AdminLayout = () => {
               {user?.nome || 'Administrador'}
             </span>
             <button
-              onClick={logout}
+              onClick={async () => {
+                await logout();
+                navigate('/login', { replace: true });
+              }}
               className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               title="Sair"
             >

@@ -23,9 +23,16 @@ import FaturasPage from './pages/FaturasPage';
 import DespesasPage from './pages/DespesasPage';
 import AdminLayout from './components/layout/AdminLayout';
 import AdminProtectedRoute from './components/layout/AdminProtectedRoute';
-import { AdminAuthProvider } from './contexts/AdminAuthContext';
+import MenuGuard from './components/layout/MenuGuard';
+import { AdminAuthProvider, useAdminAuth } from './contexts/AdminAuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { Toaster } from '@/components/ui/toaster';
+
+// Componente auxiliar que redireciona para a primeira rota acessível do colaborador
+const SmartRedirect = () => {
+  const { getFirstAccessibleRoute } = useAdminAuth();
+  return <Navigate to={getFirstAccessibleRoute()} replace />;
+};
 
 function App() {
   return (
@@ -37,102 +44,106 @@ function App() {
             <Route path="/set-password" element={<SetPasswordPage />} />
             <Route path="/sem-permissao" element={<SemPermissaoPage />} />
 
+            {/* Guard externo: verifica auth (loading + isAdmin). 
+                Garante que só admins autenticados acessem qualquer rota interna. */}
             <Route path="/" element={
               <AdminProtectedRoute>
                 <AdminLayout />
               </AdminProtectedRoute>
             }>
-              <Route index element={<Navigate to="/pipeline" replace />} />
+              <Route index element={<SmartRedirect />} />
               <Route path="dashboard" element={<Dashboard />} />
               
+              {/* MenuGuard: verifica APENAS permissão de menu (hasMenuAccess).
+                  Não re-verifica loading/isAdmin — já garantido pelo guard externo. */}
               <Route path="conexoes" element={
-                <AdminProtectedRoute menuSlug="conexoes">
+                <MenuGuard menuSlug="conexoes">
                   <ConexoesPage />
-                </AdminProtectedRoute>
+                </MenuGuard>
               } />
               <Route path="monitoramento-ia" element={
-                <AdminProtectedRoute menuSlug="monitoramento-ia">
+                <MenuGuard menuSlug="monitoramento-ia">
                   <MonitoramentoIAPage />
-                </AdminProtectedRoute>
+                </MenuGuard>
               } />
               <Route path="auditoria" element={
-                <AdminProtectedRoute menuSlug="auditoria">
+                <MenuGuard menuSlug="auditoria">
                   <AuditoriaPage />
-                </AdminProtectedRoute>
+                </MenuGuard>
               } />
 
               <Route path="pipeline" element={
-                <AdminProtectedRoute menuSlug="pipeline">
+                <MenuGuard menuSlug="pipeline">
                   <PipelinePage />
-                </AdminProtectedRoute>
+                </MenuGuard>
               } />
               <Route path="chat" element={
-                <AdminProtectedRoute menuSlug="chat">
+                <MenuGuard menuSlug="chat">
                   <EmDesenvolvimentoPage title="Chat com Clientes" />
-                </AdminProtectedRoute>
+                </MenuGuard>
               } />
               <Route path="propostas" element={
-                <AdminProtectedRoute menuSlug="propostas">
+                <MenuGuard menuSlug="propostas">
                   <PropostasPage />
-                </AdminProtectedRoute>
+                </MenuGuard>
               } />
               <Route path="contratos" element={
-                <AdminProtectedRoute menuSlug="contratos">
+                <MenuGuard menuSlug="contratos">
                   <ContratosPage />
-                </AdminProtectedRoute>
+                </MenuGuard>
               } />
               <Route path="nfe" element={
-                <AdminProtectedRoute menuSlug="nfe">
+                <MenuGuard menuSlug="nfe">
                   <NFePage />
-                </AdminProtectedRoute>
+                </MenuGuard>
               } />
               <Route path="delegacias" element={
-                <AdminProtectedRoute menuSlug="delegacias">
+                <MenuGuard menuSlug="delegacias">
                   <DelegaciasPage />
-                </AdminProtectedRoute>
+                </MenuGuard>
               } />
               <Route path="users" element={
-                <AdminProtectedRoute menuSlug="users">
+                <MenuGuard menuSlug="users">
                   <UsersPage />
-                </AdminProtectedRoute>
+                </MenuGuard>
               } />
               <Route path="suporte" element={
-                <AdminProtectedRoute menuSlug="suporte">
+                <MenuGuard menuSlug="suporte">
                   <SuportePage />
-                </AdminProtectedRoute>
+                </MenuGuard>
               } />
               <Route path="intimacoes" element={
-                <AdminProtectedRoute menuSlug="intimacoes">
+                <MenuGuard menuSlug="intimacoes">
                   <IntimacoesPage />
-                </AdminProtectedRoute>
+                </MenuGuard>
               } />
               <Route path="finance" element={
-                <AdminProtectedRoute menuSlug="finance">
+                <MenuGuard menuSlug="finance">
                   <FinancePage />
-                </AdminProtectedRoute>
+                </MenuGuard>
               } />
               <Route path="settings" element={
-                <AdminProtectedRoute menuSlug="settings">
+                <MenuGuard menuSlug="settings">
                   <SettingsPage />
-                </AdminProtectedRoute>
+                </MenuGuard>
               } />
               {/* Apenas super_admin pode gerenciar colaboradores */}
               <Route path="colaboradores" element={
-                <AdminProtectedRoute menuSlug="colaboradores">
+                <MenuGuard menuSlug="colaboradores">
                   <ColaboradoresPage />
-                </AdminProtectedRoute>
+                </MenuGuard>
               } />
 
               {/* Módulo: Financeiro */}
               <Route path="faturas" element={
-                <AdminProtectedRoute menuSlug="faturas">
+                <MenuGuard menuSlug="faturas">
                   <FaturasPage />
-                </AdminProtectedRoute>
+                </MenuGuard>
               } />
               <Route path="despesas" element={
-                <AdminProtectedRoute menuSlug="despesas">
+                <MenuGuard menuSlug="despesas">
                   <DespesasPage />
-                </AdminProtectedRoute>
+                </MenuGuard>
               } />
             </Route>
           </Routes>

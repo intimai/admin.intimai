@@ -26,14 +26,12 @@ export const useUsers = () => {
     }, []);
 
     useEffect(() => {
-        if (isAdmin) {
+        if (isAdmin && !authLoading) {
             fetchDelegacias();
         }
-    }, [isAdmin, fetchDelegacias]);
+    }, [isAdmin, authLoading]);
 
-    const fetchUsers = useCallback(async (delegaciaFilterId = '') => {
-        if (authLoading || !isAdmin) return;
-
+    const fetchUsers = useCallback(async (delegaciaFilterId = '', retryCount = 0) => {
         setLoading(true);
         try {
             let query = supabase
@@ -48,6 +46,12 @@ export const useUsers = () => {
             const { data, error } = await query;
 
             if (error) {
+                // Se for erro de permissão (PGRST301/401) e for a primeira tentativa, tenta uma vez após breve delay
+                if (retryCount < 1 && (error.code === 'PGRST301' || error.status === 401)) {
+                    console.warn('[useUsers] Falha de autorização, tentando novamente...');
+                    await new Promise(resolve => setTimeout(resolve, 800));
+                    return fetchUsers(delegaciaFilterId, retryCount + 1);
+                }
                 throw error;
             }
 
@@ -60,15 +64,17 @@ export const useUsers = () => {
             setUsers(usersWithDelegacia);
         } catch (error) {
             console.error('[useUsers] Erro ao buscar usuários:', error);
-            toast({
-                title: "Erro ao carregar usuários",
-                description: error.message,
-                variant: "destructive",
-            });
+            if (retryCount > 0) {
+                toast({
+                    title: "Erro ao carregar usuários",
+                    description: "Erro de conexão intermitente. Tente recarregar a página.",
+                    variant: "destructive",
+                });
+            }
         } finally {
             setLoading(false);
         }
-    }, [isAdmin, authLoading, toast]);
+    }, [toast]);
 
     const createUser = async (userData) => {
         try {

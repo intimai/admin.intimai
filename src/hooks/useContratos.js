@@ -10,7 +10,6 @@ export const useContratos = () => {
   const { toast } = useToast();
 
   const fetchContratos = useCallback(async (filters = {}) => {
-    if (!isAdmin || authLoading) return;
     setLoading(true);
     try {
       let query = supabase
@@ -37,7 +36,7 @@ export const useContratos = () => {
     } finally {
       setLoading(false);
     }
-  }, [isAdmin, authLoading, toast]);
+  }, [toast]);
 
   const updateStatus = async (id, newStatus) => {
     try {
@@ -80,8 +79,8 @@ export const useContratos = () => {
   };
 
   useEffect(() => {
-    if (isAdmin) fetchContratos();
-  }, [isAdmin, fetchContratos]);
+    if (isAdmin && !authLoading) fetchContratos();
+  }, [isAdmin, authLoading]);
 
   return { contratos, loading, fetchContratos, updateStatus, deleteContrato };
 };

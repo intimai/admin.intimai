@@ -347,9 +347,9 @@ const UsersPage = () => {
             </div>
           ) : (
             <div className="flex flex-col gap-4">
-              {filteredUsers.map((user) => (
+              {filteredUsers.map((user, index) => (
                 <UserCard
-                  key={user.id}
+                  key={user.id || `user-fallback-${index}`}
                   user={user}
                   onEdit={setEditingUser}
                   onDelete={setDeletingUser}

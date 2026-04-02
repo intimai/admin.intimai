@@ -11,9 +11,6 @@ export const useDelegacias = () => {
   const { toast } = useToast();
 
   const fetchDelegacias = useCallback(async (searchTerm = '', status = '', retryCount = 0) => {
-    // Só busca se o admin estiver autenticado e não estiver carregando o perfil
-    if (!isAdmin || authLoading) return;
-
     console.log('[useDelegacias] Iniciando busca...', { searchTerm, status, retryCount });
     try {
       setLoading(true);
@@ -35,7 +32,6 @@ export const useDelegacias = () => {
       const { data, error } = await query;
 
       if (error) {
-        // Se for erro de permissão (PGRST301/401) e for a primeira tentativa, tenta uma vez após breve delay
         if (retryCount < 1 && (error.code === 'PGRST301' || error.status === 401)) {
           console.warn('[useDelegacias] Falha de autorização, tentando novamente...');
           await new Promise(resolve => setTimeout(resolve, 800));
@@ -49,19 +45,15 @@ export const useDelegacias = () => {
     } catch (err) {
       console.error('Erro ao buscar delegacias:', err);
       setError(err);
-
-      // Só mostra toast se não for erro de carregamento inicial
-      if (retryCount > 0 || !authLoading) {
-        toast({
-          title: "Erro de Conexão",
-          description: "Não foi possível carregar as delegacias. Tente atualizar a página.",
-          variant: "destructive"
-        });
-      }
+      toast({
+        title: "Erro de Conexão",
+        description: "Não foi possível carregar as delegacias. Tente atualizar a página.",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
-  }, [toast, isAdmin, authLoading]);
+  }, [toast]);
 
   const createDelegacia = async (delegaciaData) => {
     try {

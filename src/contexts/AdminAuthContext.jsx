@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/customSupabaseClient';
+import { MENU_CONFIG } from '@/config/menuConfig';
 
 const AdminAuthContext = createContext({});
 
@@ -79,6 +80,7 @@ export const AdminAuthProvider = ({ children }) => {
   const [adminMenus, setAdminMenus] = useState(null); // null = todos os menus
   const [role, setRole] = useState(null);
   const initializedRef = useRef(false);
+  const loginInProgressRef = useRef(false);
 
   const applyProfile = (authUser, profile) => {
     if (profile) {
@@ -139,6 +141,12 @@ export const AdminAuthProvider = ({ children }) => {
       }
 
       if (event === 'SIGNED_IN' && session?.user && initializedRef.current) {
+        // Se o login() já está lidando com o profile, ignora aqui
+        // para evitar race condition que reseta isAdmin
+        if (loginInProgressRef.current) {
+          console.log('[Auth] SIGNED_IN ignorado — login() em andamento');
+          return;
+        }
         const profile = await fetchAdminProfile(session.user);
         applyProfile(session.user, profile);
         setLoading(false);
@@ -150,6 +158,7 @@ export const AdminAuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     setLoading(true);
+    loginInProgressRef.current = true;
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
@@ -172,6 +181,7 @@ export const AdminAuthProvider = ({ children }) => {
     } catch (error) {
       return { data: null, error };
     } finally {
+      loginInProgressRef.current = false;
       setLoading(false);
     }
   };
@@ -191,7 +201,7 @@ export const AdminAuthProvider = ({ children }) => {
    * Verifica se o usuário tem acesso a um menu específico pelo slug.
    * Super admins e colaboradores com adminMenus = null têm acesso a tudo.
    */
-  const hasMenuAccess = (menuSlug) => {
+  const hasMenuAccess = useCallback((menuSlug) => {
     if (!isAdmin) return false;
     if (adminMenus === null) return true; // acesso total
 
@@ -201,7 +211,32 @@ export const AdminAuthProvider = ({ children }) => {
     }
 
     return adminMenus.includes(menuSlug);
-  };
+  }, [isAdmin, adminMenus]);
+
+  /**
+   * Retorna a primeira rota acessível para o usuário logado.
+   * Útil para redirecionar colaboradores que não têm acesso ao pipeline.
+   */
+  const getFirstAccessibleRoute = useCallback(() => {
+    if (!isAdmin) return '/login';
+    if (adminMenus === null) return '/pipeline'; // acesso total → pipeline
+
+    // Itera pelo MENU_CONFIG na ordem do sidebar e retorna a primeira rota permitida
+    for (const group of MENU_CONFIG) {
+      if (group.type === 'group') {
+        for (const item of group.items) {
+          if (!item.isSuperAdminOnly && hasMenuAccess(item.slug)) {
+            return item.path;
+          }
+        }
+      } else if (group.type === 'item' && !group.isSuperAdminOnly && hasMenuAccess(group.slug)) {
+        return group.path;
+      }
+    }
+
+    // Fallback: dashboard (sempre acessível)
+    return '/dashboard';
+  }, [isAdmin, adminMenus, hasMenuAccess]);
 
   return (
     <AdminAuthContext.Provider value={{
@@ -214,6 +249,7 @@ export const AdminAuthProvider = ({ children }) => {
       login,
       logout,
       hasMenuAccess,
+      getFirstAccessibleRoute,
     }}>
       {children}
     </AdminAuthContext.Provider>

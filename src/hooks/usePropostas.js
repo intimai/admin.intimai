@@ -10,7 +10,6 @@ export const usePropostas = () => {
   const { toast } = useToast();
 
   const fetchPropostas = useCallback(async (filters = {}) => {
-    if (!isAdmin || authLoading) return;
     setLoading(true);
     try {
       let query = supabase
@@ -37,7 +36,7 @@ export const usePropostas = () => {
     } finally {
       setLoading(false);
     }
-  }, [isAdmin, authLoading, toast]);
+  }, [toast]);
 
   const updateStatus = async (id, newStatus) => {
     try {
@@ -85,8 +84,8 @@ export const usePropostas = () => {
   };
 
   useEffect(() => {
-    if (isAdmin) fetchPropostas();
-  }, [isAdmin, fetchPropostas]);
+    if (isAdmin && !authLoading) fetchPropostas();
+  }, [isAdmin, authLoading]);
 
   return { propostas, loading, fetchPropostas, updateStatus, deleteProposta };
 };

@@ -11,9 +11,6 @@ export const useSuporte = () => {
   const { toast } = useToast();
 
   const fetchItems = useCallback(async (retryCount = 0) => {
-    // Só busca se o admin estiver autenticado e não estiver carregando o perfil
-    if (!isAdmin || authLoading) return;
-
     try {
       setLoading(true);
       setError(null);
@@ -24,7 +21,6 @@ export const useSuporte = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        // Se for erro de permissão (PGRST301/401) e for a primeira tentativa, tenta uma vez após breve delay
         if (retryCount < 1 && (error.code === 'PGRST301' || error.status === 401)) {
           console.warn('[useSuporte] Falha de autorização, tentando novamente...');
           await new Promise(resolve => setTimeout(resolve, 800));
@@ -72,19 +68,15 @@ export const useSuporte = () => {
     } catch (err) {
       console.error('Erro ao buscar tickets de suporte:', err);
       setError(err.message);
-
-      // Só mostra toast se não for erro de carregamento inicial
-      if (retryCount > 0 || !authLoading) {
-        toast({
-          title: "Erro de Conexão",
-          description: "Não foi possível sincronizar os tickets de suporte. Tente atualizar a página.",
-          variant: "destructive"
-        });
-      }
+      toast({
+        title: "Erro de Conexão",
+        description: "Não foi possível sincronizar os tickets de suporte. Tente atualizar a página.",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
-  }, [toast, isAdmin, authLoading]);
+  }, [toast]);
 
   const updateStatus = async (id, newStatus) => {
     try {
@@ -148,8 +140,10 @@ export const useSuporte = () => {
 
   // Auto-fetch ao montar o componente
   useEffect(() => {
-    fetchItems();
-  }, [fetchItems]);
+    if (isAdmin && !authLoading) {
+      fetchItems();
+    }
+  }, [isAdmin, authLoading]);
 
   const adicionarMensagemChat = async (id, novaMensagem, marcarComoResolvido = false) => {
     try {

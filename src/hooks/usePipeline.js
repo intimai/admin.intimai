@@ -11,8 +11,6 @@ export const usePipeline = () => {
   const { toast } = useToast();
 
   const fetchItems = useCallback(async (retryCount = 0) => {
-    if (!isAdmin || authLoading) return;
-
     try {
       setLoading(true);
       setError(null);
@@ -35,18 +33,15 @@ export const usePipeline = () => {
     } catch (err) {
       console.error('Erro ao buscar prospecções:', err);
       setError(err.message);
-
-      if (retryCount > 0 || !authLoading) {
-        toast({
-          title: "Erro de Conexão",
-          description: "Não foi possível sincronizar com o banco de dados.",
-          variant: "destructive"
-        });
-      }
+      toast({
+        title: "Erro de Conexão",
+        description: "Não foi possível sincronizar com o banco de dados.",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
-  }, [toast, isAdmin, authLoading]);
+  }, [toast]);
 
   const updateStatus = async (id, newStatus) => {
     try {
@@ -78,8 +73,10 @@ export const usePipeline = () => {
   };
 
   useEffect(() => {
-    fetchItems();
-  }, [fetchItems]);
+    if (isAdmin && !authLoading) {
+      fetchItems();
+    }
+  }, [isAdmin, authLoading]);
 
   return {
     items,

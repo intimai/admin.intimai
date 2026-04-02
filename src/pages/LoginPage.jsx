@@ -14,22 +14,23 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { login, isAdmin, loading: authLoading } = useAdminAuth();
+  const { login, isAdmin, loading: authLoading, getFirstAccessibleRoute } = useAdminAuth();
   const { logoSrc } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
 
-  const from = location.state?.from?.pathname || '/pipeline';
+  const from = location.state?.from?.pathname || null;
 
   // Redirecionamento automático se já logado
   useEffect(() => {
     console.log('LoginPage useEffect - Status:', { authLoading, isAdmin, from });
     if (!authLoading && isAdmin) {
-      console.log('Usuário já logado e é admin, redirecionando para:', from);
-      navigate(from, { replace: true });
+      const destination = from || getFirstAccessibleRoute();
+      console.log('Usuário já logado e é admin, redirecionando para:', destination);
+      navigate(destination, { replace: true });
     }
-  }, [authLoading, isAdmin, navigate, from]);
+  }, [authLoading, isAdmin, navigate, from, getFirstAccessibleRoute]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -54,7 +55,7 @@ const LoginPage = () => {
         // Forçar navegação direta após um breve delay se o useEffect não pegar
         setTimeout(() => {
           console.log('Tentando navegação forçada após login...');
-          navigate('/pipeline');
+          navigate(getFirstAccessibleRoute());
         }, 500);
       }
     } catch (error) {

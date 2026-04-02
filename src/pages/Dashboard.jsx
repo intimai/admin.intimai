@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 const Dashboard = () => {
-  const { hasMenuAccess, isSuperAdmin } = useAdminAuth();
+  const { hasMenuAccess, isSuperAdmin, isAdmin, loading: authLoading } = useAdminAuth();
   const [activeTab, setActiveTab] = useState('financeira');
   const [stats, setStats] = useState({
     mrr: 0,
@@ -30,7 +30,8 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
-    async function fetchStats() {
+    async function fetchStats(retryCount = 0) {
+      if (!isAdmin || authLoading) return;
       try {
         const now = new Date();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
@@ -40,25 +41,29 @@ const Dashboard = () => {
         const lastDayLastMonth = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0];
 
         // 1. Delegacias e Intimações (Geral)
-        const { count: countDelegacias } = await supabase
+        const { count: countDelegacias, error: errDel } = await supabase
           .from('delegacias')
           .select('*', { count: 'exact', head: true });
+        if (errDel) throw errDel;
           
-        const { count: countIntimacoes } = await supabase
+        const { count: countIntimacoes, error: errInt } = await supabase
           .from('intimacoes')
           .select('*', { count: 'exact', head: true });
+        if (errInt) throw errInt;
 
         // 2. Faturas (Receitas)
-        const { data: faturas } = await supabase
+        const { data: faturas, error: errFat } = await supabase
           .from('fat_faturas')
           .select('valor, status_pagamento, data_vencimento')
           .neq('status_pagamento', 'CANCELADO');
+        if (errFat) throw errFat;
           
         // 3. Despesas
-        const { data: despesas } = await supabase
+        const { data: despesas, error: errDesp } = await supabase
           .from('fat_despesas')
           .select('valor, status_pagamento, data_vencimento')
           .neq('status_pagamento', 'CANCELADO');
+        if (errDesp) throw errDesp;
 
         const filterByPeriod = (items, start, end) => (items || []).filter(i => i.data_vencimento >= start && i.data_vencimento <= end);
 
@@ -84,10 +89,15 @@ const Dashboard = () => {
         });
       } catch (err) {
         console.error("Erro ao buscar stats do dashboard", err);
+        if (retryCount < 1 && (err.code === 'PGRST301' || err.status === 401)) {
+          console.warn('[Dashboard] Falha de autorização, tentando novamente...');
+          await new Promise(resolve => setTimeout(resolve, 800));
+          return fetchStats(retryCount + 1);
+        }
       }
     }
     fetchStats();
-  }, []);
+  }, [isAdmin, authLoading]);
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
