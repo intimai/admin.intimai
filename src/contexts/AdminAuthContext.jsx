@@ -81,8 +81,10 @@ export const AdminAuthProvider = ({ children }) => {
   const [role, setRole] = useState(null);
   const initializedRef = useRef(false);
   const loginInProgressRef = useRef(false);
+  const sessionUserRef = useRef(null); // Armazena a ref do usuário para checagens sync
 
   const applyProfile = (authUser, profile) => {
+    sessionUserRef.current = authUser;
     if (profile) {
       setUser({ ...authUser, nome: profile.nome });
       setIsAdmin(true);
@@ -99,6 +101,7 @@ export const AdminAuthProvider = ({ children }) => {
   };
 
   const clearState = () => {
+    sessionUserRef.current = null;
     setUser(null);
     setIsAdmin(false);
     setIsSuperAdmin(false);
@@ -147,6 +150,17 @@ export const AdminAuthProvider = ({ children }) => {
           console.log('[Auth] SIGNED_IN ignorado — login() em andamento');
           return;
         }
+        
+        // Solução Arquitetural contra Deadlock: 
+        // O evento SIGNED_IN global dispara atrasado logo após a função de login()
+        // concluir. Se já baixamos o perfil no login, não podemos disparar outra busca
+        // simultânea, pois isso enfileira a query exatamente enquanto o contexto muda de página,
+        // gerando "hang" silencioso (trava) no client fetcher do Javascript.
+        if (sessionUserRef.current?.id === session.user.id && isAdmin) {
+          console.log('[Auth] SIGNED_IN ignorado — perfil idêntico já carregado pelo login()');
+          return;
+        }
+
         const profile = await fetchAdminProfile(session.user);
         applyProfile(session.user, profile);
         setLoading(false);
