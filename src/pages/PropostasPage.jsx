@@ -6,17 +6,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-    FileText, 
-    Download, 
-    Loader2, 
-    Sparkles, 
-    Eye, 
-    EyeOff, 
-    History, 
-    Plus, 
-    Search, 
-    Trash2, 
+import {
+    FileText,
+    Download,
+    Loader2,
+    Sparkles,
+    Eye,
+    EyeOff,
+    History,
+    Plus,
+    Search,
+    Trash2,
     ExternalLink,
     Calendar,
     DollarSign,
@@ -40,7 +40,7 @@ const PropostasPage = () => {
     const [loading, setLoading] = useState(false);
     const [searchParams] = useSearchParams();
     const { propostas, loading: loadingHistorico, updateStatus, deleteProposta, fetchPropostas } = usePropostas();
-    
+
     // Estados do Formulário
     const [formData, setFormData] = useState({
         delegacia: '',
@@ -66,7 +66,7 @@ const PropostasPage = () => {
     const [isDeleting, setIsDeleting] = useState(null);
 
     // ─── Efeitos e Handlers do Formulário ────────────────────────
-    
+
     useEffect(() => {
         // Debounce Preview Generation
         const timer = setTimeout(async () => {
@@ -164,7 +164,7 @@ const PropostasPage = () => {
             if (!response.ok) throw new Error('Falha ao gerar PDF');
             const blob = await response.blob();
             const safeFileName = `Proposta_${formData.delegacia.replace(/\s+/g, '_')}.pdf`;
-            
+
             let saveSuccessful = false;
             if (window.showSaveFilePicker) {
                 try {
@@ -215,7 +215,7 @@ const PropostasPage = () => {
     };
 
     // ─── Lógica do Histórico ─────────────────────────────────────
-    
+
     const propostasFiltradas = useMemo(() => {
         return propostas.filter(p => {
             const matchesStatus = filtroStatus === 'todos' || p.status === filtroStatus;
@@ -247,8 +247,8 @@ const PropostasPage = () => {
                             onClick={() => setActiveTab('historico')}
                             className={cn(
                                 "flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all",
-                                activeTab === 'historico' 
-                                    ? "bg-background text-primary shadow-sm ring-1 ring-border" 
+                                activeTab === 'historico'
+                                    ? "bg-background text-primary shadow-sm ring-1 ring-border"
                                     : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                             )}
                         >
@@ -259,8 +259,8 @@ const PropostasPage = () => {
                             onClick={() => setActiveTab('gerar')}
                             className={cn(
                                 "flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all",
-                                activeTab === 'gerar' 
-                                    ? "bg-background text-primary shadow-sm ring-1 ring-border" 
+                                activeTab === 'gerar'
+                                    ? "bg-background text-primary shadow-sm ring-1 ring-border"
                                     : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                             )}
                         >
@@ -448,8 +448,8 @@ const PropostasPage = () => {
                                                 <th className="text-left py-3 px-3 font-semibold">Delegacia</th>
                                                 <th className="text-left py-3 px-3 font-semibold">Mensal</th>
                                                 <th className="text-left py-3 px-3 font-semibold">Anual</th>
-                                                <th className="text-left py-3 px-3 font-semibold">Data</th>
-                                                <th className="text-left py-3 px-3 font-semibold">Status</th>
+                                                <th className="text-right py-3 px-3 font-semibold">Data</th>
+                                                <th className="text-right py-3 px-3 font-semibold">Status da Proposta</th>
                                                 <th className="text-center py-3 px-3 font-semibold">Ações</th>
                                             </tr>
                                         </thead>
@@ -468,17 +468,17 @@ const PropostasPage = () => {
                                                     <td className="py-3 px-3 font-mono text-primary font-medium text-xs">
                                                         R$ {proposta.valor_anual}
                                                     </td>
-                                                    <td className="py-3 px-3 text-muted-foreground text-xs whitespace-nowrap">
+                                                    <td className="py-3 px-3 text-muted-foreground text-xs whitespace-nowrap text-right">
                                                         {new Date(proposta.created_at).toLocaleDateString('pt-BR')}
                                                     </td>
-                                                    <td className="py-3 px-3">
+                                                    <td className="py-3 px-3 flex justify-end">
                                                         <Select value={proposta.status} onValueChange={(val) => updateStatus(proposta.id, val)}>
                                                             <SelectTrigger className={cn(
                                                                 "h-7 w-[110px] text-[10px] font-bold uppercase border rounded-full px-2.5 bg-background transition-all",
                                                                 proposta.status === 'pendente' ? 'text-amber-500 border-amber-500/20 bg-amber-500/10' :
-                                                                proposta.status === 'enviada' ? 'text-blue-500 border-blue-500/20 bg-blue-500/10' :
-                                                                proposta.status === 'aprovada' ? 'text-emerald-500 border-emerald-500/20 bg-emerald-500/10' :
-                                                                'text-red-500 border-red-500/20 bg-red-500/10'
+                                                                    proposta.status === 'enviada' ? 'text-blue-500 border-blue-500/20 bg-blue-500/10' :
+                                                                        proposta.status === 'aprovada' ? 'text-emerald-500 border-emerald-500/20 bg-emerald-500/10' :
+                                                                            'text-red-500 border-red-500/20 bg-red-500/10'
                                                             )}>
                                                                 <SelectValue />
                                                             </SelectTrigger>

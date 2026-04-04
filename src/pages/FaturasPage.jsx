@@ -3,13 +3,13 @@ import PageHeader from '@/components/ui/PageHeader';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-    Wallet, 
-    Search, 
-    Plus, 
-    Filter, 
-    MoreHorizontal, 
-    Download, 
+import {
+    Wallet,
+    Search,
+    Plus,
+    Filter,
+    MoreHorizontal,
+    Download,
     ExternalLink,
     CheckCircle2,
     Clock,
@@ -36,7 +36,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { 
+import {
     Dialog,
     DialogContent,
     DialogHeader,
@@ -67,7 +67,7 @@ const FaturasPage = () => {
         "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
         "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
     ];
-    
+
     // Form state for new Invoice
     const [newFatura, setNewFatura] = useState({
         delegaciaId: '',
@@ -91,7 +91,7 @@ const FaturasPage = () => {
                 .from('delegacias')
                 .select('delegaciaId, nome')
                 .order('nome');
-                
+
             if (delError) throw delError;
             setDelegacias(delData || []);
 
@@ -238,10 +238,10 @@ const FaturasPage = () => {
     };
 
     const filteredFaturas = faturas.filter(f => {
-        const matchesSearch = f.delegacias?.nome?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                             f.referencia_mes_ano?.includes(searchTerm);
+        const matchesSearch = f.delegacias?.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            f.referencia_mes_ano?.includes(searchTerm);
         const matchesStatus = statusFilter === 'todos' || f.status_pagamento === statusFilter;
-        
+
         let matchesMonth = true;
         if (monthFilter !== 'todos') {
             const date = new Date(f.data_vencimento);
@@ -259,9 +259,9 @@ const FaturasPage = () => {
 
     return (
         <div className="space-y-6 max-w-7xl mx-auto">
-            <PageHeader 
-                title="Faturas (Contas a Receber)" 
-                description="Gestão de faturamento, cobranças B2B e recebíveis da agência."
+            <PageHeader
+                title="Faturas (Contas a Receber)"
+                description="Gestão de faturamento, cobranças B2B e outros recebíveis."
                 icon={Wallet}
                 action={
                     <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
@@ -278,14 +278,14 @@ const FaturasPage = () => {
                         <div className="flex flex-col md:flex-row gap-2 items-center">
                             <div className="relative flex-1 w-full max-w-md">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-                                <Input 
-                                    placeholder="Buscar por delegacia ou mês..." 
+                                <Input
+                                    placeholder="Buscar por delegacia ou mês..."
                                     className="pl-10 h-11 bg-background/50 border-border/40 focus:ring-primary/20"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
                             </div>
-                            
+
                             <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
                                 <Select value={refMonthFilter} onValueChange={setRefMonthFilter}>
                                     <SelectTrigger className="w-[140px] h-10 bg-background/50 border-border/40 text-[11px] font-medium">
@@ -335,7 +335,7 @@ const FaturasPage = () => {
                                     <th className="px-4 py-3 font-semibold">Delegacia / Contrato</th>
                                     <th className="px-4 py-3 font-semibold">Vencimento</th>
                                     <th className="px-4 py-3 font-semibold text-right">Valor</th>
-                                    <th className="px-4 py-3 font-semibold">Status de Pagamento</th>
+                                    <th className="px-4 py-3 font-semibold text-right">Status de Pagamento</th>
                                     <th className="px-4 py-3 text-right">Ações</th>
                                 </tr>
                             </thead>
@@ -363,12 +363,12 @@ const FaturasPage = () => {
                                                 <td className="px-4 py-4 text-right font-bold text-emerald-500 font-mono text-xs">
                                                     R$ {fat.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                                 </td>
-                                                <td className="px-4 py-4 flex justify-center">
-                                                    <Select 
-                                                        value={fat.status_pagamento} 
+                                                <td className="px-4 py-4 flex justify-end">
+                                                    <Select
+                                                        value={fat.status_pagamento}
                                                         onValueChange={(v) => {
                                                             // Atualizacao otimista para feedback imediato
-                                                            setFaturas(prev => prev.map(item => 
+                                                            setFaturas(prev => prev.map(item =>
                                                                 item.id === fat.id ? { ...item, status_pagamento: v } : item
                                                             ));
 
@@ -431,9 +431,9 @@ const FaturasPage = () => {
                             <p className="text-sm text-muted-foreground uppercase font-semibold tracking-wider">A Receber (30 dias)</p>
                             <p className="text-2xl font-bold">
                                 R$ {faturas
-                                .filter(f => f.status_pagamento === 'PENDENTE')
-                                .reduce((acc, f) => acc + f.valor, 0)
-                                .toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                    .filter(f => f.status_pagamento === 'PENDENTE')
+                                    .reduce((acc, f) => acc + f.valor, 0)
+                                    .toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                             </p>
                         </div>
                     </CardContent>
@@ -447,9 +447,9 @@ const FaturasPage = () => {
                             <p className="text-sm text-muted-foreground uppercase font-semibold tracking-wider">Recebido (Este Mês)</p>
                             <p className="text-2xl font-bold">
                                 R$ {faturas
-                                .filter(f => f.status_pagamento === 'PAGO')
-                                .reduce((acc, f) => acc + f.valor, 0)
-                                .toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                    .filter(f => f.status_pagamento === 'PAGO')
+                                    .reduce((acc, f) => acc + f.valor, 0)
+                                    .toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                             </p>
                         </div>
                     </CardContent>
@@ -468,7 +468,7 @@ const FaturasPage = () => {
                     <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
                             <Label>Delegacia / Contrato</Label>
-                            <Select onValueChange={(v) => setNewFatura({...newFatura, delegaciaId: v})}>
+                            <Select onValueChange={(v) => setNewFatura({ ...newFatura, delegaciaId: v })}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Selecione a Delegacia" />
                                 </SelectTrigger>
@@ -482,36 +482,36 @@ const FaturasPage = () => {
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2">
                                 <Label>Valor (R$)</Label>
-                                <Input 
-                                    type="text" 
-                                    placeholder="0,00" 
+                                <Input
+                                    type="text"
+                                    placeholder="0,00"
                                     value={newFatura.valor}
-                                    onChange={(e) => setNewFatura({...newFatura, valor: e.target.value})}
+                                    onChange={(e) => setNewFatura({ ...newFatura, valor: e.target.value })}
                                 />
                             </div>
                             <div className="grid gap-2">
                                 <Label>Data de Vencimento</Label>
-                                <Input 
-                                    type="date" 
+                                <Input
+                                    type="date"
                                     value={newFatura.data_vencimento}
-                                    onChange={(e) => setNewFatura({...newFatura, data_vencimento: e.target.value})}
+                                    onChange={(e) => setNewFatura({ ...newFatura, data_vencimento: e.target.value })}
                                 />
                             </div>
                         </div>
                         <div className="grid gap-2">
                             <Label>Mês/Ano Referência (Opcional)</Label>
-                            <Input 
-                                placeholder="Ex: 10/2026" 
+                            <Input
+                                placeholder="Ex: 10/2026"
                                 value={newFatura.referencia_mes_ano}
-                                onChange={(e) => setNewFatura({...newFatura, referencia_mes_ano: e.target.value})}
+                                onChange={(e) => setNewFatura({ ...newFatura, referencia_mes_ano: e.target.value })}
                             />
                         </div>
                         <div className="grid gap-2">
                             <Label>Observações</Label>
-                            <Input 
-                                placeholder="Ex: Contrato Anual - Lote 50 usuários" 
+                            <Input
+                                placeholder="Ex: Contrato Anual - Lote 50 usuários"
                                 value={newFatura.observacoes}
-                                onChange={(e) => setNewFatura({...newFatura, observacoes: e.target.value})}
+                                onChange={(e) => setNewFatura({ ...newFatura, observacoes: e.target.value })}
                             />
                         </div>
                     </div>
@@ -536,7 +536,7 @@ const FaturasPage = () => {
                         <div className="grid gap-4 py-4">
                             <div className="grid gap-2">
                                 <Label>Delegacia / Contrato</Label>
-                                <Select value={editingFatura.delegaciaId} onValueChange={(v) => setEditingFatura({...editingFatura, delegaciaId: v})}>
+                                <Select value={editingFatura.delegaciaId} onValueChange={(v) => setEditingFatura({ ...editingFatura, delegaciaId: v })}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Selecione a Delegacia" />
                                     </SelectTrigger>
@@ -550,34 +550,34 @@ const FaturasPage = () => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="grid gap-2">
                                     <Label>Valor (R$)</Label>
-                                    <Input 
-                                        type="text" 
-                                        placeholder="0,00" 
+                                    <Input
+                                        type="text"
+                                        placeholder="0,00"
                                         value={editingFatura.valor}
-                                        onChange={(e) => setEditingFatura({...editingFatura, valor: e.target.value})}
+                                        onChange={(e) => setEditingFatura({ ...editingFatura, valor: e.target.value })}
                                     />
                                 </div>
                                 <div className="grid gap-2">
                                     <Label>Data de Vencimento</Label>
-                                    <Input 
-                                        type="date" 
+                                    <Input
+                                        type="date"
                                         value={editingFatura.data_vencimento}
-                                        onChange={(e) => setEditingFatura({...editingFatura, data_vencimento: e.target.value})}
+                                        onChange={(e) => setEditingFatura({ ...editingFatura, data_vencimento: e.target.value })}
                                     />
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="grid gap-2">
                                     <Label>Mês/Ano Referência</Label>
-                                    <Input 
-                                        placeholder="Ex: 10/2026" 
+                                    <Input
+                                        placeholder="Ex: 10/2026"
                                         value={editingFatura.referencia_mes_ano}
-                                        onChange={(e) => setEditingFatura({...editingFatura, referencia_mes_ano: e.target.value})}
+                                        onChange={(e) => setEditingFatura({ ...editingFatura, referencia_mes_ano: e.target.value })}
                                     />
                                 </div>
                                 <div className="grid gap-2">
                                     <Label>Status de Pagamento</Label>
-                                    <Select value={editingFatura.status_pagamento} onValueChange={(v) => setEditingFatura({...editingFatura, status_pagamento: v})}>
+                                    <Select value={editingFatura.status_pagamento} onValueChange={(v) => setEditingFatura({ ...editingFatura, status_pagamento: v })}>
                                         <SelectTrigger>
                                             <SelectValue />
                                         </SelectTrigger>
@@ -592,10 +592,10 @@ const FaturasPage = () => {
                             </div>
                             <div className="grid gap-2">
                                 <Label>Observações</Label>
-                                <Input 
-                                    placeholder="Ex: Pagamento via Pix" 
+                                <Input
+                                    placeholder="Ex: Pagamento via Pix"
                                     value={editingFatura.observacoes}
-                                    onChange={(e) => setEditingFatura({...editingFatura, observacoes: e.target.value})}
+                                    onChange={(e) => setEditingFatura({ ...editingFatura, observacoes: e.target.value })}
                                 />
                             </div>
                         </div>

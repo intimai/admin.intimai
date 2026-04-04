@@ -3,12 +3,12 @@ import PageHeader from '@/components/ui/PageHeader';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-    TrendingDown, 
-    Search, 
-    Plus, 
-    Filter, 
-    MoreHorizontal, 
+import {
+    TrendingDown,
+    Search,
+    Plus,
+    Filter,
+    MoreHorizontal,
     Calendar,
     CheckCircle2,
     Clock,
@@ -34,7 +34,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { 
+import {
     Dialog,
     DialogContent,
     DialogHeader,
@@ -60,12 +60,12 @@ const DespesasPage = () => {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingDespesa, setEditingDespesa] = useState(null);
     const [isSaving, setIsSaving] = useState(false);
-    
+
     const MONTHS = [
         "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
         "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
     ];
-    
+
     const [newDespesa, setNewDespesa] = useState({
         tipo_despesa: 'FIXA',
         categoria: '',
@@ -89,10 +89,10 @@ const DespesasPage = () => {
                 .from('delegacias')
                 .select('delegaciaId, nome')
                 .order('nome');
-            
+
             if (delError) throw delError;
             setDelegacias(delData || []);
-            
+
             const { data: despData, error: despError } = await supabase
                 .from('fat_despesas')
                 .select('*, delegacias:delegaciaIdReference("delegaciaId", nome)')
@@ -239,11 +239,11 @@ const DespesasPage = () => {
     };
 
     const filteredDespesas = despesas.filter(d => {
-        const matchesSearch = d.fornecedor?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                             d.categoria?.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesSearch = d.fornecedor?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            d.categoria?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesType = typeFilter === 'todos' || d.tipo_despesa === typeFilter;
         const matchesStatus = statusFilter === 'todos' || d.status_pagamento === statusFilter;
-        
+
         let matchesMonth = true;
         if (monthFilter !== 'todos') {
             const date = new Date(d.data_vencimento);
@@ -253,14 +253,14 @@ const DespesasPage = () => {
         return matchesSearch && matchesType && matchesStatus && matchesMonth;
     });
 
-    const totalFixas = despesas.filter(d => d.tipo_despesa === 'FIXA').reduce((acc, d) => acc + d.valor, 0);
-    const totalVariaveis = despesas.filter(d => d.tipo_despesa === 'VARIAVEL').reduce((acc, d) => acc + d.valor, 0);
+    const totalFixas = filteredDespesas.filter(d => d.tipo_despesa === 'FIXA').reduce((acc, d) => acc + d.valor, 0);
+    const totalVariaveis = filteredDespesas.filter(d => d.tipo_despesa === 'VARIAVEL').reduce((acc, d) => acc + d.valor, 0);
 
     return (
         <div className="space-y-6 max-w-7xl mx-auto">
-            <PageHeader 
-                title="Despesas (Contas a Pagar)" 
-                description="Gestão de custos fixos, APIs de IA e despesas operacionais."
+            <PageHeader
+                title="Despesas (Contas a Pagar)"
+                description="Gestão de Custos Fixos (independem do número de clientes) e Variáveis (proporcionais ao número de clientes e intimações geradas)"
                 icon={TrendingDown}
                 action={
                     <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2 bg-destructive/80 hover:bg-destructive shadow-lg shadow-destructive/10">
@@ -277,14 +277,14 @@ const DespesasPage = () => {
                         <div className="flex flex-col md:flex-row gap-2 items-center">
                             <div className="relative flex-1 w-full max-w-md">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-                                <Input 
-                                    placeholder="Buscar por fornecedor ou categoria..." 
+                                <Input
+                                    placeholder="Buscar por fornecedor ou categoria..."
                                     className="pl-10 h-11 bg-background/50 border-border/40 focus:ring-primary/20"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
                             </div>
-                            
+
                             <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
                                 <Select value={typeFilter} onValueChange={setTypeFilter}>
                                     <SelectTrigger className="w-[140px] h-10 bg-background/50 border-border/40 text-[11px] font-medium">
@@ -292,8 +292,8 @@ const DespesasPage = () => {
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="todos">Todos os Tipos</SelectItem>
-                                        <SelectItem value="FIXA">FIXA</SelectItem>
-                                        <SelectItem value="VARIAVEL">VARIAVEL</SelectItem>
+                                        <SelectItem value="FIXA">Fixa</SelectItem>
+                                        <SelectItem value="VARIAVEL">Variável</SelectItem>
                                     </SelectContent>
                                 </Select>
 
@@ -332,7 +332,7 @@ const DespesasPage = () => {
                                     <th className="px-4 py-3 font-semibold">Fornecedor / Categoria</th>
                                     <th className="px-4 py-3 font-semibold">Vencimento</th>
                                     <th className="px-4 py-3 font-semibold text-right">Valor</th>
-                                    <th className="px-4 py-3 font-semibold">Status de Pagamento</th>
+                                    <th className="px-4 py-3 font-semibold text-right">Status de Pagamento</th>
                                     <th className="px-4 py-3 text-right">Ações</th>
                                 </tr>
                             </thead>
@@ -364,15 +364,15 @@ const DespesasPage = () => {
                                                 <td className="px-4 py-4 text-right font-bold text-destructive font-mono text-xs">
                                                     R$ {des.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                                 </td>
-                                                <td className="px-4 py-4 flex justify-center">
-                                                    <Select 
-                                                        value={des.status_pagamento} 
+                                                <td className="px-4 py-4 flex justify-end">
+                                                    <Select
+                                                        value={des.status_pagamento}
                                                         onValueChange={(v) => {
                                                             // Atualizacao otimista para feedback imediato
-                                                            setDespesas(prev => prev.map(item => 
+                                                            setDespesas(prev => prev.map(item =>
                                                                 item.id === des.id ? { ...item, status_pagamento: v } : item
                                                             ));
-                                                            
+
                                                             supabase.from('fat_despesas').update({ status_pagamento: v }).eq('id', des.id).then(({ error }) => {
                                                                 if (error) {
                                                                     toast({ title: "Erro", description: "Não foi possível atualizar no banco.", variant: "destructive" });
@@ -406,10 +406,10 @@ const DespesasPage = () => {
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
                                                             <DropdownMenuItem className="gap-2" onClick={() => handleEditDespesa(des)}><Calendar size={14} /> Editar Lançamento</DropdownMenuItem>
-                                                            <DropdownMenuItem 
+                                                            <DropdownMenuItem
                                                                 className="gap-2 text-destructive"
                                                                 onClick={() => {
-                                                                    if(confirm('Deseja realmente excluir este lançamento?')) {
+                                                                    if (confirm('Deseja realmente excluir este lançamento?')) {
                                                                         supabase.from('fat_despesas').delete().eq('id', des.id).then(() => {
                                                                             toast({ title: "Sucesso", description: "Lançamento removido." });
                                                                             fetchDespesas();
@@ -445,9 +445,9 @@ const DespesasPage = () => {
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2">
                                 <Label>Tipo de Despesa</Label>
-                                <Select 
-                                    value={newDespesa.tipo_despesa} 
-                                    onValueChange={(v) => setNewDespesa({...newDespesa, tipo_despesa: v})}
+                                <Select
+                                    value={newDespesa.tipo_despesa}
+                                    onValueChange={(v) => setNewDespesa({ ...newDespesa, tipo_despesa: v })}
                                 >
                                     <SelectTrigger>
                                         <SelectValue />
@@ -460,41 +460,41 @@ const DespesasPage = () => {
                             </div>
                             <div className="grid gap-2">
                                 <Label>Valor (R$)</Label>
-                                <Input 
-                                    placeholder="0,00" 
+                                <Input
+                                    placeholder="0,00"
                                     value={newDespesa.valor}
-                                    onChange={(e) => setNewDespesa({...newDespesa, valor: e.target.value})}
+                                    onChange={(e) => setNewDespesa({ ...newDespesa, valor: e.target.value })}
                                 />
                             </div>
                         </div>
                         <div className="grid gap-2">
                             <Label>Fornecedor</Label>
-                            <Input 
-                                placeholder="Ex: OpenAI, AWS, Vercel" 
+                            <Input
+                                placeholder="Ex: OpenAI, AWS, Vercel"
                                 value={newDespesa.fornecedor}
-                                onChange={(e) => setNewDespesa({...newDespesa, fornecedor: e.target.value})}
+                                onChange={(e) => setNewDespesa({ ...newDespesa, fornecedor: e.target.value })}
                             />
                         </div>
                         <div className="grid gap-2">
                             <Label>Categoria</Label>
-                            <Input 
-                                placeholder="Ex: Infraestrutura, Tokens ChatGPT" 
+                            <Input
+                                placeholder="Ex: Infraestrutura, Tokens ChatGPT"
                                 value={newDespesa.categoria}
-                                onChange={(e) => setNewDespesa({...newDespesa, categoria: e.target.value})}
+                                onChange={(e) => setNewDespesa({ ...newDespesa, categoria: e.target.value })}
                             />
                         </div>
                         <div className="grid gap-2">
                             <Label>Data Vencimento</Label>
-                            <Input 
-                                type="date" 
+                            <Input
+                                type="date"
                                 value={newDespesa.data_vencimento}
-                                onChange={(e) => setNewDespesa({...newDespesa, data_vencimento: e.target.value})}
+                                onChange={(e) => setNewDespesa({ ...newDespesa, data_vencimento: e.target.value })}
                             />
                         </div>
                         {newDespesa.tipo_despesa === 'VARIAVEL' && (
                             <div className="grid gap-2">
                                 <Label>Vincular a Delegacia (Opcional)</Label>
-                                <Select value={newDespesa.delegaciaIdReference || 'none'} onValueChange={(v) => setNewDespesa({...newDespesa, delegaciaIdReference: v === 'none' ? '' : v})}>
+                                <Select value={newDespesa.delegaciaIdReference || 'none'} onValueChange={(v) => setNewDespesa({ ...newDespesa, delegaciaIdReference: v === 'none' ? '' : v })}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Selecione para calcular margem" />
                                     </SelectTrigger>
@@ -530,9 +530,9 @@ const DespesasPage = () => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="grid gap-2">
                                     <Label>Tipo de Despesa</Label>
-                                    <Select 
-                                        value={editingDespesa.tipo_despesa} 
-                                        onValueChange={(v) => setEditingDespesa({...editingDespesa, tipo_despesa: v})}
+                                    <Select
+                                        value={editingDespesa.tipo_despesa}
+                                        onValueChange={(v) => setEditingDespesa({ ...editingDespesa, tipo_despesa: v })}
                                     >
                                         <SelectTrigger>
                                             <SelectValue />
@@ -545,24 +545,24 @@ const DespesasPage = () => {
                                 </div>
                                 <div className="grid gap-2">
                                     <Label>Valor (R$)</Label>
-                                    <Input 
-                                        placeholder="0,00" 
+                                    <Input
+                                        placeholder="0,00"
                                         value={editingDespesa.valor}
-                                        onChange={(e) => setEditingDespesa({...editingDespesa, valor: e.target.value})}
+                                        onChange={(e) => setEditingDespesa({ ...editingDespesa, valor: e.target.value })}
                                     />
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="grid gap-2">
                                     <Label>Fornecedor</Label>
-                                    <Input 
+                                    <Input
                                         value={editingDespesa.fornecedor}
-                                        onChange={(e) => setEditingDespesa({...editingDespesa, fornecedor: e.target.value})}
+                                        onChange={(e) => setEditingDespesa({ ...editingDespesa, fornecedor: e.target.value })}
                                     />
                                 </div>
                                 <div className="grid gap-2">
                                     <Label>Status</Label>
-                                    <Select value={editingDespesa.status_pagamento} onValueChange={(v) => setEditingDespesa({...editingDespesa, status_pagamento: v})}>
+                                    <Select value={editingDespesa.status_pagamento} onValueChange={(v) => setEditingDespesa({ ...editingDespesa, status_pagamento: v })}>
                                         <SelectTrigger>
                                             <SelectValue />
                                         </SelectTrigger>
@@ -576,17 +576,17 @@ const DespesasPage = () => {
                             </div>
                             <div className="grid gap-2">
                                 <Label>Categoria</Label>
-                                <Input 
+                                <Input
                                     value={editingDespesa.categoria}
-                                    onChange={(e) => setEditingDespesa({...editingDespesa, categoria: e.target.value})}
+                                    onChange={(e) => setEditingDespesa({ ...editingDespesa, categoria: e.target.value })}
                                 />
                             </div>
                             <div className="grid gap-2">
                                 <Label>Data Vencimento</Label>
-                                <Input 
-                                    type="date" 
+                                <Input
+                                    type="date"
                                     value={editingDespesa.data_vencimento}
-                                    onChange={(e) => setEditingDespesa({...editingDespesa, data_vencimento: e.target.value})}
+                                    onChange={(e) => setEditingDespesa({ ...editingDespesa, data_vencimento: e.target.value })}
                                 />
                             </div>
                         </div>
@@ -614,7 +614,7 @@ const DespesasPage = () => {
                     <CardContent className="p-6 flex items-center gap-4">
                         <div className="p-3 bg-amber-500/10 rounded-xl text-amber-500"><Cpu size={24} /></div>
                         <div>
-                            <p className="text-sm text-muted-foreground uppercase font-semibold tracking-wider">Custos IA (Variáveis)</p>
+                            <p className="text-sm text-muted-foreground uppercase font-semibold tracking-wider">Custos Variáveis Totais</p>
                             <p className="text-2xl font-bold">R$ {totalVariaveis.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                         </div>
                     </CardContent>

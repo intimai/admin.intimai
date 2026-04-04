@@ -789,7 +789,7 @@ const ContratosPage = () => {
                                             <tr className="border-b border-border/50 text-muted-foreground text-[11px] uppercase tracking-wider">
                                                 <th className="text-left py-3 px-3 font-semibold">Delegacia</th>
                                                 <th className="text-left py-3 px-3 font-semibold">Geração</th>
-                                                <th className="text-left py-3 px-3 font-semibold">Status</th>
+                                                <th className="text-right py-3 px-3 font-semibold">Status do Contrato</th>
                                                 <th className="text-center py-3 px-3 font-semibold">Ações</th>
                                             </tr>
                                         </thead>
@@ -808,7 +808,7 @@ const ContratosPage = () => {
                                                             {new Date(contrato.created_at).toLocaleDateString('pt-BR')}
                                                         </div>
                                                     </td>
-                                                    <td className="py-3 px-3">
+                                                    <td className="py-3 px-3 flex justify-end">
                                                         <Select value={contrato.status || 'pendente'} onValueChange={(val) => updateStatus(contrato.id, val)}>
                                                             <SelectTrigger className={cn(
                                                                 "h-7 w-[110px] text-[10px] font-bold uppercase border rounded-full px-2.5 bg-background transition-all",

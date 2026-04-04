@@ -201,8 +201,8 @@ const NFePage = () => {
                     <th className="text-left py-3 px-3 font-semibold">Número</th>
                     <th className="text-left py-3 px-3 font-semibold">Delegacia</th>
                     <th className="text-left py-3 px-3 font-semibold">Emissão</th>
-                    <th className="text-left py-3 px-3 font-semibold">Valor</th>
-                    <th className="text-left py-3 px-3 font-semibold">Status</th>
+                    <th className="text-right py-3 px-3 font-semibold">Valor</th>
+                    <th className="text-right py-3 px-3 font-semibold">Status de Emissão</th>
                     <th className="text-center py-3 px-3 font-semibold">Ações</th>
                   </tr>
                 </thead>
@@ -213,10 +213,7 @@ const NFePage = () => {
                     return (
                       <tr key={nf.id} className="border-b border-border/30 hover:bg-muted/20 transition-colors">
                         <td className="py-3 px-3">
-                          <div className="flex items-center gap-2">
-                            <Receipt size={14} className="text-primary/60 shrink-0" />
-                            <span className="font-semibold text-foreground">{nf.numero_nf}</span>
-                          </div>
+                          <span className="font-semibold text-foreground">{nf.numero_nf}</span>
                         </td>
                         <td className="py-3 px-3">
                           <div className="flex items-center gap-1.5">
@@ -227,10 +224,10 @@ const NFePage = () => {
                         <td className="py-3 px-3 text-muted-foreground text-xs">
                           {formatDate(nf.data_emissao)}
                         </td>
-                        <td className="py-3 px-3 font-mono text-foreground font-medium text-xs">
+                        <td className="py-3 px-3 font-mono text-foreground font-medium text-xs text-right">
                           {formatCurrency(nf.valor)}
                         </td>
-                        <td className="py-3 px-3">
+                        <td className="py-3 px-3 flex justify-end">
                           <Select
                             value={nf.status}
                             onValueChange={(v) => updateStatus(nf.id, v)}
